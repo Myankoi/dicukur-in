@@ -6,6 +6,7 @@
 .project
 .classpath
 .gradle/
+frontend
 
 *.iml
 *.iws
