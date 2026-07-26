@@ -21,5 +21,5 @@ ON DUPLICATE KEY UPDATE `name` = VALUES(`name`);
 
 -- Seed Users Master (Admin)
 INSERT INTO `users` (`id`, `role_id`, `name`, `email`, `phone`, `password`, `status`) VALUES
-(1, 1, 'Admin Dicukur', 'admin@dicukur.com', '081111111111', '$2a$10$0i0kQfEj3ZvZcmM1y5OvK.WMEkQSOt7hZ4B3ZC4fGpCvrWWuZmSO.', 'active')
+(1, 1, 'Admin Dicukur', 'admin@dicukur.com', '081111111111', '$2a$10$akWPrdljucBjodtE0mzBNOFMvURDlx08bT4S4EyRtlPyWVKpfvJqm', 'active')
 ON DUPLICATE KEY UPDATE `email` = VALUES(`email`);

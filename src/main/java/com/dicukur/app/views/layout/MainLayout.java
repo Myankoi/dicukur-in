@@ -4,6 +4,7 @@ import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -25,11 +26,15 @@ public class MainLayout extends AppLayout {
 
     private void createHeader() {
         H1 title = new H1("dicukur.in");
-        title.getStyle()
-                .set("font-size", "var(--lumo-font-size-l)")
-                .set("margin", "0");
+        title.addClassName("app-brand-title");
 
-        // nama user yang login
+        Span subtitle = new Span("Barber booking system");
+        subtitle.addClassName("app-brand-subtitle");
+
+        VerticalLayout brand = new VerticalLayout(title, subtitle);
+        brand.setPadding(false);
+        brand.setSpacing(false);
+
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = (auth != null && auth.isAuthenticated()) ? auth.getName() : "";
 
@@ -38,16 +43,15 @@ public class MainLayout extends AppLayout {
                 .set("color", "var(--lumo-secondary-text-color)")
                 .set("font-size", "var(--lumo-font-size-s)");
 
-        // tombol logout
         Button logoutButton = new Button("Logout", VaadinIcon.SIGN_OUT.create(), e -> {
             getUI().ifPresent(ui -> ui.getPage().setLocation("/logout"));
         });
         logoutButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
 
         HorizontalLayout header = new HorizontalLayout(
-                new DrawerToggle(), title, userInfo, logoutButton);
+                new DrawerToggle(), brand, userInfo, logoutButton);
         header.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        header.expand(title);
+        header.expand(brand);
         header.setWidthFull();
         header.setPadding(true);
         header.setSpacing(true);
@@ -70,22 +74,44 @@ public class MainLayout extends AppLayout {
         switch (role) {
             case "ROLE_ADMIN":
                 nav.addItem(new SideNavItem("Dashboard", "/admin", VaadinIcon.DASHBOARD.create()));
+                nav.addItem(new SideNavItem("Pendaftaran", "/admin/registrations", VaadinIcon.CLIPBOARD_CHECK.create()));
+                nav.addItem(new SideNavItem("User", "/admin/users", VaadinIcon.USERS.create()));
+                nav.addItem(new SideNavItem("Layanan", "/admin/services", VaadinIcon.CUTLERY.create()));
+                nav.addItem(new SideNavItem("Booking", "/admin/bookings", VaadinIcon.CALENDAR_CLOCK.create()));
+                nav.addItem(new SideNavItem("Pembayaran", "/admin/payments", VaadinIcon.CREDIT_CARD.create()));
+                nav.addItem(new SideNavItem("Laporan", "/admin/reports", VaadinIcon.CHART.create()));
                 break;
 
             case "ROLE_OWNER":
                 nav.addItem(new SideNavItem("Dashboard", "/owner", VaadinIcon.DASHBOARD.create()));
+                nav.addItem(new SideNavItem("Profil Barbershop", "/owner/profile", VaadinIcon.SHOP.create()));
+                nav.addItem(new SideNavItem("Karyawan", "/owner/staff", VaadinIcon.USERS.create()));
+                nav.addItem(new SideNavItem("Booking", "/owner/bookings", VaadinIcon.CALENDAR_CLOCK.create()));
+                nav.addItem(new SideNavItem("Laporan", "/owner/reports", VaadinIcon.CHART.create()));
                 break;
 
             case "ROLE_BARBER":
                 nav.addItem(new SideNavItem("Dashboard", "/barber", VaadinIcon.DASHBOARD.create()));
+                nav.addItem(new SideNavItem("Pesanan Masuk", "/barber/bookings", VaadinIcon.INBOX.create()));
+                nav.addItem(new SideNavItem("Jadwal Saya", "/barber/schedules", VaadinIcon.CALENDAR.create()));
+                nav.addItem(new SideNavItem("Riwayat", "/barber/history", VaadinIcon.ARCHIVE.create()));
                 break;
 
             case "ROLE_CUSTOMER":
                 nav.addItem(new SideNavItem("Dashboard", "/customer", VaadinIcon.DASHBOARD.create()));
+                nav.addItem(new SideNavItem("Pesan Barber", "/customer/bookings/new", VaadinIcon.SCISSORS.create()));
+                nav.addItem(new SideNavItem("Alamat Saya", "/customer/addresses", VaadinIcon.HOME.create()));
+                nav.addItem(new SideNavItem("Pesanan Saya", "/customer/bookings", VaadinIcon.CALENDAR_USER.create()));
                 break;
         }
 
-        VerticalLayout drawerContent = new VerticalLayout(nav);
+        Div drawerHeader = new Div(new Span("Navigasi"));
+        drawerHeader.getStyle()
+                .set("padding", "var(--lumo-space-m)")
+                .set("font-weight", "600")
+                .set("color", "var(--dicukur-muted)");
+
+        VerticalLayout drawerContent = new VerticalLayout(drawerHeader, nav);
         drawerContent.setPadding(false);
         drawerContent.setSpacing(false);
 

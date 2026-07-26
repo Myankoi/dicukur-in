@@ -25,33 +25,39 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    /**
-     * Register customer baru.
-     * Otomatis assign role "Customer" dan hash password.
-     */
     @Transactional
     public User registerCustomer(String name, String email, String phone, String rawPassword) {
-        // Validasi email unik
+        return registerUser(name, email, phone, rawPassword, "Customer", "active");
+    }
+
+    @Transactional
+    public User registerPartnerApplicant(String name, String email, String phone, String rawPassword, String roleName) {
+        if (!"Barber".equals(roleName) && !"Owner".equals(roleName)) {
+            throw new IllegalArgumentException("Tipe pendaftaran tidak valid");
+        }
+
+        return registerUser(name, email, phone, rawPassword, roleName, "inactive");
+    }
+
+    private User registerUser(String name, String email, String phone, String rawPassword, String roleName, String status) {
         if (userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Email sudah terdaftar");
         }
 
-        // Validasi phone unik (jika diisi)
         if (phone != null && !phone.isBlank() && userRepository.existsByPhone(phone)) {
             throw new IllegalArgumentException("Nomor telepon sudah terdaftar");
         }
 
-        // Ambil role Customer
-        Role customerRole = roleRepository.findByName("Customer")
-                .orElseThrow(() -> new IllegalStateException("Role Customer tidak ditemukan di database"));
+        Role role = roleRepository.findByName(roleName)
+                .orElseThrow(() -> new IllegalStateException("Role " + roleName + " tidak ditemukan di database"));
 
         User user = new User();
         user.setName(name);
         user.setEmail(email);
         user.setPhone(phone != null && !phone.isBlank() ? phone : null);
         user.setPassword(passwordEncoder.encode(rawPassword));
-        user.setRole(customerRole);
-        user.setStatus("active");
+        user.setRole(role);
+        user.setStatus(status);
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
 

@@ -3,8 +3,11 @@ package com.dicukur.app.views.auth;
 import com.dicukur.app.user.service.UserService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -27,47 +30,60 @@ public class RegisterView extends VerticalLayout {
         this.userService = userService;
 
         setSizeFull();
+        setPadding(false);
+        setSpacing(false);
+        addClassName("auth-shell");
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(JustifyContentMode.CENTER);
 
-        H1 title = new H1("Daftar Akun");
+        VerticalLayout panel = new VerticalLayout();
+        panel.addClassName("auth-panel");
+        panel.setPadding(false);
+        panel.setSpacing(false);
+
+        H2 title = new H2("Daftar Akun");
+        title.addClassName("auth-title");
+
+        Paragraph subtitle = new Paragraph("Pilih tipe akun sesuai kebutuhan Anda");
+        subtitle.addClassName("auth-subtitle");
+
+        ComboBox<String> roleField = new ComboBox<>("Tipe Akun");
+        roleField.setItems("Customer", "Barber Mandiri", "Owner Barbershop");
+        roleField.setValue("Customer");
+        roleField.setRequiredIndicatorVisible(true);
+        roleField.setWidthFull();
 
         TextField nameField = new TextField("Nama Lengkap");
         nameField.setRequired(true);
         nameField.setWidthFull();
-        nameField.setMaxWidth("320px");
 
         EmailField emailField = new EmailField("Email");
         emailField.setRequired(true);
         emailField.setWidthFull();
-        emailField.setMaxWidth("320px");
 
         TextField phoneField = new TextField("No. Telepon");
         phoneField.setWidthFull();
-        phoneField.setMaxWidth("320px");
         phoneField.setPlaceholder("08xxxxxxxxxx");
 
         PasswordField passwordField = new PasswordField("Password");
         passwordField.setRequired(true);
         passwordField.setWidthFull();
-        passwordField.setMaxWidth("320px");
         passwordField.setMinLength(6);
 
         PasswordField confirmPasswordField = new PasswordField("Konfirmasi Password");
         confirmPasswordField.setRequired(true);
         confirmPasswordField.setWidthFull();
-        confirmPasswordField.setMaxWidth("320px");
 
         Button registerButton = new Button("Daftar", e -> {
-            // Validasi field
+            String accountType = roleField.getValue();
             String name = nameField.getValue().trim();
             String email = emailField.getValue().trim();
             String phone = phoneField.getValue().trim();
             String password = passwordField.getValue();
             String confirmPassword = confirmPasswordField.getValue();
 
-            if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
-                Notification.show("Nama, email, dan password wajib diisi", 3000,
+            if (accountType == null || name.isEmpty() || email.isEmpty() || password.isEmpty()) {
+                Notification.show("Tipe akun, nama, email, dan password wajib diisi", 3000,
                         Notification.Position.TOP_CENTER)
                         .addThemeVariants(NotificationVariant.LUMO_ERROR);
                 return;
@@ -88,12 +104,15 @@ public class RegisterView extends VerticalLayout {
             }
 
             try {
-                userService.registerCustomer(name, email, phone, password);
-                Notification.show("Registrasi berhasil! Silakan login.", 3000,
-                        Notification.Position.TOP_CENTER)
-                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                if ("Customer".equals(accountType)) {
+                    userService.registerCustomer(name, email, phone, password);
+                    showSuccess("Registrasi berhasil. Silakan login.");
+                } else {
+                    String roleName = "Barber Mandiri".equals(accountType) ? "Barber" : "Owner";
+                    userService.registerPartnerApplicant(name, email, phone, password, roleName);
+                    showSuccess("Pendaftaran diterima. Akun mitra aktif setelah approval admin.");
+                }
 
-                // Redirect ke login
                 getUI().ifPresent(ui -> ui.navigate("login"));
             } catch (IllegalArgumentException ex) {
                 Notification.show(ex.getMessage(), 3000,
@@ -103,11 +122,23 @@ public class RegisterView extends VerticalLayout {
         });
         registerButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         registerButton.setWidthFull();
-        registerButton.setMaxWidth("320px");
 
-        Paragraph loginLink = new Paragraph(new RouterLink("Sudah punya akun? Login", LoginView.class));
+        Paragraph loginLink = new Paragraph(
+                new Span("Sudah punya akun? "),
+                new RouterLink("Login", LoginView.class)
+        );
+        loginLink.addClassName("auth-register-link");
 
-        add(title, nameField, emailField, phoneField, passwordField, confirmPasswordField,
-                registerButton, loginLink);
+        Div card = new Div(roleField, nameField, emailField, phoneField, passwordField, confirmPasswordField, registerButton);
+        card.addClassName("auth-card");
+
+        panel.add(title, subtitle, card, loginLink);
+        add(panel);
+    }
+
+    private void showSuccess(String message) {
+        Notification.show(message, 3000,
+                        Notification.Position.TOP_CENTER)
+                        .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
     }
 }

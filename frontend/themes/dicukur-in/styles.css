@@ -1,0 +1,215 @@
+html {
+  --lumo-primary-color: #d97706;
+  --lumo-primary-color-50pct: rgba(217, 119, 6, 0.5);
+  --lumo-primary-color-10pct: rgba(217, 119, 6, 0.1);
+  --lumo-base-color: #ffffff;
+  --lumo-body-text-color: #111827;
+  --lumo-secondary-text-color: #6b7280;
+  --lumo-border-radius-m: 10px;
+  --dicukur-primary: #1f2937;
+  --dicukur-primary-soft: #374151;
+  --dicukur-accent: #d97706;
+  --dicukur-accent-soft: #fef3c7;
+  --dicukur-background: #f9fafb;
+  --dicukur-surface: #ffffff;
+  --dicukur-border: #e5e7eb;
+  --dicukur-text: #111827;
+  --dicukur-muted: #6b7280;
+  --dicukur-success: #16a34a;
+  --dicukur-warning: #d97706;
+  --dicukur-danger: #dc2626;
+  --dicukur-info: #2563eb;
+}
+
+body {
+  background: var(--dicukur-background);
+}
+
+.auth-shell {
+  min-height: 100vh;
+  background: var(--dicukur-background);
+}
+
+.auth-hero {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    linear-gradient(120deg, rgba(17, 24, 39, 0.88), rgba(17, 24, 39, 0.58)),
+    radial-gradient(circle at 25% 18%, rgba(217, 119, 6, 0.38), transparent 28%),
+    linear-gradient(135deg, #111827 0%, #3f2f27 48%, #1f2937 100%);
+}
+
+.auth-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 52px 52px;
+  opacity: 0.22;
+}
+
+.auth-brand {
+  position: absolute;
+  left: var(--lumo-space-xl);
+  bottom: var(--lumo-space-xl);
+  color: #ffffff;
+  z-index: 1;
+}
+
+.auth-brand h1,
+.auth-title {
+  margin: 0;
+}
+
+.auth-brand h1 {
+  font-size: var(--lumo-font-size-xxl);
+}
+
+.auth-brand span {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.auth-panel-wrap {
+  min-height: 100vh;
+  padding: var(--lumo-space-l);
+  background: #f8fafc;
+}
+
+.auth-panel {
+  width: 100%;
+  max-width: 360px;
+}
+
+.auth-title {
+  color: var(--dicukur-text);
+  font-size: var(--lumo-font-size-xl);
+  font-weight: 700;
+}
+
+.auth-subtitle,
+.muted-text {
+  color: var(--dicukur-muted);
+}
+
+.auth-card {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: var(--lumo-space-l);
+  padding: var(--lumo-space-l);
+  border: 1px solid var(--dicukur-border);
+  border-radius: 8px;
+  background: var(--dicukur-surface);
+}
+
+.auth-role-tabs {
+  width: 100%;
+  margin-top: var(--lumo-space-m);
+}
+
+.auth-register-link {
+  width: 100%;
+  justify-content: center;
+  color: var(--dicukur-muted);
+  font-size: var(--lumo-font-size-s);
+}
+
+.page-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--lumo-space-l);
+  box-sizing: border-box;
+}
+
+.page-header {
+  margin-bottom: var(--lumo-space-l);
+}
+
+.page-title {
+  margin: 0;
+  font-size: var(--lumo-font-size-xxl);
+  font-weight: 700;
+  color: var(--dicukur-text);
+}
+
+.page-subtitle {
+  margin: var(--lumo-space-xs) 0 0;
+  color: var(--dicukur-muted);
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--lumo-space-m);
+  width: 100%;
+}
+
+.metric-card {
+  background: var(--dicukur-surface);
+  border: 1px solid var(--dicukur-border);
+  border-radius: 8px;
+  padding: var(--lumo-space-m);
+  box-sizing: border-box;
+}
+
+.metric-label {
+  color: var(--dicukur-muted);
+  font-size: var(--lumo-font-size-s);
+}
+
+.metric-value {
+  margin-top: var(--lumo-space-xs);
+  color: var(--dicukur-text);
+  font-size: var(--lumo-font-size-xl);
+  font-weight: 700;
+}
+
+.metric-description {
+  margin-top: var(--lumo-space-xs);
+  color: var(--dicukur-muted);
+  font-size: var(--lumo-font-size-xs);
+}
+
+.dashboard-section {
+  width: 100%;
+  margin-top: var(--lumo-space-l);
+  padding: var(--lumo-space-l);
+  border: 1px solid var(--dicukur-border);
+  border-radius: 8px;
+  background: var(--dicukur-surface);
+  box-sizing: border-box;
+}
+
+.dashboard-section h3 {
+  margin-top: 0;
+}
+
+.app-brand-title {
+  margin: 0;
+  color: var(--dicukur-text);
+  font-size: var(--lumo-font-size-l);
+  font-weight: 700;
+}
+
+.app-brand-subtitle {
+  color: var(--dicukur-muted);
+  font-size: var(--lumo-font-size-xs);
+}
+
+@media (max-width: 800px) {
+  .auth-hero {
+    display: none;
+  }
+
+  .auth-panel-wrap {
+    width: 100% !important;
+    min-height: 100vh;
+  }
+
+  .page-container {
+    padding: var(--lumo-space-m);
+  }
+}

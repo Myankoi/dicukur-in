@@ -6,7 +6,8 @@
 .project
 .classpath
 .gradle/
-frontend
+frontend/generated/
+frontend/index.html
 
 *.iml
 *.iws
@@ -17,6 +18,11 @@ node_modules/
 src/main/frontend/generated/
 pnpmfile.js
 vite.generated.ts
+package.json
+package-lock.json
+tsconfig.json
+types.d.ts
+vite.config.ts
 
 # Browser drivers for local integration tests
 drivers/

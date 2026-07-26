@@ -29,6 +29,10 @@ public class SecurityConfig extends VaadinWebSecurity {
                 .permitAll()
         );
 
+        http.exceptionHandling(exception -> exception
+                .accessDeniedPage("/access-denied")
+        );
+
         super.configure(http);
 
         setLoginView(http, LoginView.class);
