@@ -3,9 +3,9 @@ spring:
     name: dicukur-in
 
   datasource:
-    url: jdbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3307}/${DB_NAME:dicukurin_db}?createDatabaseIfNotExist=true
+    url: jdbc:mariadb://${DB_HOST:localhost}:${DB_PORT:3307}/${DB_NAME:barber_booking}?createDatabaseIfNotExist=true
     username: ${DB_USER:root}
-    password: ${DB_PASSWORD:}
+    password: ${DB_PASSWORD:rootpassword}
     driver-class-name: org.mariadb.jdbc.Driver
 
   jpa:
@@ -21,8 +21,18 @@ spring:
     baseline-on-migrate: true
     locations: classpath:db/migration
 
-  server:
-    port: 8080
+  mustache:
+    check-template-location: false
 
-  app:
-    upload-dir: uploads
+server:
+  port: ${PORT:8080}
+
+vaadin:
+  launch-browser: false
+
+logging:
+  level:
+    org.atmosphere: warn
+
+app:
+  upload-dir: uploads
