@@ -13,13 +13,17 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
+import com.vaadin.flow.spring.security.AuthenticationContext;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 public class MainLayout extends AppLayout {
 
-    public MainLayout() {
+    private final AuthenticationContext authenticationContext;
+
+    public MainLayout(AuthenticationContext authenticationContext) {
+        this.authenticationContext = authenticationContext;
         createHeader();
         createDrawer();
     }
@@ -44,7 +48,7 @@ public class MainLayout extends AppLayout {
                 .set("font-size", "var(--lumo-font-size-s)");
 
         Button logoutButton = new Button("Logout", VaadinIcon.SIGN_OUT.create(), e -> {
-            getUI().ifPresent(ui -> ui.getPage().setLocation("/logout"));
+            authenticationContext.logout();
         });
         logoutButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_TERTIARY);
 

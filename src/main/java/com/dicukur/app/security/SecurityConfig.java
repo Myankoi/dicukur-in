@@ -20,18 +20,16 @@ public class SecurityConfig extends VaadinWebSecurity {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/images/**", "/icons/**").permitAll()
-        );
+                .requestMatchers("/styles.css", "/themes/**", "/images/**", "/icons/**").permitAll()
+                .requestMatchers("/register/customer", "/register/barber", "/register/owner").permitAll());
 
         http.formLogin(form -> form
                 .loginPage("/login")
                 .successHandler(loginSuccessHandler)
-                .permitAll()
-        );
+                .permitAll());
 
         http.exceptionHandling(exception -> exception
-                .accessDeniedPage("/access-denied")
-        );
+                .accessDeniedPage("/access-denied"));
 
         super.configure(http);
 

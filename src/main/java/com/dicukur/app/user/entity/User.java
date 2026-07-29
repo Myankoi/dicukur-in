@@ -34,6 +34,9 @@ public class User {
 
     private String photo;
 
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+
     @Column(nullable = false)
     private String status = "active";
 

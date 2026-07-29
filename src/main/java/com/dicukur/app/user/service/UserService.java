@@ -27,19 +27,23 @@ public class UserService {
 
     @Transactional
     public User registerCustomer(String name, String email, String phone, String rawPassword) {
-        return registerUser(name, email, phone, rawPassword, "Customer", "active");
+        return registerUser(name, email, phone, rawPassword, "Customer", "active", null);
     }
 
     @Transactional
-    public User registerPartnerApplicant(String name, String email, String phone, String rawPassword, String roleName) {
-        if (!"Barber".equals(roleName) && !"Owner".equals(roleName)) {
-            throw new IllegalArgumentException("Tipe pendaftaran tidak valid");
-        }
-
-        return registerUser(name, email, phone, rawPassword, roleName, "inactive");
+    public User registerBarberApplicant(String name, String email, String phone,
+                                        String rawPassword, String notes) {
+        return registerUser(name, email, phone, rawPassword, "Barber", "inactive", notes);
     }
 
-    private User registerUser(String name, String email, String phone, String rawPassword, String roleName, String status) {
+    @Transactional
+    public User registerOwnerApplicant(String name, String email, String phone,
+                                       String rawPassword, String notes) {
+        return registerUser(name, email, phone, rawPassword, "Owner", "inactive", notes);
+    }
+
+    private User registerUser(String name, String email, String phone,
+                              String rawPassword, String roleName, String status, String notes) {
         if (userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Email sudah terdaftar");
         }
@@ -58,6 +62,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(rawPassword));
         user.setRole(role);
         user.setStatus(status);
+        user.setNotes(notes);
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
 

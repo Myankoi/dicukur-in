@@ -1,0 +1,1 @@
+ALTER TABLE users ADD COLUMN notes TEXT NULL AFTER photo;
