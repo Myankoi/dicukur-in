@@ -1,39 +1,27 @@
 package com.dicukur.app.security;
 
-import com.dicukur.app.views.auth.LoginView;
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 public class SecurityConfig extends VaadinWebSecurity {
 
-    private final LoginSuccessHandler loginSuccessHandler;
-
-    public SecurityConfig(LoginSuccessHandler loginSuccessHandler) {
-        this.loginSuccessHandler = loginSuccessHandler;
-    }
-
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/styles.css", "/themes/**", "/images/**", "/icons/**").permitAll()
-                .requestMatchers("/register/customer", "/register/barber", "/register/owner").permitAll());
-
-        http.formLogin(form -> form
-                .loginPage("/login")
-                .successHandler(loginSuccessHandler)
-                .permitAll());
-
-        http.exceptionHandling(exception -> exception
-                .accessDeniedPage("/access-denied"));
+                .requestMatchers(
+                        new AntPathRequestMatcher("/images/**"),
+                        new AntPathRequestMatcher("/icons/**")
+                ).permitAll());
 
         super.configure(http);
 
-        setLoginView(http, LoginView.class);
+        setLoginView(http, "/login");
     }
 
     @Bean

@@ -1,0 +1,59 @@
+@import "tailwindcss";
+@import "@fontsource-variable/manrope";
+@import "@fontsource-variable/cormorant-garamond";
+
+@source "../../**/*.{html,ts,tsx}";
+
+@theme {
+  --font-sans: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Cormorant Garamond Variable", Georgia, serif;
+  --color-brand-50: #fffbeb;
+  --color-brand-100: #fef3c7;
+  --color-brand-300: #e7c66d;
+  --color-brand-400: #d8ae4f;
+  --color-brand-500: #c99a3d;
+  --color-brand-600: #a97727;
+  --color-brand-700: #80571f;
+  --color-ink-900: #18181b;
+}
+
+@layer base {
+  html {
+    color: var(--color-zinc-900);
+    background: var(--color-zinc-50);
+    font-family: var(--font-sans);
+  }
+
+  body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+    background: var(--color-zinc-950);
+    text-rendering: optimizeLegibility;
+  }
+
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+::selection {
+  color: var(--color-zinc-950);
+  background: var(--color-brand-300);
+}
