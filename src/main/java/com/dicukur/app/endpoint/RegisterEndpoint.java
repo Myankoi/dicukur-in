@@ -1,6 +1,5 @@
 package com.dicukur.app.endpoint;
 
-import com.dicukur.app.registration.dto.BarberRegistrationRequest;
 import com.dicukur.app.registration.dto.CustomerRegistrationRequest;
 import com.dicukur.app.registration.dto.OwnerRegistrationRequest;
 import com.vaadin.hilla.BrowserCallable;
@@ -25,10 +24,6 @@ public class RegisterEndpoint {
                 request.phone(),
                 request.password()
         );
-    }
-
-    public void registerBarber(@Valid BarberRegistrationRequest request) {
-        userService.registerBarberApplicant(request);
     }
 
     public void registerOwner(@Valid OwnerRegistrationRequest request) {

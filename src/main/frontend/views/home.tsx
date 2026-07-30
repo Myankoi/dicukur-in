@@ -77,7 +77,7 @@ export default function HomePage() {
                 <ArrowRight size={17} />
               </Link>
               <a href="#mitra" className={buttonStyles({ variant: 'secondary', size: 'lg' })}>
-                Jadi mitra barber
+                Daftarkan barbershop
               </a>
             </div>
           </motion.div>
@@ -142,8 +142,8 @@ export default function HomePage() {
                 Keahlianmu pantas ditemukan lebih banyak pelanggan.
               </h2>
               <p className="mt-5 text-sm leading-7 text-zinc-600">
-                Bergabung sebagai barber mandiri atau pemilik barbershop. Kami bantu mengelola
-                permintaan, jadwal, dan jangkauan layanan.
+                Daftarkan barbershop dan timmu. Kami bantu mengelola permintaan, jadwal,
+                karyawan, dan jangkauan layanan.
               </p>
               <ul className="mt-7 space-y-3">
                 {benefits.map((benefit) => (
@@ -155,8 +155,8 @@ export default function HomePage() {
                   </li>
                 ))}
               </ul>
-              <Link to="/register?type=barber" className={buttonStyles({ size: 'lg', className: 'mt-8' })}>
-                Daftar sebagai mitra
+              <Link to="/register?type=owner" className={buttonStyles({ size: 'lg', className: 'mt-8' })}>
+                Daftarkan barbershop
                 <ArrowRight size={17} />
               </Link>
             </div>

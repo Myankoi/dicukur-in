@@ -1,6 +1,5 @@
 package com.dicukur.app.user.service;
 
-import com.dicukur.app.registration.dto.BarberRegistrationRequest;
 import com.dicukur.app.registration.dto.OwnerRegistrationRequest;
 import com.dicukur.app.registration.entity.BarberRegistration;
 import com.dicukur.app.registration.repository.BarberRegistrationRepository;
@@ -37,28 +36,6 @@ public class UserService {
     @Transactional
     public User registerCustomer(String name, String email, String phone, String rawPassword) {
         return registerUser(name, email, phone, rawPassword, "Customer", "active", null);
-    }
-
-    @Transactional
-    public User registerBarberApplicant(BarberRegistrationRequest request) {
-        User user = registerUser(
-                request.name(),
-                request.email(),
-                request.phone(),
-                request.password(),
-                "Barber",
-                "inactive",
-                null
-        );
-
-        BarberRegistration registration = newRegistration(user, "independent", request.serviceRadiusKm());
-        registration.setPersonalExperienceYears(request.experienceYears());
-        registration.setPersonalSkillDescription(blankToNull(request.skillDescription()));
-        registration.setAddress(request.address().trim());
-        registration.setCity(request.city().trim());
-        registration.setProvince(request.province().trim());
-        registrationRepository.save(registration);
-        return user;
     }
 
     @Transactional

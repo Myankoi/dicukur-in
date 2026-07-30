@@ -5,7 +5,6 @@ import {
   ArrowRight,
   Check,
   CircleCheck,
-  Scissors,
   Store,
   UserRound,
   type LucideIcon,
@@ -16,7 +15,7 @@ import { AuthShell } from '../../components/AuthShell.js';
 import { Button, buttonStyles } from '../../components/ui/Button.js';
 import { InputField, TextareaField } from '../../components/ui/Field.js';
 
-type AccountType = 'customer' | 'barber' | 'owner';
+type AccountType = 'customer' | 'owner';
 type Step = 1 | 2 | 3;
 
 interface RegistrationForm {
@@ -26,8 +25,6 @@ interface RegistrationForm {
   email: string;
   password: string;
   confirmPassword: string;
-  experienceYears: string;
-  skillDescription: string;
   businessName: string;
   businessLicenseNumber: string;
   businessDescription: string;
@@ -55,12 +52,6 @@ const accountOptions: AccountOption[] = [
     icon: UserRound,
   },
   {
-    value: 'barber',
-    title: 'Barber mandiri',
-    description: 'Terima pesanan dan atur area layanan.',
-    icon: Scissors,
-  },
-  {
     value: 'owner',
     title: 'Pemilik barbershop',
     description: 'Daftarkan bisnis dan kelola tim.',
@@ -71,7 +62,7 @@ const accountOptions: AccountOption[] = [
 const stepLabels = ['Identitas', 'Keamanan akun', 'Detail & konfirmasi'];
 
 function isAccountType(value: string | null): value is AccountType {
-  return value === 'customer' || value === 'barber' || value === 'owner';
+  return value === 'customer' || value === 'owner';
 }
 
 function createInitialForm(accountType: AccountType): RegistrationForm {
@@ -82,8 +73,6 @@ function createInitialForm(accountType: AccountType): RegistrationForm {
     email: '',
     password: '',
     confirmPassword: '',
-    experienceYears: '',
-    skillDescription: '',
     businessName: '',
     businessLicenseNumber: '',
     businessDescription: '',
@@ -140,13 +129,6 @@ export default function RegisterPage() {
     }
 
     if (step === 3) {
-      if (form.accountType === 'barber') {
-        if (!form.skillDescription.trim()) return 'Ceritakan keahlian utamamu.';
-        if (!form.address.trim() || !form.city.trim() || !form.province.trim()) {
-          return 'Alamat, kota, dan provinsi wajib diisi.';
-        }
-      }
-
       if (form.accountType === 'owner') {
         if (!form.businessName.trim()) return 'Nama barbershop wajib diisi.';
         if (!form.address.trim() || !form.city.trim() || !form.province.trim()) {
@@ -200,16 +182,6 @@ export default function RegisterPage() {
     try {
       if (form.accountType === 'customer') {
         await RegisterEndpoint.registerCustomer(identity);
-      } else if (form.accountType === 'barber') {
-        await RegisterEndpoint.registerBarber({
-          ...identity,
-          experienceYears: form.experienceYears ? Number(form.experienceYears) : 0,
-          skillDescription: form.skillDescription.trim(),
-          address: form.address.trim(),
-          city: form.city.trim(),
-          province: form.province.trim(),
-          serviceRadiusKm: Number(form.serviceRadiusKm),
-        });
       } else {
         await RegisterEndpoint.registerOwner({
           ...identity,
@@ -315,7 +287,7 @@ export default function RegisterPage() {
               {step === 1 && (
                 <div>
                   <h2 className="text-sm font-semibold text-zinc-100">Kamu akan menggunakan dicukur.in sebagai apa?</h2>
-                  <div className="mt-4 grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Jenis akun">
+                  <div className="mt-4 grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Jenis akun">
                     {accountOptions.map((option) => {
                       const Icon = option.icon;
                       const selected = form.accountType === option.value;
@@ -433,46 +405,6 @@ export default function RegisterPage() {
                     </div>
                   )}
 
-                  {form.accountType === 'barber' && (
-                    <div>
-                      <h2 className="text-sm font-semibold text-zinc-100">Profil layanan barber</h2>
-                      <div className="mt-5 grid gap-5 sm:grid-cols-2">
-                        <InputField
-                          label="Pengalaman"
-                          name="experienceYears"
-                          type="number"
-                          min="0"
-                          max="60"
-                          hint="Tahun"
-                          value={form.experienceYears}
-                          onChange={(event) => update('experienceYears', event.target.value)}
-                        />
-                        <InputField
-                          label="Radius layanan"
-                          name="serviceRadiusKm"
-                          type="number"
-                          min="1"
-                          max="100"
-                          hint="Kilometer"
-                          value={form.serviceRadiusKm}
-                          onChange={(event) => update('serviceRadiusKm', event.target.value)}
-                          required
-                        />
-                      </div>
-                      <div className="mt-5">
-                        <TextareaField
-                          label="Keahlian utama"
-                          name="skillDescription"
-                          placeholder="Contoh: classic cut, fade, beard grooming..."
-                          value={form.skillDescription}
-                          onChange={(event) => update('skillDescription', event.target.value)}
-                          required
-                        />
-                      </div>
-                      <PartnerAddressFields form={form} update={update} />
-                    </div>
-                  )}
-
                   {form.accountType === 'owner' && (
                     <div>
                       <h2 className="text-sm font-semibold text-zinc-100">Profil barbershop</h2>
@@ -502,7 +434,7 @@ export default function RegisterPage() {
                           onChange={(event) => update('businessDescription', event.target.value)}
                         />
                       </div>
-                      <PartnerAddressFields form={form} update={update} showDistrict />
+                      <OwnerAddressFields form={form} update={update} />
                     </div>
                   )}
 
@@ -555,17 +487,16 @@ export default function RegisterPage() {
   );
 }
 
-interface PartnerAddressFieldsProps {
+interface OwnerAddressFieldsProps {
   form: RegistrationForm;
-  showDistrict?: boolean;
   update: <K extends keyof RegistrationForm>(key: K, value: RegistrationForm[K]) => void;
 }
 
-function PartnerAddressFields({ form, showDistrict = false, update }: PartnerAddressFieldsProps) {
+function OwnerAddressFields({ form, update }: OwnerAddressFieldsProps) {
   return (
     <div className="mt-5 space-y-5">
       <TextareaField
-        label={showDistrict ? 'Alamat barbershop' : 'Alamat basis layanan'}
+        label="Alamat barbershop"
         name="address"
         placeholder="Nama jalan, nomor, dan detail lokasi"
         value={form.address}
@@ -573,14 +504,12 @@ function PartnerAddressFields({ form, showDistrict = false, update }: PartnerAdd
         required
       />
       <div className="grid gap-5 sm:grid-cols-2">
-        {showDistrict && (
-          <InputField
-            label="Kecamatan"
-            name="district"
-            value={form.district}
-            onChange={(event) => update('district', event.target.value)}
-          />
-        )}
+        <InputField
+          label="Kecamatan"
+          name="district"
+          value={form.district}
+          onChange={(event) => update('district', event.target.value)}
+        />
         <InputField
           label="Kota / Kabupaten"
           name="city"
@@ -595,27 +524,23 @@ function PartnerAddressFields({ form, showDistrict = false, update }: PartnerAdd
           onChange={(event) => update('province', event.target.value)}
           required
         />
-        {showDistrict && (
-          <InputField
-            label="Kode pos"
-            name="postalCode"
-            value={form.postalCode}
-            onChange={(event) => update('postalCode', event.target.value)}
-          />
-        )}
-        {showDistrict && (
-          <InputField
-            label="Radius layanan"
-            name="serviceRadiusKm"
-            type="number"
-            min="1"
-            max="100"
-            hint="Kilometer"
-            value={form.serviceRadiusKm}
-            onChange={(event) => update('serviceRadiusKm', event.target.value)}
-            required
-          />
-        )}
+        <InputField
+          label="Kode pos"
+          name="postalCode"
+          value={form.postalCode}
+          onChange={(event) => update('postalCode', event.target.value)}
+        />
+        <InputField
+          label="Radius layanan"
+          name="serviceRadiusKm"
+          type="number"
+          min="1"
+          max="100"
+          hint="Kilometer"
+          value={form.serviceRadiusKm}
+          onChange={(event) => update('serviceRadiusKm', event.target.value)}
+          required
+        />
       </div>
     </div>
   );

@@ -14,7 +14,7 @@ export const routes: RouteObject[] = [
   { path: '/login', element: <LoginPage /> },
   { path: '/register', element: <RegisterPage /> },
   { path: '/register/customer', element: <Navigate to="/register?type=customer" replace /> },
-  { path: '/register/barber', element: <Navigate to="/register?type=barber" replace /> },
+  { path: '/register/barber', element: <Navigate to="/register?type=owner" replace /> },
   { path: '/register/owner', element: <Navigate to="/register?type=owner" replace /> },
   {
     element: <MainLayout />,
