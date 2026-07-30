@@ -1,7 +1,16 @@
 # Build
 FROM eclipse-temurin:21-jdk AS builder
 WORKDIR /app
+
+# Copy seluruh file
 COPY . .
+
+# Convert format Windows (CRLF) ke Linux (LF) & beri izin eksekusi
+RUN apt-get update && apt-get install -y dos2unix && \
+    dos2unix ./mvnw && \
+    chmod +x ./mvnw
+
+# Jalankan build
 RUN ./mvnw clean package -DskipTests
 
 # Runtime
