@@ -19,19 +19,5 @@ services:
       - mariadb
     restart: unless-stopped
 
-  app:
-    build: .
-    ports:
-      - "8080:8080"
-    environment:
-      - DB_HOST=mariadb
-      - DB_PORT=3306
-      - DB_NAME=barber_booking
-      - DB_USER=root
-      - DB_PASSWORD=rootpassword
-    depends_on:
-      - mariadb
-    restart: unless-stopped
-
 volumes:
   db_data:

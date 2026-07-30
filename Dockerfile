@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y dos2unix && \
     chmod +x ./mvnw
 
 # Jalankan build
-RUN ./mvnw clean package -DskipTests
+RUN ./mvnw clean package -Pproduction -DskipTests
 
 # Runtime
 FROM eclipse-temurin:21-jre
