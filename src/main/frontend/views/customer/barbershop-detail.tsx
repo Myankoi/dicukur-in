@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { ArrowLeft, CalendarDays, Check, Clock3, MapPin, Star, UserRound } from 'lucide-react';
+import { ArrowLeft, CalendarDays, CheckCircle2, Clock3, MapPin, Scissors, Star, UserRound } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { BarbershopEndpoint, BookingEndpoint, CustomerAddressEndpoint } from '../../generated/endpoints.js';
 import { Button } from '../../components/ui/Button.js';
@@ -70,46 +70,189 @@ export default function BarbershopDetailPage() {
     }
   };
 
-  if (loading) return <p className="text-sm text-zinc-500">Memuat detail barbershop...</p>;
-  if (!shop) return <p className="text-sm text-red-600">{error || 'Barbershop tidak ditemukan'}</p>;
+  if (loading) return <div className="py-12 text-center text-xs text-zinc-500">Memuat detail barbershop...</div>;
+  if (!shop) return <div className="py-12 text-center text-xs text-red-400">{error || 'Barbershop tidak ditemukan'}</div>;
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
-      <Link to="/customer/bookings/new" className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-500 hover:text-zinc-950"><ArrowLeft size={16} /> Kembali ke pencarian</Link>
+      <Link to="/customer/bookings/new" className="inline-flex items-center gap-2 text-xs font-semibold text-zinc-400 hover:text-brand-300 transition-colors">
+        <ArrowLeft size={16} /> Kembali ke Pencarian Barbershop
+      </Link>
+
       <div className="grid gap-8 lg:grid-cols-[1fr_420px] lg:items-start">
-        <div className="space-y-6">
-          <header className="border-b border-zinc-200 pb-6">
+        {/* Left Column: Details, Staff, Services */}
+        <div className="space-y-8">
+          <header className="border-b border-zinc-800/80 pb-6">
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-              <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-600">Barbershop partner</p><h1 className="mt-2 font-display text-5xl font-semibold text-zinc-950">{shop.name}</h1></div>
-              <div className="flex items-center gap-1 text-sm font-semibold text-brand-700"><Star size={15} fill="currentColor" /> {shop.ratingAverage?.toFixed?.(1) ?? '0.0'} <span className="font-normal text-zinc-400">· {shop.totalCompleted} selesai</span></div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-400">Barbershop Mitra Resmi</p>
+                <h1 className="mt-2 font-display text-4xl font-semibold tracking-tight text-zinc-100 sm:text-5xl">{shop.name}</h1>
+              </div>
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-brand-400/30 bg-brand-500/10 px-3 py-1 text-xs font-bold text-brand-300">
+                <Star size={14} fill="currentColor" /> {shop.ratingAverage?.toFixed?.(1) ?? '0.0'}
+                <span className="font-normal text-zinc-400">· {shop.totalCompleted} booking selesai</span>
+              </div>
             </div>
-            <p className="mt-5 flex gap-2 text-sm leading-6 text-zinc-600"><MapPin size={17} className="mt-0.5 shrink-0 text-brand-600" /> {shop.address}, {shop.city}, {shop.province}</p>
-            {shop.description && <p className="mt-3 text-sm leading-6 text-zinc-500">{shop.description}</p>}
+            <p className="mt-4 flex items-center gap-2 text-xs text-zinc-300">
+              <MapPin size={16} className="shrink-0 text-brand-400" />
+              <span>{shop.address}, {shop.city}, {shop.province}</span>
+            </p>
+            {shop.description && <p className="mt-3 text-xs leading-relaxed text-zinc-400">{shop.description}</p>}
           </header>
 
-          <section>
-            <div className="flex items-end justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-600">Tim resmi</p><h2 className="mt-2 font-display text-3xl font-semibold text-zinc-950">Pilih karyawan</h2></div><UserRound className="text-zinc-300" /></div>
-            {shop.staff.length === 0 ? <p className="mt-5 border border-dashed border-zinc-300 bg-white p-5 text-sm text-zinc-500">Belum ada karyawan terverifikasi yang bisa menerima booking.</p> : <div className="mt-5 grid gap-3 sm:grid-cols-2">{shop.staff.map((staff) => <button key={staff.id} type="button" onClick={() => setBarberId(staff.id)} className={`border p-4 text-left transition-colors ${barberId === staff.id ? 'border-brand-500 bg-brand-50' : 'border-zinc-200 bg-white hover:border-zinc-400'}`}><div className="flex items-start justify-between gap-3"><span className="grid size-10 place-items-center bg-zinc-900 text-brand-300"><UserRound size={18} /></span>{barberId === staff.id && <Check size={17} className="text-brand-700" />}</div><h3 className="mt-4 font-semibold text-zinc-950">{staff.name}</h3><p className="mt-1 text-xs text-zinc-500">{staff.position || 'Barber'} · {staff.availabilityStatus}</p><p className="mt-3 flex items-center gap-1 text-xs text-brand-700"><Star size={12} fill="currentColor" /> {staff.ratingAverage?.toFixed?.(1) ?? '0.0'} · {staff.totalCompleted} layanan</p></button>)}</div>}
+          {/* Section Staff Barber */}
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-400">Tim Barber</p>
+                <h2 className="mt-1 font-display text-2xl font-semibold text-zinc-100">1. Pilih Karyawan Barber</h2>
+              </div>
+              <UserRound className="text-zinc-600" size={20} />
+            </div>
+
+            {shop.staff.length === 0 ? (
+              <p className="rounded-xl border border-dashed border-zinc-800 bg-zinc-900/40 p-5 text-xs text-zinc-500">
+                Belum ada karyawan terverifikasi yang bisa menerima booking saat ini.
+              </p>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {shop.staff.map((staff) => {
+                  const isSelected = barberId === staff.id;
+                  return (
+                    <button
+                      key={staff.id}
+                      type="button"
+                      onClick={() => setBarberId(staff.id)}
+                      className={`group relative flex flex-col justify-between rounded-xl border p-4 text-left backdrop-blur-sm transition-all duration-200 ${
+                        isSelected
+                          ? 'border-brand-400 bg-brand-500/10 shadow-lg shadow-brand-500/5'
+                          : 'border-zinc-800/80 bg-zinc-900/60 hover:border-zinc-700 hover:bg-zinc-900'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <span className="grid size-10 place-items-center rounded-lg border border-brand-400/20 bg-zinc-950 text-brand-300">
+                          <UserRound size={18} />
+                        </span>
+                        {isSelected && <CheckCircle2 size={18} className="text-brand-400" />}
+                      </div>
+
+                      <div className="mt-4">
+                        <h3 className={`font-semibold text-sm ${isSelected ? 'text-brand-300' : 'text-zinc-100'}`}>
+                          {staff.name}
+                        </h3>
+                        <p className="mt-0.5 text-[11px] text-zinc-400">
+                          {staff.position || 'Barber'} · <span className="text-emerald-400">{staff.availabilityStatus}</span>
+                        </p>
+                      </div>
+
+                      <div className="mt-3 flex items-center gap-1.5 border-t border-zinc-800/60 pt-3 text-[11px] font-semibold text-brand-300">
+                        <Star size={11} fill="currentColor" /> {staff.ratingAverage?.toFixed?.(1) ?? '0.0'} · {staff.totalCompleted} booking
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </section>
 
-          <section>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-600">Layanan</p><h2 className="mt-2 font-display text-3xl font-semibold text-zinc-950">Pilih kebutuhanmu</h2>
-            <div className="mt-5 divide-y divide-zinc-100 border border-zinc-200 bg-white">{shop.services.map((service) => <button key={service.id} type="button" onClick={() => setServiceId(service.id)} className={`flex w-full items-center justify-between gap-4 p-4 text-left ${serviceId === service.id ? 'bg-brand-50' : 'hover:bg-zinc-50'}`}><span><span className="block font-semibold text-zinc-950">{service.name}</span><span className="mt-1 block text-xs text-zinc-500">{service.description || 'Layanan grooming partner'} · {service.duration} menit</span></span><span className="shrink-0 text-sm font-semibold text-brand-700">Rp {service.price.toLocaleString('id-ID')}</span></button>)}</div>
+          {/* Section Services */}
+          <section className="space-y-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-400">Pilihan Layanan</p>
+              <h2 className="mt-1 font-display text-2xl font-semibold text-zinc-100">2. Pilih Kebutuhan Grooming</h2>
+            </div>
+
+            <div className="divide-y divide-zinc-800/80 overflow-hidden rounded-xl border border-zinc-800/80 bg-zinc-900/60 backdrop-blur-sm">
+              {shop.services.map((service) => {
+                const isSelected = serviceId === service.id;
+                return (
+                  <button
+                    key={service.id}
+                    type="button"
+                    onClick={() => setServiceId(service.id)}
+                    className={`flex w-full items-center justify-between gap-4 p-4 text-left transition-colors ${
+                      isSelected ? 'bg-brand-500/10' : 'hover:bg-zinc-900'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className={`grid size-9 shrink-0 place-items-center rounded-lg border ${isSelected ? 'border-brand-400 bg-zinc-950 text-brand-300' : 'border-zinc-800 bg-zinc-950 text-zinc-500'}`}>
+                        <Scissors size={16} />
+                      </span>
+                      <div>
+                        <span className={`block text-xs font-semibold ${isSelected ? 'text-brand-300' : 'text-zinc-100'}`}>
+                          {service.name}
+                        </span>
+                        <span className="mt-0.5 block text-[11px] text-zinc-400">
+                          {service.description || 'Layanan grooming resmi'} · {service.duration} menit
+                        </span>
+                      </div>
+                    </div>
+                    <span className="shrink-0 text-xs font-bold text-brand-300">
+                      Rp {service.price.toLocaleString('id-ID')}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </section>
         </div>
 
-        <form onSubmit={createBooking} className="space-y-5 border border-zinc-200 bg-white p-5 shadow-sm lg:sticky lg:top-6 sm:p-7">
-          <div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-600">Atur jadwal</p><h2 className="mt-2 font-display text-3xl font-semibold text-zinc-950">Buat booking</h2><p className="mt-2 text-sm leading-6 text-zinc-500">Harga perjalanan final dihitung dari jarak alamat ke lokasi operasional barber.</p></div>
-          {error && <p className="border-l-2 border-red-500 bg-red-50 px-3 py-2 text-xs leading-5 text-red-700">{error}</p>}
-          {success && <p className="border-l-2 border-emerald-500 bg-emerald-50 px-3 py-2 text-xs leading-5 text-emerald-700">{success}</p>}
-          <label className="space-y-2"><span className="text-xs font-semibold text-zinc-700">Alamat tujuan</span><select value={addressId ?? ''} onChange={(event) => setAddressId(Number(event.target.value))} className="h-11 w-full border border-zinc-300 bg-white px-3 text-sm focus:border-brand-500 focus:outline-none">{addresses.map((address) => <option key={address.id} value={address.id}>{address.label || 'Alamat'} · {address.fullAddress}</option>)}</select></label>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2"><InputField label="Tanggal" name="date" type="date" min={minimumDate} value={date} onChange={(event) => setDate(event.target.value)} required /><InputField label="Jam mulai" name="time" type="time" value={time} onChange={(event) => setTime(event.target.value)} required /></div>
-          <TextareaField label="Catatan" name="notes" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Patokan atau permintaan khusus" />
-          {selectedService && <div className="flex items-center justify-between border-t border-zinc-100 pt-4 text-sm"><span className="flex items-center gap-2 text-zinc-500"><Clock3 size={15} /> {selectedService.name} · {selectedService.duration} menit</span><span className="font-semibold text-zinc-950">Rp {selectedService.price.toLocaleString('id-ID')}+</span></div>}
-          <Button type="submit" className="w-full" disabled={saving || !shop.staff.length || !shop.services.length}>{saving ? 'Membuat booking...' : 'Konfirmasi booking'}<CalendarDays size={17} /></Button>
-          <p className="text-center text-[11px] leading-5 text-zinc-400">Booking menunggu konfirmasi karyawan. Pembayaran bisa dilanjutkan setelah booking tersimpan.</p>
+        {/* Right Column: Sticky Booking Form */}
+        <form onSubmit={createBooking} className="space-y-5 rounded-xl border border-zinc-800/80 bg-zinc-900/80 p-6 shadow-2xl backdrop-blur-md lg:sticky lg:top-6 sm:p-7">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-400">Konfirmasi Jadwal</p>
+            <h2 className="mt-1 font-display text-2xl font-semibold text-zinc-100">Buat Booking</h2>
+            <p className="mt-1.5 text-xs leading-relaxed text-zinc-400">
+              Biaya perjalanan final akan dihitung otomatis dari titik alamatmu ke lokasi operasional barber.
+            </p>
+          </div>
+
+          {error && <p className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300">{error}</p>}
+          {success && <p className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">{success}</p>}
+
+          <label className="block space-y-1.5">
+            <span className="text-xs font-semibold text-zinc-300">Alamat Tujuan Dikirim</span>
+            <select
+              value={addressId ?? ''}
+              onChange={(event) => setAddressId(Number(event.target.value))}
+              className="h-11 w-full rounded-md border border-zinc-700 bg-zinc-950/70 px-3.5 text-xs text-zinc-100 focus:border-brand-400 focus:outline-none"
+            >
+              {addresses.map((address) => (
+                <option key={address.id} value={address.id}>
+                  {address.label || 'Alamat'} · {address.fullAddress}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+            <InputField label="Tanggal Kedatangan" name="date" type="date" min={minimumDate} value={date} onChange={(event) => setDate(event.target.value)} required />
+            <InputField label="Jam Mulai" name="time" type="time" value={time} onChange={(event) => setTime(event.target.value)} required />
+          </div>
+
+          <TextareaField label="Catatan Tambahan (Opsional)" name="notes" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Contoh: patokan pagar hitam, permintaan potongan tertentu..." />
+
+          {selectedService && (
+            <div className="flex items-center justify-between border-t border-zinc-800/80 pt-4 text-xs">
+              <span className="flex items-center gap-2 text-zinc-400">
+                <Clock3 size={14} className="text-brand-400" />
+                {selectedService.name} ({selectedService.duration}m)
+              </span>
+              <span className="font-bold text-brand-300">Rp {selectedService.price.toLocaleString('id-ID')}+</span>
+            </div>
+          )}
+
+          <Button type="submit" className="w-full shadow-lg shadow-brand-500/15" disabled={saving || !shop.staff.length || !shop.services.length}>
+            <span>{saving ? 'Membuat Booking...' : 'Konfirmasi & Simpan Booking'}</span>
+            <CalendarDays size={17} />
+          </Button>
+
+          <p className="text-center text-[10px] leading-relaxed text-zinc-500">
+            Booking menunggu konfirmasi barber. Pembayaran via Midtrans / QRIS dapat dilanjutkan setelah booking tersimpan.
+          </p>
         </form>
       </div>
     </div>
   );
 }
+
