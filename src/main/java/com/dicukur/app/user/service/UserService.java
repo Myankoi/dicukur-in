@@ -11,7 +11,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Locale;
 
@@ -50,15 +49,9 @@ public class UserService {
                 null
         );
 
-        BarberRegistration registration = newRegistration(user, "business", request.serviceRadiusKm());
+        BarberRegistration registration = newRegistration(user, "business");
         registration.setBusinessName(request.businessName().trim());
-        registration.setBusinessLicenseNumber(blankToNull(request.businessLicenseNumber()));
-        registration.setDescription(blankToNull(request.description()));
-        registration.setAddress(request.address().trim());
-        registration.setDistrict(blankToNull(request.district()));
         registration.setCity(request.city().trim());
-        registration.setProvince(request.province().trim());
-        registration.setPostalCode(blankToNull(request.postalCode()));
         registrationRepository.save(registration);
         return user;
     }
@@ -97,12 +90,11 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    private BarberRegistration newRegistration(User user, String type, BigDecimal radius) {
+    private BarberRegistration newRegistration(User user, String type) {
         LocalDateTime now = LocalDateTime.now();
         BarberRegistration registration = new BarberRegistration();
         registration.setApplicant(user);
         registration.setRegistrationType(type);
-        registration.setServiceRadiusKm(radius != null ? radius : BigDecimal.TEN);
         registration.setStatus("submitted");
         registration.setSubmittedAt(now);
         registration.setCreatedAt(now);

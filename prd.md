@@ -15,7 +15,7 @@
 
 ## 2. Ringkasan Produk
 
-**dicukur.in** adalah aplikasi web untuk memesan layanan barber ke rumah pelanggan. Aplikasi ini memungkinkan pelanggan memilih layanan, alamat, jadwal, dan barber yang tersedia. Sistem juga mendukung pendaftaran barber mandiri maupun usaha/barbershop yang memiliki karyawan.
+**dicukur.in** adalah aplikasi web untuk memesan layanan barber ke rumah pelanggan. Aplikasi ini memungkinkan pelanggan memilih layanan, alamat, jadwal, dan barber yang tersedia. Sistem juga mendukung pendaftaran usaha/barbershop yang memiliki karyawan.
 
 Tujuan utama aplikasi adalah membuat layanan potong rambut lebih praktis, mengurangi kebutuhan antre di barbershop, serta membantu barber dan pemilik usaha mengelola jadwal, pesanan, dan layanan secara lebih teratur.
 
@@ -46,9 +46,8 @@ Aplikasi dicukur.in dibuat untuk menyelesaikan masalah tersebut dengan menyediak
 | Pengguna | Deskripsi |
 |---|---|
 | Customer | Pengguna yang memesan layanan barber ke rumah |
-| Barber Mandiri | Barber individu yang mendaftar sendiri dan menerima pesanan secara mandiri |
 | Owner | Pemilik usaha/barbershop yang mendaftarkan usaha dan mengelola karyawan |
-| Barber Karyawan | Barber yang bekerja di bawah usaha/barbershop tertentu |
+| Barber | Barber yang bekerja di bawah usaha/barbershop, ditambahkan oleh Owner |
 | Admin | Pengelola sistem yang memverifikasi pendaftaran, mengelola data, dan memantau laporan |
 
 ---
@@ -57,8 +56,8 @@ Aplikasi dicukur.in dibuat untuk menyelesaikan masalah tersebut dengan menyediak
 
 | Role | Hak Akses Utama |
 |---|---|
-| Admin | Mengelola user, layanan, pendaftaran, dokumen verifikasi, approval, booking, pembayaran, dan laporan |
-| Owner | Mengelola profil barbershop, karyawan, layanan, jadwal, dan laporan usaha |
+| Admin | Mengelola user, layanan, pendaftaran barbershop, dokumen verifikasi, approval, booking, pembayaran, dan laporan |
+| Owner | Mendaftarkan barbershop, mengelola profil barbershop, menambahkan karyawan barber, layanan, jadwal, dan laporan usaha |
 | Barber | Mengatur jadwal, melihat pesanan masuk, menerima/menolak pesanan, dan update status layanan |
 | Customer | Mengelola alamat, membuat pesanan, melihat status pesanan, membayar, dan memberi rating |
 
@@ -70,25 +69,24 @@ Aplikasi dicukur.in dibuat untuk menyelesaikan masalah tersebut dengan menyediak
 
 1. Login email dan password.
 2. Role-based dashboard untuk Admin, Owner, Barber, dan Customer.
-3. Pendaftaran barber mandiri.
-4. Pendaftaran usaha/barbershop.
-5. Upload dokumen verifikasi.
-6. Approval/reject pendaftaran oleh admin.
-7. Manajemen barbershop oleh owner.
-8. Manajemen karyawan barber oleh owner.
-9. Manajemen layanan barber.
-10. Manajemen alamat customer.
-11. Manajemen jadwal barber.
-12. Pembuatan booking.
-13. Pengecekan ketersediaan jadwal barber.
-14. Perhitungan jarak menggunakan latitude dan longitude.
-15. Perhitungan harga layanan + biaya jarak.
-16. Terima/tolak booking oleh barber.
-17. Update status booking.
-18. Pembayaran cash/manual transfer.
-19. Rating dan ulasan.
-20. Notifikasi dalam aplikasi.
-21. Laporan sederhana.
+3. Pendaftaran usaha/barbershop oleh Owner.
+4. Upload dokumen verifikasi barbershop.
+5. Approval/reject pendaftaran barbershop oleh admin.
+6. Manajemen barbershop oleh owner.
+7. Manajemen karyawan barber oleh owner (barber ditambahkan oleh owner).
+8. Manajemen layanan barber.
+9. Manajemen alamat customer.
+10. Manajemen jadwal barber.
+11. Pembuatan booking.
+12. Pengecekan ketersediaan jadwal barber.
+13. Perhitungan jarak menggunakan latitude dan longitude.
+14. Perhitungan harga layanan + biaya jarak.
+15. Terima/tolak booking oleh barber.
+16. Update status booking.
+17. Pembayaran cash/manual transfer.
+18. Rating dan ulasan.
+19. Notifikasi dalam aplikasi.
+20. Laporan sederhana.
 
 ### 7.2 Fitur di Luar MVP
 
@@ -117,13 +115,11 @@ Aplikasi dicukur.in dibuat untuk menyelesaikan masalah tersebut dengan menyediak
 6. Sebagai customer, saya ingin melihat status pesanan agar tahu proses layanan berjalan sampai mana.
 7. Sebagai customer, saya ingin memberi rating setelah layanan selesai agar dapat menilai kualitas barber.
 
-### 8.2 Barber Mandiri
+### 8.2 Barber
 
-1. Sebagai barber mandiri, saya ingin mendaftar sebagai penyedia jasa agar dapat menerima pesanan.
-2. Sebagai barber mandiri, saya ingin mengunggah bukti kompetensi agar admin dapat memverifikasi data saya.
-3. Sebagai barber mandiri, saya ingin mengatur jadwal kerja agar customer hanya dapat memesan pada waktu yang tersedia.
-4. Sebagai barber mandiri, saya ingin menerima atau menolak pesanan agar saya dapat mengontrol pekerjaan saya.
-5. Sebagai barber mandiri, saya ingin mengubah status pesanan agar customer mengetahui progres layanan.
+1. Sebagai barber, saya ingin mengatur jadwal kerja agar customer hanya dapat memesan pada waktu yang tersedia.
+2. Sebagai barber, saya ingin menerima atau menolak pesanan agar saya dapat mengontrol pekerjaan saya.
+3. Sebagai barber, saya ingin mengubah status pesanan agar customer mengetahui progres layanan.
 
 ### 8.3 Owner Barbershop
 
@@ -164,42 +160,42 @@ Aplikasi dicukur.in dibuat untuk menyelesaikan masalah tersebut dengan menyediak
 
 ---
 
-## 9.2 Pendaftaran Barber Mandiri
+## 9.2 Pendaftaran Usaha/Barbershop
+
+> **Catatan:** Tidak ada pendaftaran barber mandiri. Barber hanya bisa ditambahkan oleh Owner setelah barbershop disetujui admin.
 
 ### Requirement
 
-1. User dapat mendaftar sebagai barber mandiri.
-2. Barber mandiri harus mengisi data pribadi, pengalaman, alamat asal, latitude, longitude, dan radius layanan.
-3. Barber mandiri harus mengunggah dokumen pendukung seperti identitas, sertifikat kompetensi, atau portofolio.
-4. Status pendaftaran awal adalah `submitted` atau `under_review`.
-5. Barber belum dapat menerima booking sebelum disetujui admin.
+1. User dapat mendaftar sebagai Owner dengan mengisi nama, email, nomor telepon, dan password.
+2. Setelah login, Owner mendaftarkan barbershop dengan mengisi data usaha dan mengunggah dokumen.
+3. Status pendaftaran barbershop awal adalah `submitted`.
+4. Barbershop belum aktif sebelum disetujui admin.
 
 ### Acceptance Criteria
 
-- Data pendaftaran tersimpan di sistem.
+- Data pendaftaran barbershop tersimpan di sistem.
 - Dokumen tersimpan sebagai file path, bukan BLOB di database.
 - Admin dapat melihat pendaftaran dan dokumen.
-- Setelah approved, barber dapat diaktifkan.
+- Setelah approved, barbershop aktif dan owner dapat menambahkan karyawan barber.
 - Setelah rejected, sistem menyimpan alasan penolakan.
 
 ---
 
-## 9.3 Pendaftaran Usaha/Barbershop
+## 9.3 Manajemen Karyawan Barber oleh Owner
 
 ### Requirement
 
-1. User dapat mendaftar sebagai owner usaha/barbershop.
-2. Owner harus mengisi nama usaha, alamat usaha, kontak usaha, latitude, longitude, dan radius layanan.
-3. Owner harus mengunggah bukti usaha, seperti izin usaha, identitas pemilik, dan foto tempat.
-4. Admin dapat approve atau reject pendaftaran usaha.
-5. Barbershop belum aktif sebelum disetujui admin.
+1. Owner yang sudah diapprove dapat menambahkan barber sebagai karyawan barbershop.
+2. Owner mengisi data barber: nama, email, nomor telepon, dan password awal.
+3. Sistem membuat akun user baru dengan role Barber dan langsung dikaitkan ke barbershop Owner.
+4. Owner dapat mengaktifkan atau menonaktifkan karyawan.
 
 ### Acceptance Criteria
 
-- Data usaha tersimpan pada tabel barbershop setelah approval.
-- Dokumen usaha dapat dilihat admin.
-- Status usaha berubah menjadi active setelah approved.
-- Owner dapat mengelola barbershop setelah approval.
+- Owner dapat melihat daftar karyawan barber miliknya.
+- Barber baru langsung dapat login setelah ditambahkan owner.
+- Barber nonaktif tidak dapat menerima booking.
+- Booking menyimpan `barbershop_id` dari barbershop barber tersebut.
 
 ---
 
@@ -647,11 +643,11 @@ Target:
 
 Target:
 
-1. Form pendaftaran barber mandiri.
-2. Form pendaftaran barbershop.
-3. Upload dokumen.
-4. Admin approve/reject.
-5. Owner dapat mengelola barbershop setelah approved.
+1. Form pendaftaran Owner (saat register).
+2. Form pendaftaran barbershop (setelah login sebagai Owner).
+3. Upload dokumen barbershop.
+4. Admin approve/reject pendaftaran barbershop.
+5. Owner dapat menambahkan karyawan barber setelah barbershop approved.
 
 ## Milestone 5 — Booking Core
 
@@ -783,7 +779,7 @@ Urutan kerja setelah dokumen ini:
 4. Dashboard role.
 5. Admin CRUD layanan.
 6. Customer CRUD alamat.
-7. Registration barber/usaha.
-8. Upload dokumen.
-9. Approval admin.
+7. Register Owner → Login → Form pendaftaran barbershop → Upload dokumen.
+8. Admin approve/reject barbershop.
+9. Owner tambah karyawan barber.
 10. Booking core.
