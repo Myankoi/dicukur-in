@@ -3,12 +3,12 @@ package com.dicukur.app.endpoint;
 import com.dicukur.app.registration.dto.CustomerRegistrationRequest;
 import com.dicukur.app.registration.dto.OwnerRegistrationRequest;
 import com.vaadin.hilla.BrowserCallable;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.dicukur.app.user.service.UserService;
-import jakarta.annotation.security.PermitAll;
 import jakarta.validation.Valid;
 
 @BrowserCallable
-@PermitAll
+@AnonymousAllowed
 public class RegisterEndpoint {
 
     private final UserService userService;

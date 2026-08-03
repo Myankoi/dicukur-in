@@ -1,6 +1,11 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
+  EndpointValidationError,
+  ForbiddenResponseError,
+  UnauthorizedResponseError,
+} from '@vaadin/hilla-frontend';
+import {
   ArrowLeft,
   ArrowRight,
   Check,
@@ -134,6 +139,10 @@ export default function RegisterPage() {
         if (!form.address.trim() || !form.city.trim() || !form.province.trim()) {
           return 'Alamat, kota, dan provinsi wajib diisi.';
         }
+        const serviceRadiusKm = Number(form.serviceRadiusKm);
+        if (!Number.isFinite(serviceRadiusKm) || serviceRadiusKm < 1 || serviceRadiusKm > 100) {
+          return 'Radius layanan harus di antara 1 sampai 100 km.';
+        }
       }
 
       if (!form.agreed) {
@@ -199,8 +208,7 @@ export default function RegisterPage() {
 
       setComplete(true);
     } catch (caughtError) {
-      const message = caughtError instanceof Error ? caughtError.message : '';
-      setError(message.includes('Email sudah terdaftar') ? message : 'Pendaftaran belum berhasil. Periksa data lalu coba lagi.');
+      setError(formatRegistrationError(caughtError));
     } finally {
       setLoading(false);
     }
@@ -485,6 +493,31 @@ export default function RegisterPage() {
       </div>
     </AuthShell>
   );
+}
+
+function formatRegistrationError(caughtError: unknown) {
+  if (caughtError instanceof EndpointValidationError) {
+    const firstValidationError = caughtError.validationErrorData.at(0);
+    return firstValidationError?.message || 'Ada data pendaftaran yang belum valid.';
+  }
+
+  if (caughtError instanceof UnauthorizedResponseError || caughtError instanceof ForbiddenResponseError) {
+    return 'Sesi halaman sudah kedaluwarsa. Muat ulang halaman lalu kirim ulang pendaftaran.';
+  }
+
+  if (caughtError instanceof Error) {
+    const message = caughtError.message;
+    if (
+      message.includes('Email sudah terdaftar') ||
+      message.includes('Nomor telepon sudah terdaftar') ||
+      message.includes('Role Owner tidak ditemukan') ||
+      message.includes('Role Customer tidak ditemukan')
+    ) {
+      return message;
+    }
+  }
+
+  return 'Pendaftaran belum berhasil. Periksa data lalu coba lagi.';
 }
 
 interface OwnerAddressFieldsProps {

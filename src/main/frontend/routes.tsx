@@ -8,6 +8,10 @@ import AdminDashboard from './views/admin/index.js';
 import BarberDashboard from './views/barber/index.js';
 import OwnerDashboard from './views/owner/index.js';
 import CustomerDashboard from './views/customer/index.js';
+import CustomerAddressesPage from './views/customer/addresses.js';
+import NewBookingPage from './views/customer/bookings-new.js';
+import CustomerBookingsPage from './views/customer/bookings.js';
+import BarbershopDetailPage from './views/customer/barbershop-detail.js';
 
 export const routes: RouteObject[] = [
   { path: '/', element: <HomePage /> },
@@ -23,6 +27,10 @@ export const routes: RouteObject[] = [
       { path: '/barber', element: <BarberDashboard /> },
       { path: '/owner', element: <OwnerDashboard /> },
       { path: '/customer', element: <CustomerDashboard /> },
+      { path: '/customer/addresses', element: <CustomerAddressesPage /> },
+      { path: '/customer/bookings/new', element: <NewBookingPage /> },
+      { path: '/customer/bookings', element: <CustomerBookingsPage /> },
+      { path: '/customer/barbershops/:id', element: <BarbershopDetailPage /> },
     ],
   },
 ];

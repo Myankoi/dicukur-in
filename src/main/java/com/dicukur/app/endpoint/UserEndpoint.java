@@ -2,14 +2,14 @@ package com.dicukur.app.endpoint;
 
 import com.vaadin.hilla.BrowserCallable;
 import com.dicukur.app.user.repository.UserRepository;
-import jakarta.annotation.security.PermitAll;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Optional;
 
 @BrowserCallable
-@PermitAll
+@AnonymousAllowed
 public class UserEndpoint {
 
     private final UserRepository userRepository;
