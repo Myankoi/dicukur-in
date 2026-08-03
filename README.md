@@ -1,9 +1,36 @@
-# Project Base for Vaadin and Spring Boot
+# dicukur.in
 
-This project can be used as a starting point to create your own Vaadin application with Spring Boot.
-It contains all the necessary configuration and some placeholder files to get you started.
+Platform booking barber on-demand berbasis Vaadin Hilla, React, Tailwind CSS, dan Motion.
 
-The best way to create your own project based on this starter is [start.vaadin.com](https://start.vaadin.com/) - you can get only the necessary parts and choose the package naming you want to use.
+## Running Locally
+
+Requirements: Java 21, Node.js, Docker Desktop, dan Docker Compose.
+
+Start MariaDB and Adminer:
+
+```powershell
+docker compose up -d mariadb adminer
+```
+
+Run the Hilla application:
+
+```powershell
+$env:MAVEN_OPTS='-Duser.home='+$env:USERPROFILE+' -Dmaven.repo.local='+$env:USERPROFILE+'\.m2\repository'
+.\mvnw.cmd spring-boot:run
+```
+
+Open `http://localhost:8080/`. MariaDB uses port `3307`, while Adminer is available at
+`http://localhost:8081/` with server `mariadb`, user `root`, password `rootpassword`, and database
+`barber_booking`.
+
+For Midtrans Sandbox, set `MIDTRANS_SERVER_KEY` before starting the app. Keep it out of source control.
+Without that variable, booking creation still works but the payment action returns a gateway-not-configured message.
+
+The customer booking flow requires an approved active barbershop, an active staff record, a verified employee profile,
+active shop services, and barber schedules. Owner/Admin onboarding data must exist before a shop appears in discovery.
+
+Independent barber registration is intentionally not available. Barber accounts must be affiliated through active
+barbershop staff membership.
 
 ## Running the Application
 There are two ways to run the application :  using `mvn spring-boot:run` or by running the `Application` class directly from your IDE.

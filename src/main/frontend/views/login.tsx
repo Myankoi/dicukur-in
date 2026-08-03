@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
+import { login } from '@vaadin/hilla-frontend';
 import { UserEndpoint } from 'Frontend/generated/endpoints';
 import { AuthShell } from '../components/AuthShell.js';
 import { Button } from '../components/ui/Button.js';
@@ -21,12 +22,14 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const params = new URLSearchParams({ username: email.trim(), password });
-      await fetch('/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params.toString(),
+      const result = await login(email.trim(), password, {
+        navigate: () => undefined,
       });
+
+      if (result.error) {
+        setError('Email atau kata sandi tidak sesuai, atau akunmu belum aktif.');
+        return;
+      }
 
       const user = await UserEndpoint.getCurrentUser();
       if (!user) {

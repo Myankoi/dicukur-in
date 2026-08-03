@@ -20,7 +20,8 @@ public class SecurityConfig extends VaadinWebSecurity {
                         new AntPathRequestMatcher("/register"),
                         new AntPathRequestMatcher("/register/**"),
                         new AntPathRequestMatcher("/images/**"),
-                        new AntPathRequestMatcher("/icons/**")
+                        new AntPathRequestMatcher("/icons/**"),
+                        new AntPathRequestMatcher("/api/payments/midtrans/notification")
                 ).permitAll());
 
         super.configure(http);
