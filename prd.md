@@ -782,4 +782,8 @@ Urutan kerja setelah dokumen ini:
 7. Register Owner → Login → Form pendaftaran barbershop → Upload dokumen.
 8. Admin approve/reject barbershop.
 9. Owner tambah karyawan barber.
+<<<<<<< HEAD
 10. Booking core.
+=======
+10. Booking core.
+>>>>>>> feature/auth-register
