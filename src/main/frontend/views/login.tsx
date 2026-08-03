@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { motion } from 'motion/react';
-import { Eye, EyeOff, LogIn } from 'lucide-react';
+import { motion, type PanInfo } from 'motion/react';
+import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import { login } from '@vaadin/hilla-frontend';
 import { UserEndpoint } from 'Frontend/generated/endpoints';
@@ -51,21 +51,38 @@ export default function LoginPage() {
     }
   };
 
+  const openRegisterOnSwipe = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    if (info.offset.x < -90 && Math.abs(info.offset.y) < 70) {
+      navigate('/register');
+    }
+  };
+
   return (
     <AuthShell>
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35 }}
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.08}
+        onDragEnd={openRegisterOnSwipe}
+        initial={{ opacity: 0, rotateY: -14, x: -18 }}
+        animate={{ opacity: 1, rotateY: 0, x: 0 }}
+        whileDrag={{ rotateY: -6, scale: 0.985 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
+        className="touch-pan-y"
       >
-        <div className="rounded-md border border-zinc-800 bg-zinc-900/55 p-6 shadow-2xl shadow-black/20 sm:p-8">
-          <p className="text-xs font-semibold text-brand-300">Portal akun</p>
-          <h1 className="mt-3 font-display text-3xl font-semibold text-white">
-            Selamat datang kembali.
-          </h1>
-          <p className="mt-2 text-sm leading-6 text-zinc-500">
-            Masuk dengan email yang terdaftar untuk melanjutkan.
-          </p>
+        <div className="rounded-md border border-white/10 bg-zinc-900/70 p-6 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-8">
+          <div>
+            <div className="flex items-center gap-3 text-xs font-semibold text-brand-300">
+              <span className="h-px w-7 bg-brand-400" />
+              Customer, owner, dan admin
+            </div>
+            <h1 className="mt-4 font-display text-4xl font-semibold leading-tight text-white">
+              Selamat datang kembali.
+            </h1>
+            <p className="mt-3 text-sm leading-6 text-zinc-500">
+              Masuk untuk mengelola booking, alamat, atau operasional barbershop.
+            </p>
+          </div>
 
           {error && (
             <div
@@ -77,16 +94,23 @@ export default function LoginPage() {
           )}
 
           <form className="mt-7 space-y-5" onSubmit={handleSubmit}>
-            <InputField
-              label="Email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              placeholder="nama@email.com"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-            />
+            <div className="relative">
+              <InputField
+                label="Email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                placeholder="nama@email.com"
+                className="pl-11"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+              />
+              <Mail
+                size={17}
+                className="pointer-events-none absolute bottom-3 left-3.5 text-zinc-600"
+              />
+            </div>
 
             <div className="relative">
               <InputField
@@ -95,10 +119,14 @@ export default function LoginPage() {
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="current-password"
                 placeholder="Masukkan kata sandi"
-                className="pr-12"
+                className="pl-11 pr-12"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 required
+              />
+              <LockKeyhole
+                size={17}
+                className="pointer-events-none absolute bottom-3 left-3.5 text-zinc-600"
               />
               <button
                 type="button"
@@ -111,12 +139,12 @@ export default function LoginPage() {
             </div>
 
             <Button type="submit" size="lg" className="w-full" disabled={loading}>
-              <LogIn size={17} />
               {loading ? 'Memeriksa akun...' : 'Masuk'}
+              <ArrowRight size={17} />
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-xs text-zinc-500">
+          <p className="mt-7 border-t border-white/10 pt-5 text-center text-xs text-zinc-500">
             Belum punya akun?{' '}
             <Link to="/register" className="font-semibold text-brand-300 hover:text-brand-100">
               Daftar sekarang

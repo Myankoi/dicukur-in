@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, type PanInfo } from 'motion/react';
 import {
   EndpointValidationError,
   ForbiddenResponseError,
@@ -184,12 +184,18 @@ export default function RegisterPage() {
     }
   };
 
+  const openLoginOnSwipe = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    if (step === 1 && info.offset.x > 90 && Math.abs(info.offset.y) < 70) {
+      navigate('/login');
+    }
+  };
+
   if (complete) {
     const isOwner = form.accountType === 'owner';
     return (
       <AuthShell>
         <motion.div
-          className="rounded-md border border-zinc-800 bg-zinc-900/55 p-7 text-center sm:p-10"
+          className="rounded-md border border-white/10 bg-zinc-900/70 p-7 text-center shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-10"
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
         >
@@ -219,23 +225,53 @@ export default function RegisterPage() {
 
   return (
     <AuthShell wide>
-      <div className="rounded-md border border-zinc-800 bg-zinc-900/55 p-5 shadow-2xl shadow-black/20 sm:p-8">
+      <motion.div
+        drag={step === 1 ? 'x' : false}
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.08}
+        onDragEnd={openLoginOnSwipe}
+        initial={{ opacity: 0, rotateY: 14, x: 18 }}
+        animate={{ opacity: 1, rotateY: 0, x: 0 }}
+        whileDrag={{ rotateY: 6, scale: 0.985 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
+        className="rounded-md border border-white/10 bg-zinc-900/70 p-5 shadow-2xl shadow-black/30 backdrop-blur-xl touch-pan-y sm:p-8"
+      >
         <div className="flex items-start justify-between gap-6">
           <div>
-            <p className="text-xs font-semibold text-brand-300">Buat akun baru</p>
-            <h1 className="mt-2 font-display text-3xl font-semibold text-white">Bergabung dengan dicukur.in</h1>
+            <div className="flex items-center gap-3 text-xs font-semibold text-brand-300">
+              <span className="h-px w-7 bg-brand-400" />
+              Buat akun baru
+            </div>
+            <h1 className="mt-4 font-display text-4xl font-semibold leading-tight text-white">
+              Bergabung dengan dicukur.in.
+            </h1>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-zinc-500">
+              Daftar sebagai pelanggan atau pemilik barbershop. Data owner dibuat ringkas dulu,
+              detail usaha dilengkapi setelah akun disetujui.
+            </p>
           </div>
-          <span className="shrink-0 text-xs text-zinc-600">{step} / 3</span>
+          <span className="shrink-0 rounded-full border border-white/10 px-3 py-1 text-xs text-zinc-500">
+            {step} / 3
+          </span>
         </div>
 
-        <ol className="mt-7 grid grid-cols-3 gap-2" aria-label="Progres registrasi">
+        <ol className="mt-7 grid grid-cols-3 gap-3" aria-label="Progres registrasi">
           {stepLabels.map((label, index) => {
             const number = index + 1;
             const active = step === number;
             const done = step > number;
             return (
               <li key={label}>
-                <div className={`h-1 rounded-full ${done || active ? 'bg-brand-400' : 'bg-zinc-800'}`} />
+                <div className="relative h-1 overflow-hidden rounded-full bg-zinc-800">
+                  {(done || active) && (
+                    <motion.div
+                      className="absolute inset-y-0 left-0 rounded-full bg-brand-400"
+                      initial={{ width: 0 }}
+                      animate={{ width: '100%' }}
+                      transition={{ duration: 0.28, ease: 'easeOut' }}
+                    />
+                  )}
+                </div>
                 <p className={`mt-2 hidden text-[11px] sm:block ${active ? 'text-zinc-200' : 'text-zinc-600'}`}>
                   {label}
                 </p>
@@ -257,36 +293,45 @@ export default function RegisterPage() {
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={step}
-              initial={{ opacity: 0, x: 12 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -12 }}
-              transition={{ duration: 0.2 }}
+              initial={{ opacity: 0, rotateY: 4, x: 12 }}
+              animate={{ opacity: 1, rotateY: 0, x: 0 }}
+              exit={{ opacity: 0, rotateY: -4, x: -12 }}
+              transition={{ duration: 0.22, ease: 'easeOut' }}
             >
               {step === 1 && (
                 <div>
-                  <h2 className="text-sm font-semibold text-zinc-100">Kamu akan menggunakan dicukur.in sebagai apa?</h2>
-                  <div className="mt-4 grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Jenis akun">
+                  <h2 className="text-sm font-semibold text-zinc-100">
+                    Kamu akan menggunakan dicukur.in sebagai apa?
+                  </h2>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Jenis akun">
                     {accountOptions.map((option) => {
                       const Icon = option.icon;
                       const selected = form.accountType === option.value;
                       return (
-                        <button
+                        <motion.button
                           key={option.value}
                           type="button"
                           role="radio"
                           aria-checked={selected}
+                          whileTap={{ scale: 0.98 }}
                           className={[
                             'min-h-32 rounded-md border p-4 text-left transition-colors',
                             selected
-                              ? 'border-brand-400 bg-brand-400/10'
-                              : 'border-zinc-800 bg-zinc-950/30 hover:border-zinc-700',
+                              ? 'border-brand-400 bg-brand-400/10 shadow-[0_16px_34px_rgba(216,174,79,0.08)]'
+                              : 'border-white/10 bg-zinc-950/35 hover:border-zinc-700',
                           ].join(' ')}
                           onClick={() => selectAccountType(option.value)}
                         >
-                          <Icon size={20} className={selected ? 'text-brand-300' : 'text-zinc-500'} />
+                          <span
+                            className={`grid size-10 place-items-center rounded-md ${
+                              selected ? 'bg-brand-400 text-zinc-950' : 'bg-zinc-900 text-zinc-500'
+                            }`}
+                          >
+                            <Icon size={19} />
+                          </span>
                           <span className="mt-4 block text-xs font-semibold text-zinc-100">{option.title}</span>
                           <span className="mt-1 block text-[11px] leading-5 text-zinc-600">{option.description}</span>
-                        </button>
+                        </motion.button>
                       );
                     })}
                   </div>
@@ -362,20 +407,20 @@ export default function RegisterPage() {
                   {form.accountType === 'customer' && (
                     <div>
                       <h2 className="text-sm font-semibold text-zinc-100">Periksa kembali akunmu</h2>
-                      <dl className="mt-5 divide-y divide-zinc-800 border-y border-zinc-800 text-xs">
-                        <div className="flex justify-between gap-4 py-3">
+                      <dl className="mt-5 divide-y divide-white/10 rounded-md border border-white/10 bg-zinc-950/35 text-xs">
+                        <div className="flex justify-between gap-4 px-4 py-3">
                           <dt className="text-zinc-600">Jenis akun</dt>
                           <dd className="text-zinc-200">Pelanggan</dd>
                         </div>
-                        <div className="flex justify-between gap-4 py-3">
+                        <div className="flex justify-between gap-4 px-4 py-3">
                           <dt className="text-zinc-600">Nama</dt>
                           <dd className="text-right text-zinc-200">{form.name}</dd>
                         </div>
-                        <div className="flex justify-between gap-4 py-3">
+                        <div className="flex justify-between gap-4 px-4 py-3">
                           <dt className="text-zinc-600">Email</dt>
                           <dd className="text-right text-zinc-200">{form.email}</dd>
                         </div>
-                        <div className="flex justify-between gap-4 py-3">
+                        <div className="flex justify-between gap-4 px-4 py-3">
                           <dt className="text-zinc-600">Telepon</dt>
                           <dd className="text-zinc-200">{form.phone}</dd>
                         </div>
@@ -387,7 +432,8 @@ export default function RegisterPage() {
                     <div>
                       <h2 className="text-sm font-semibold text-zinc-100">Info barbershop</h2>
                       <p className="mt-1 text-xs leading-5 text-zinc-600">
-                        Detail lengkap seperti alamat, dokumen, dan layanan bisa dilengkapi setelah login.
+                        Detail lengkap seperti alamat, dokumen, dan layanan bisa dilengkapi
+                        setelah akun disetujui.
                       </p>
                       <div className="mt-5 grid gap-5 sm:grid-cols-2">
                         <InputField
@@ -429,7 +475,7 @@ export default function RegisterPage() {
 
           <div className="mt-8 flex items-center justify-between gap-3 border-t border-zinc-800 pt-6">
             {step === 1 ? (
-              <Link to="/login" className="text-xs font-medium text-zinc-600 hover:text-zinc-300">
+              <Link to="/login" className="text-xs font-medium text-zinc-500 hover:text-brand-300">
                 Sudah punya akun?
               </Link>
             ) : (
@@ -454,7 +500,7 @@ export default function RegisterPage() {
             </Button>
           </div>
         </form>
-      </div>
+      </motion.div>
     </AuthShell>
   );
 }
