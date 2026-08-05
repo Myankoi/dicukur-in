@@ -22,6 +22,10 @@ public class Barbershop {
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "registration_id")
+    private com.dicukur.app.registration.entity.BarberRegistration registration;
+
     @Column(length = 150, nullable = false)
     private String name;
 
@@ -33,6 +37,9 @@ public class Barbershop {
 
     @Column(name = "business_email", length = 100)
     private String businessEmail;
+
+    @Column(name = "business_license_number", length = 100)
+    private String businessLicenseNumber;
 
     @Column(name = "business_address", nullable = false, columnDefinition = "TEXT")
     private String businessAddress;

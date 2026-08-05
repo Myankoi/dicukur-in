@@ -25,4 +25,5 @@ public interface BarbershopRepository extends JpaRepository<Barbershop, Long> {
                                            @Param("maxLongitude") BigDecimal maxLongitude);
 
     Optional<Barbershop> findByIdAndStatusAndVerificationStatus(Long id, String status, String verificationStatus);
+    Optional<Barbershop> findByOwner_Id(Long ownerId);
 }

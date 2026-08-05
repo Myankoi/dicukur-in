@@ -63,6 +63,12 @@ public class BarberRegistration {
     @Column(name = "postal_code", length = 20)
     private String postalCode;
 
+    @Column(precision = 10, scale = 8)
+    private BigDecimal latitude;
+
+    @Column(precision = 11, scale = 8)
+    private BigDecimal longitude;
+
     @Column(name = "service_radius_km", nullable = false, precision = 6, scale = 2)
     private BigDecimal serviceRadiusKm;
 
@@ -72,9 +78,25 @@ public class BarberRegistration {
     @Column(name = "submitted_at")
     private LocalDateTime submittedAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reviewed_by")
+    private User reviewedBy;
+
+    @Column(name = "reviewed_at")
+    private LocalDateTime reviewedAt;
+
+    @Column(name = "admin_notes", columnDefinition = "TEXT")
+    private String adminNotes;
+
+    @Column(name = "rejection_reason", columnDefinition = "TEXT")
+    private String rejectionReason;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @jakarta.persistence.OneToMany(mappedBy = "registration", cascade = jakarta.persistence.CascadeType.ALL)
+    private java.util.List<RegistrationDocument> documents = new java.util.ArrayList<>();
 }

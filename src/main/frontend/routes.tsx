@@ -5,6 +5,8 @@ import HomePage from './views/home.js';
 import LoginPage from './views/login.js';
 import RegisterPage from './views/register/index.js';
 import AdminDashboard from './views/admin/index.js';
+import AdminRegistrationsPage from './views/admin/registrations.js';
+import AdminUsersPage from './views/admin/users.js';
 import BarberDashboard from './views/barber/index.js';
 import OwnerDashboard from './views/owner/index.js';
 import CustomerDashboard from './views/customer/index.js';
@@ -24,6 +26,8 @@ export const routes: RouteObject[] = [
     element: <MainLayout />,
     children: [
       { path: '/admin', element: <AdminDashboard /> },
+      { path: '/admin/registrations', element: <AdminRegistrationsPage /> },
+      { path: '/admin/users', element: <AdminUsersPage /> },
       { path: '/barber', element: <BarberDashboard /> },
       { path: '/owner', element: <OwnerDashboard /> },
       { path: '/customer', element: <CustomerDashboard /> },
