@@ -64,7 +64,7 @@ export default function HomePage() {
               Premium grooming platform
             </div>
             <h1 className="text-balance font-display text-5xl font-semibold leading-[0.94] text-white sm:text-6xl lg:text-7xl">
-              Barber premium,
+              BARBER ,
               <span className="mt-1 block italic text-brand-300">sesuai jadwalmu.</span>
             </h1>
             <p className="mt-6 max-w-xl text-sm leading-7 text-zinc-300 sm:text-base">
