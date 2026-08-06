@@ -1,30 +1,58 @@
-import { useEffect, useState } from 'react';
-import { CalendarDays, MapPin, Scissors, ShieldAlert, Sparkles, UserRound, XCircle } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router';
+import {
+  CalendarDays,
+  MapPin,
+  Scissors,
+  ShieldAlert,
+  Sparkles,
+  UserRound,
+  XCircle,
+  RefreshCw,
+  Navigation,
+  CheckCircle2,
+  Clock,
+  ChevronRight,
+} from 'lucide-react';
 import { BookingEndpoint } from '../../generated/endpoints.js';
 import { Button } from '../../components/ui/Button.js';
 import type BookingResponse from '../../generated/com/dicukur/app/booking/dto/BookingResponse.js';
 
 export default function CustomerBookingsPage() {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState<BookingResponse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [cancellingId, setCancellingId] = useState<number>();
   const [error, setError] = useState('');
 
-  const loadBookings = async () => {
-    setLoading(true);
+  const loadBookings = useCallback(async (isSilent = false) => {
+    if (!isSilent) setLoading(true);
+    else setRefreshing(true);
     try {
       const result = await BookingEndpoint.getMyBookings();
       setBookings((result ?? []).filter(Boolean) as BookingResponse[]);
+      setError('');
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Daftar pesanan gagal dimuat');
+      if (!isSilent) {
+        setError(cause instanceof Error ? cause.message : 'Daftar pesanan gagal dimuat');
+      }
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     void loadBookings();
-  }, []);
+
+    // Auto-poll status changes every 5 seconds
+    const interval = setInterval(() => {
+      void loadBookings(true);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [loadBookings]);
 
   const handleCancel = async (id?: number) => {
     if (!id) return;
@@ -41,34 +69,65 @@ export default function CustomerBookingsPage() {
   };
 
   const getStatusBadge = (status?: string) => {
-    switch (status?.toLowerCase()) {
+    const s = status?.toLowerCase() ?? '';
+    switch (s) {
       case 'accepted':
+        return (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-bold text-blue-300">
+            <CheckCircle2 size={13} className="text-blue-400" />
+            Diterima Barber
+          </span>
+        );
+      case 'on_the_way':
+        return (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs font-bold text-purple-300">
+            <Navigation size={13} className="text-purple-400 animate-bounce" />
+            Barber Dalam Perjalanan
+          </span>
+        );
+      case 'arrived':
+        return (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-bold text-cyan-300">
+            <MapPin size={13} className="text-cyan-400" />
+            Barber Tiba di Lokasi
+          </span>
+        );
       case 'in_progress':
         return (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-300">
-            <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Diterima Barber
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-xs font-bold text-orange-300">
+            <Scissors size={13} className="text-orange-400 animate-spin" />
+            Sedang Cukur
           </span>
         );
       case 'completed':
         return (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-400/30 bg-brand-500/10 px-3 py-1 text-xs font-bold text-brand-300">
-            <Sparkles size={12} className="text-brand-300" />
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-300">
+            <Sparkles size={13} className="text-emerald-300" />
             Selesai
           </span>
         );
-      case 'cancelled':
       case 'rejected':
         return (
           <span className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-bold text-red-300">
-            <ShieldAlert size={12} />
-            Batal
+            <ShieldAlert size={13} />
+            Ditolak Barber
           </span>
         );
+      case 'cancelled':
+      case 'cancelled_by_customer':
+      case 'cancelled_by_barber':
+      case 'cancelled_by_admin':
+        return (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-bold text-red-300">
+            <ShieldAlert size={13} />
+            Dibatalkan
+          </span>
+        );
+      case 'pending':
       default:
         return (
           <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-300">
-            <span className="size-1.5 rounded-full bg-amber-400 animate-pulse" />
+            <Clock size={13} className="text-amber-400 animate-pulse" />
             Menunggu Konfirmasi
           </span>
         );
@@ -77,12 +136,25 @@ export default function CustomerBookingsPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-400">Riwayat Layanan</p>
-        <h1 className="mt-2 font-display text-4xl font-semibold tracking-tight text-zinc-100">Pesanan Saya</h1>
-        <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-400">
-          Pantau status keberangkatan barber ke lokasimu, rincian biaya, serta batalkan atau konfirmasi booking.
-        </p>
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-400">Riwayat Layanan</p>
+          <h1 className="mt-2 font-display text-4xl font-semibold tracking-tight text-zinc-100">Pesanan Saya</h1>
+          <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-400">
+            Pantau status keberangkatan barber ke lokasimu, rincian biaya, serta bayar atau beri ulasan.
+          </p>
+        </div>
+
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => void loadBookings(false)}
+          disabled={loading || refreshing}
+          className="self-start sm:self-auto flex items-center gap-2 text-xs"
+        >
+          <RefreshCw size={14} className={refreshing ? 'animate-spin text-brand-400' : ''} />
+          {refreshing ? 'Memperbarui...' : 'Segarkan'}
+        </Button>
       </div>
 
       {error && <p className="rounded-md border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs text-red-300">{error}</p>}
@@ -167,17 +239,28 @@ export default function CustomerBookingsPage() {
                   </p>
                 </div>
 
-                {['PENDING', 'ACCEPTED'].includes(booking.status?.toUpperCase() ?? '') && (
+                <div className="flex items-center gap-2">
                   <Button
-                    variant="ghost"
+                    variant="secondary"
                     size="sm"
-                    onClick={() => void handleCancel(booking.id)}
-                    disabled={cancellingId === booking.id}
-                    className="text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                    onClick={() => navigate(`/customer/bookings/${booking.id}`)}
+                    className="text-xs flex items-center gap-1"
                   >
-                    <XCircle size={15} /> {cancellingId === booking.id ? 'Membatalkan...' : 'Batalkan Booking'}
+                    Detail & Pembayaran <ChevronRight size={14} />
                   </Button>
-                )}
+
+                  {['PENDING', 'ACCEPTED'].includes(booking.status?.toUpperCase() ?? '') && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => void handleCancel(booking.id)}
+                      disabled={cancellingId === booking.id}
+                      className="text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                    >
+                      <XCircle size={15} /> {cancellingId === booking.id ? 'Membatalkan...' : 'Batalkan'}
+                    </Button>
+                  )}
+                </div>
               </div>
             </article>
           ))}

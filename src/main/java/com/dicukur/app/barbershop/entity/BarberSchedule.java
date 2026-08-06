@@ -21,7 +21,7 @@ public class BarberSchedule {
     @JoinColumn(name = "barber_id", nullable = false)
     private User barber;
 
-    @Column(name = "day_of_week", nullable = false)
+    @Column(name = "day_of_week", nullable = false, columnDefinition = "TINYINT")
     private Byte dayOfWeek;
 
     @Column(name = "start_time", nullable = false)

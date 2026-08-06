@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface BarberTimeOffRepository extends JpaRepository<BarberTimeOff, Long> {
     @Query("""
@@ -17,4 +18,6 @@ public interface BarberTimeOffRepository extends JpaRepository<BarberTimeOff, Lo
     boolean existsOverlapping(@Param("barberId") Long barberId,
                               @Param("startDatetime") LocalDateTime startDatetime,
                               @Param("endDatetime") LocalDateTime endDatetime);
+
+    List<BarberTimeOff> findByBarber_IdOrderByStartDatetimeDesc(Long barberId);
 }

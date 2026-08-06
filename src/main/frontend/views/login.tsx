@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import { login } from '@vaadin/hilla-frontend';
-import { UserEndpoint } from 'Frontend/generated/endpoints';
+import { UserEndpoint } from '../generated/endpoints.js';
 import { AuthShell } from '../components/AuthShell.js';
 import { Button } from '../components/ui/Button.js';
 import { InputField } from '../components/ui/Field.js';

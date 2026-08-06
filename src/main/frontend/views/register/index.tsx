@@ -15,7 +15,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
-import { RegisterEndpoint } from 'Frontend/generated/endpoints';
+import { RegisterEndpoint } from '../../generated/endpoints.js';
 import { AuthShell } from '../../components/AuthShell.js';
 import { Button, buttonStyles } from '../../components/ui/Button.js';
 import { InputField, TextareaField } from '../../components/ui/Field.js';

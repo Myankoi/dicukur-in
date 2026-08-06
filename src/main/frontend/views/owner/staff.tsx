@@ -45,7 +45,7 @@ export default function OwnerStaffPage() {
     setError(null);
     try {
       const data = await OwnerEndpoint.getMyStaff();
-      setStaffList((data || []).filter((s): s is StaffResponse => s !== undefined));
+      setStaffList(((data || []).filter(Boolean)) as StaffResponse[]);
     } catch (err: any) {
       setError(err?.message || 'Gagal memuat daftar staf barber.');
     } finally {

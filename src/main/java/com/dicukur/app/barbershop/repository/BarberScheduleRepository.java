@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface BarberScheduleRepository extends JpaRepository<BarberSchedule, Long> {
     List<BarberSchedule> findByBarber_IdAndDayOfWeekAndStatus(Long barberId, Byte dayOfWeek, String status);
+
+    List<BarberSchedule> findByBarber_Id(Long barberId);
 }

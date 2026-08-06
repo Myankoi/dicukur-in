@@ -11,6 +11,8 @@ public record BookingResponse(
         String startDatetime,
         String endDatetime,
         String address,
+        BigDecimal latitude,
+        BigDecimal longitude,
         BigDecimal distanceKm,
         BigDecimal serviceSubtotal,
         BigDecimal travelFee,

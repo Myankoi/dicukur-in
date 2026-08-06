@@ -27,6 +27,10 @@ public class BookingEndpoint {
         return bookingService.getMyBookings();
     }
 
+    public BookingResponse getBookingById(Long id) {
+        return bookingService.getBookingById(id);
+    }
+
     public void cancel(Long id, String reason) {
         bookingService.cancel(id, reason);
     }

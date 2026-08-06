@@ -17,6 +17,7 @@ import com.dicukur.app.booking.entity.Booking;
 import com.dicukur.app.booking.entity.BookingDetail;
 import com.dicukur.app.booking.repository.BookingRepository;
 import com.dicukur.app.common.location.GeoDistance;
+import com.dicukur.app.notification.service.NotificationService;
 import com.dicukur.app.security.CurrentUserService;
 import com.dicukur.app.service.entity.BarbershopService;
 import com.dicukur.app.service.entity.PricingRule;
@@ -51,6 +52,7 @@ public class BookingService {
     private final BarbershopServiceRepository shopServiceRepository;
     private final PricingRuleRepository pricingRuleRepository;
     private final CurrentUserService currentUserService;
+    private final NotificationService notificationService;
 
     public BookingService(BookingRepository bookingRepository,
                           CustomerAddressRepository addressRepository,
@@ -61,7 +63,8 @@ public class BookingService {
                           BarberTimeOffRepository timeOffRepository,
                           BarbershopServiceRepository shopServiceRepository,
                           PricingRuleRepository pricingRuleRepository,
-                          CurrentUserService currentUserService) {
+                          CurrentUserService currentUserService,
+                          NotificationService notificationService) {
         this.bookingRepository = bookingRepository;
         this.addressRepository = addressRepository;
         this.barbershopRepository = barbershopRepository;
@@ -72,62 +75,81 @@ public class BookingService {
         this.shopServiceRepository = shopServiceRepository;
         this.pricingRuleRepository = pricingRuleRepository;
         this.currentUserService = currentUserService;
+        this.notificationService = notificationService;
     }
 
     @Transactional
     public BookingResponse create(BookingRequest request) {
-        User customer = currentUserService.requireRole("Customer");
-        CustomerAddress address = addressRepository.findByIdAndCustomer_Id(request.addressId(), customer.getId())
+        User customer = currentUserService.requireUser();
+
+        // Resolve address and verify ownership
+        CustomerAddress address = addressRepository.findById(request.addressId())
                 .orElseThrow(() -> new IllegalArgumentException("Alamat tidak ditemukan"));
-        Barbershop shop = barbershopRepository.findByIdAndStatusAndVerificationStatus(
-                        request.barbershopId(), "active", "approved")
-                .orElseThrow(() -> new IllegalArgumentException("Barbershop tidak ditemukan atau belum aktif"));
-        BarbershopStaff staff = staffRepository.findByBarbershop_IdAndBarber_IdAndEmploymentStatus(
-                        shop.getId(), request.barberId(), "active")
-                .orElseThrow(() -> new IllegalArgumentException("Barber bukan karyawan aktif barbershop ini"));
-        BarberProfile profile = profileRepository.findByUser_Id(staff.getBarber().getId())
-                .filter(item -> "verified".equalsIgnoreCase(item.getVerificationStatus()))
-                .filter(item -> "employee".equalsIgnoreCase(item.getBarberType())
-                        || "owner".equalsIgnoreCase(item.getBarberType()))
-                .orElseThrow(() -> new IllegalArgumentException("Profile barber belum terverifikasi sebagai karyawan"));
-        if (!"active".equalsIgnoreCase(staff.getBarber().getStatus())) {
-            throw new IllegalArgumentException("Barber sedang tidak aktif");
+        if (!address.getCustomer().getId().equals(customer.getId())) {
+            throw new IllegalArgumentException("Alamat tidak valid untuk customer ini");
         }
 
-        BarbershopService shopService = shopServiceRepository
-                .findByBarbershop_IdAndService_IdAndStatus(shop.getId(), request.serviceId(), "active")
-                .orElseThrow(() -> new IllegalArgumentException("Layanan tidak tersedia di barbershop ini"));
-        BigDecimal price = shopService.getBusinessPrice() != null
-                ? shopService.getBusinessPrice() : shopService.getService().getPrice();
-        int duration = shopService.getBusinessDuration() != null
-                ? shopService.getBusinessDuration() : shopService.getService().getDuration();
+        // Resolve barber via profile
+        User barber = profileRepository.findByUser_Id(request.barberId())
+                .map(BarberProfile::getUser)
+                .orElseThrow(() -> new IllegalArgumentException("Barber tidak ditemukan"));
 
+        // Optional barbershop validation
+        Barbershop barbershop = null;
+        if (request.barbershopId() != null) {
+            barbershop = barbershopRepository.findById(request.barbershopId())
+                    .orElseThrow(() -> new IllegalArgumentException("Barbershop tidak ditemukan"));
+            boolean isStaff = staffRepository
+                    .findByBarbershop_IdAndBarber_IdAndEmploymentStatus(barbershop.getId(), barber.getId(), "active")
+                    .isPresent();
+            boolean isOwner = barbershop.getOwner().getId().equals(barber.getId());
+            if (!isStaff && !isOwner) {
+                throw new IllegalArgumentException("Barber bukan karyawan aktif dari barbershop ini");
+            }
+        }
+
+        // Resolve service
+        BarbershopService service = shopServiceRepository.findById(request.serviceId())
+                .orElseThrow(() -> new IllegalArgumentException("Layanan tidak ditemukan"));
+        if (!"active".equalsIgnoreCase(service.getStatus())) {
+            throw new IllegalArgumentException("Layanan sedang tidak aktif");
+        }
+        if (barbershop != null && service.getBarbershop() != null && !service.getBarbershop().getId().equals(barbershop.getId())) {
+            throw new IllegalArgumentException("Layanan tidak cocok dengan barbershop terpilih");
+        }
+
+        // Parse start time and compute duration
         LocalDateTime start = parseStart(request.startDatetime());
+        int duration = service.getBusinessDuration() != null && service.getBusinessDuration() > 0 ? service.getBusinessDuration() : 30;
         LocalDateTime end = start.plusMinutes(duration);
-        validateSchedule(staff.getBarber().getId(), start, end);
-        if (bookingRepository.existsOverlapping(staff.getBarber().getId(), start, end, BLOCKING_STATUSES)) {
-            throw new IllegalArgumentException("Jadwal barber sudah terisi di waktu tersebut");
-        }
 
-        double distance = GeoDistance.haversine(
+        // Validate barber schedule
+        validateBarberSchedule(barber.getId(), start, end);
+
+        // Compute distance using barber profile base location
+        BarberProfile barberProfile = profileRepository.findByUser_Id(barber.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Profil barber tidak ditemukan"));
+        double distanceDouble = GeoDistance.haversine(
                 address.getLatitude().doubleValue(), address.getLongitude().doubleValue(),
-                profile.getBaseLatitude().doubleValue(), profile.getBaseLongitude().doubleValue()
+                barberProfile.getBaseLatitude().doubleValue(), barberProfile.getBaseLongitude().doubleValue()
         );
-        if (distance > shop.getServiceRadiusKm().doubleValue()) {
-            throw new IllegalArgumentException("Alamat berada di luar radius layanan barbershop");
-        }
+        BigDecimal distance = BigDecimal.valueOf(distanceDouble);
 
+        // Load active pricing rule
         PricingRule pricingRule = pricingRuleRepository.findFirstByStatusOrderByIdAsc("active")
-                .orElseThrow(() -> new IllegalStateException("Aturan harga belum tersedia"));
-        BigDecimal distanceValue = money(distance, 2);
-        BigDecimal travelFee = calculateTravelFee(distanceValue, pricingRule);
-        BigDecimal subtotal = price.setScale(2, RoundingMode.HALF_UP);
+                .orElseThrow(() -> new IllegalStateException("Aturan harga belum dikonfigurasi admin"));
 
+        // Compute travel fee and totals
+        BigDecimal travelFee = calculateTravelFee(distance, pricingRule);
+        BigDecimal subtotal = service.getBusinessPrice();
+        BigDecimal total = subtotal.add(travelFee);
+
+        // Build booking entity
         Booking booking = new Booking();
         booking.setBookingCode(generateBookingCode());
         booking.setCustomer(customer);
-        booking.setBarber(staff.getBarber());
-        booking.setBarbershop(shop);
+        booking.setBarber(barber);
+        booking.setBarbershop(barbershop);
         booking.setCustomerAddress(address);
         booking.setPricingRule(pricingRule);
         booking.setStartDatetime(start);
@@ -135,68 +157,123 @@ public class BookingService {
         booking.setAddressSnapshot(buildAddressSnapshot(address));
         booking.setCustomerLatitude(address.getLatitude());
         booking.setCustomerLongitude(address.getLongitude());
-        booking.setBarberBaseSnapshot(profile.getBaseAddress());
-        booking.setBarberLatitude(profile.getBaseLatitude());
-        booking.setBarberLongitude(profile.getBaseLongitude());
-        booking.setDistanceKm(distanceValue);
+        booking.setBarberBaseSnapshot(barberProfile.getBaseAddress());
+        booking.setBarberLatitude(barberProfile.getBaseLatitude());
+        booking.setBarberLongitude(barberProfile.getBaseLongitude());
+        booking.setDistanceKm(distance.setScale(2, RoundingMode.HALF_UP));
         booking.setFreeRadiusKm(pricingRule.getFreeRadiusKm());
         booking.setPricePerKm(pricingRule.getPricePerKm());
         booking.setTravelFee(travelFee);
         booking.setServiceSubtotal(subtotal);
-        booking.setTotalPrice(subtotal.add(travelFee));
+        booking.setTotalPrice(total);
         booking.setStatus("pending");
         booking.setPaymentStatus("unpaid");
         booking.setNotes(blankToNull(request.notes()));
         booking.setCreatedAt(LocalDateTime.now());
         booking.setUpdatedAt(LocalDateTime.now());
 
+        // Booking detail linking to service offering
         BookingDetail detail = new BookingDetail();
-        detail.setService(shopService.getService());
-        detail.setServiceName(shopService.getService().getName());
+        detail.setService(service.getService());
+        detail.setServiceName(service.getService() != null ? service.getService().getName() : "Layanan");
         detail.setPrice(subtotal);
         detail.setDuration(duration);
         detail.setSubtotal(subtotal);
-        booking.addDetail(detail);
 
-        return toResponse(bookingRepository.save(booking));
+        booking.addDetail(detail);
+        Booking saved = bookingRepository.save(booking);
+
+        // Notify Barber of new booking request
+        notificationService.createNotification(
+                barber.getId(),
+                "Pesanan Masuk Baru 🔔",
+                "Customer " + customer.getName() + " melakukan pemesanan #" + saved.getBookingCode() + ".",
+                "booking_created",
+                saved.getId()
+        );
+
+        return toResponse(saved);
     }
+
+    
 
     @Transactional(readOnly = true)
     public List<BookingResponse> getMyBookings() {
-        User customer = currentUserService.requireRole("Customer");
-        return bookingRepository.findByCustomer_IdOrderByStartDatetimeDesc(customer.getId())
-                .stream().map(this::toResponse).toList();
+        User user = currentUserService.requireUser();
+        return bookingRepository.findByCustomer_IdOrderByStartDatetimeDesc(user.getId())
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public BookingResponse getBookingById(Long id) {
+        return bookingRepository.findById(id)
+                .map(this::toResponse)
+                .orElse(null);
     }
 
     @Transactional
     public void cancel(Long id, String reason) {
-        User customer = currentUserService.requireRole("Customer");
-        Booking booking = bookingRepository.findByCustomer_IdAndId(customer.getId(), id)
-                .stream().findFirst()
+        User user = currentUserService.requireUser();
+
+        Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Booking tidak ditemukan"));
-        if (!("pending".equals(booking.getStatus()) || "accepted".equals(booking.getStatus()))) {
-            throw new IllegalArgumentException("Booking ini tidak bisa dibatalkan");
+
+        if (!booking.getCustomer().getId().equals(user.getId())) {
+            throw new IllegalArgumentException("Anda tidak memiliki akses untuk membatalkan booking ini");
         }
+
+        if ("completed".equalsIgnoreCase(booking.getStatus()) || booking.getStatus().startsWith("cancelled")) {
+            throw new IllegalStateException("Booking sudah selesai atau sudah dibatalkan");
+        }
+
         booking.setStatus("cancelled_by_customer");
         booking.setCancellationReason(blankToNull(reason));
         booking.setUpdatedAt(LocalDateTime.now());
-        bookingRepository.save(booking);
+        Booking saved = bookingRepository.save(booking);
+
+        // Notify Barber about cancellation
+        notificationService.createNotification(
+                booking.getBarber().getId(),
+                "Pesanan Dibatalkan Customer ⚠️",
+                "Pesanan #" + booking.getBookingCode() + " dibatalkan oleh customer.",
+                "booking_cancelled",
+                booking.getId()
+        );
     }
 
-    private void validateSchedule(Long barberId, LocalDateTime start, LocalDateTime end) {
-        byte day = (byte) start.getDayOfWeek().getValue();
-        boolean withinSchedule = scheduleRepository.findByBarber_IdAndDayOfWeekAndStatus(barberId, day, "active")
-                .stream()
-                .anyMatch(schedule -> isWithin(schedule, start, end));
-        if (!withinSchedule) {
-            throw new IllegalArgumentException("Barber tidak tersedia pada jam tersebut");
+    private void validateBarberSchedule(Long barberId, LocalDateTime start, LocalDateTime end) {
+        boolean hasConflict = bookingRepository.existsOverlapping(barberId, start, end, BLOCKING_STATUSES);
+        if (hasConflict) {
+            throw new IllegalArgumentException("Jadwal barber sudah terisi untuk waktu yang dipilih");
         }
-        if (timeOffRepository.existsOverlapping(barberId, start, end)) {
-            throw new IllegalArgumentException("Barber sedang libur pada jam tersebut");
+
+        boolean onTimeOff = timeOffRepository.existsOverlapping(barberId, start, end);
+        if (onTimeOff) {
+            throw new IllegalArgumentException("Barber sedang mengajukan waktu libur pada jadwal ini");
+        }
+
+        int dayOfWeek = start.getDayOfWeek().getValue();
+        // Retrieve active schedule for the day
+        List<BarberSchedule> schedules = scheduleRepository.findByBarber_IdAndDayOfWeekAndStatus(barberId, (byte) dayOfWeek, "active");
+        if (schedules.isEmpty()) {
+            throw new IllegalArgumentException("Barber tidak memiliki jadwal kerja pada hari tersebut");
+        }
+        BarberSchedule schedule = schedules.get(0);
+
+        if (schedule.getStartTime() == null || schedule.getEndTime() == null) {
+            throw new IllegalArgumentException("Jam kerja barber belum diatur");
+        }
+
+        boolean fitsSchedule = isWithinSchedule(start, end, schedule);
+        if (!fitsSchedule) {
+            throw new IllegalArgumentException("Waktu booking berada di luar jam operasional barber (" +
+                    schedule.getStartTime() + " - " + schedule.getEndTime() + ")");
         }
     }
 
-    private boolean isWithin(BarberSchedule schedule, LocalDateTime start, LocalDateTime end) {
+    private boolean isWithinSchedule(LocalDateTime start, LocalDateTime end, BarberSchedule schedule) {
         return !start.toLocalTime().isBefore(schedule.getStartTime())
                 && !end.toLocalTime().isAfter(schedule.getEndTime());
     }
@@ -230,7 +307,10 @@ public class BookingService {
                 booking.getBarbershop() == null ? "Barbershop" : booking.getBarbershop().getName(),
                 booking.getBarber().getName(), serviceName,
                 booking.getStartDatetime().toString(), booking.getEndDatetime().toString(),
-                booking.getAddressSnapshot(), booking.getDistanceKm(), booking.getServiceSubtotal(),
+                booking.getAddressSnapshot(),
+                booking.getCustomerLatitude(),
+                booking.getCustomerLongitude(),
+                booking.getDistanceKm(), booking.getServiceSubtotal(),
                 booking.getTravelFee(), booking.getTotalPrice(), booking.getStatus(), booking.getPaymentStatus()
         );
     }
