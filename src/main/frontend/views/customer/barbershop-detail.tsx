@@ -6,7 +6,7 @@ import { Button } from '../../components/ui/Button.js';
 import { InputField, TextareaField } from '../../components/ui/Field.js';
 
 interface Address { id: number; label?: string; fullAddress: string; isDefault: boolean; }
-interface Staff { id: number; name: string; position?: string; ratingAverage: number; totalCompleted: number; availabilityStatus: string; }
+interface Staff { staffId: number; barberUserId: number; name: string; position?: string; ratingAverage: number; totalCompleted: number; availabilityStatus: string; }
 interface Service { id: number; name: string; description?: string; price: number; duration: number; }
 interface Shop { id: number; name: string; description?: string; address: string; city?: string; province?: string; phone?: string; ratingAverage: number; totalCompleted: number; staff: Staff[]; services: Service[]; }
 
@@ -30,11 +30,11 @@ export default function BarbershopDetailPage() {
     if (!id) return;
     Promise.all([BarbershopEndpoint.getDetail(Number(id)), CustomerAddressEndpoint.getMyAddresses()])
       .then(([shopResult, addressResult]) => {
-        const nextShop = shopResult as Shop;
+        const nextShop = shopResult as unknown as Shop;
         const nextAddresses = (addressResult ?? []).filter(Boolean) as Address[];
         setShop(nextShop);
         setAddresses(nextAddresses);
-        setBarberId(nextShop.staff[0]?.id);
+        setBarberId(nextShop.staff[0]?.barberUserId);
         setServiceId(nextShop.services[0]?.id);
         setAddressId(nextAddresses.find((item) => item.isDefault)?.id ?? nextAddresses[0]?.id);
       })
@@ -117,12 +117,12 @@ export default function BarbershopDetailPage() {
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
                 {shop.staff.map((staff) => {
-                  const isSelected = barberId === staff.id;
+                  const isSelected = barberId === staff.barberUserId;
                   return (
                     <button
-                      key={staff.id}
+                      key={staff.barberUserId}
                       type="button"
-                      onClick={() => setBarberId(staff.id)}
+                      onClick={() => setBarberId(staff.barberUserId)}
                       className={`group relative flex flex-col justify-between rounded-xl border p-4 text-left backdrop-blur-sm transition-all duration-200 ${
                         isSelected
                           ? 'border-brand-400 bg-brand-500/10 shadow-lg shadow-brand-500/5'

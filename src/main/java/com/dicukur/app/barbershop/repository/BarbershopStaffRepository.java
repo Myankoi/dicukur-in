@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BarbershopStaffRepository extends JpaRepository<BarbershopStaff, Long> {
+    List<BarbershopStaff> findByBarbershop_IdOrderByJoinedAtDesc(Long barbershopId);
+
     List<BarbershopStaff> findByBarbershop_IdAndEmploymentStatus(Long barbershopId, String employmentStatus);
 
     Optional<BarbershopStaff> findByBarbershop_IdAndBarber_IdAndEmploymentStatus(Long barbershopId,

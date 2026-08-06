@@ -12,7 +12,6 @@ import jakarta.validation.Valid;
 import java.util.List;
 
 @BrowserCallable
-@PermitAll
 @RolesAllowed({"ADMIN", "Admin", "ROLE_ADMIN"})
 public class AdminUserEndpoint {
 

@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @Entity
@@ -23,9 +25,22 @@ public class BarbershopStaff {
     @JoinColumn(name = "barber_id", nullable = false)
     private User barber;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "added_by")
+    private User addedBy;
+
     @Column(length = 100)
     private String position;
 
     @Column(name = "employment_status", nullable = false, length = 20)
     private String employmentStatus;
+
+    @Column(name = "joined_at")
+    private LocalDateTime joinedAt;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }

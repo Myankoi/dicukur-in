@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -32,7 +33,7 @@ public class BarberProfile {
     private String bio;
 
     @Column(name = "experience_years", nullable = false)
-    private Integer experienceYears;
+    private Integer experienceYears = 0;
 
     @Column(name = "base_address", columnDefinition = "TEXT")
     private String baseAddress;
@@ -43,6 +44,9 @@ public class BarberProfile {
     @Column(name = "base_longitude", nullable = false, precision = 11, scale = 8)
     private BigDecimal baseLongitude;
 
+    @Column(name = "service_radius_km", nullable = false, precision = 6, scale = 2)
+    private BigDecimal serviceRadiusKm = new BigDecimal("10.00");
+
     @Column(name = "verification_status", nullable = false, length = 20)
     private String verificationStatus;
 
@@ -50,8 +54,14 @@ public class BarberProfile {
     private String availabilityStatus;
 
     @Column(name = "rating_average", nullable = false, precision = 3, scale = 2)
-    private BigDecimal ratingAverage;
+    private BigDecimal ratingAverage = BigDecimal.ZERO;
 
     @Column(name = "total_completed", nullable = false)
-    private Integer totalCompleted;
+    private Integer totalCompleted = 0;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }

@@ -9,7 +9,6 @@ import jakarta.annotation.security.RolesAllowed;
 import java.util.List;
 
 @BrowserCallable
-@PermitAll
 @RolesAllowed({"ADMIN", "Admin", "ROLE_ADMIN"})
 public class AdminRegistrationEndpoint {
 

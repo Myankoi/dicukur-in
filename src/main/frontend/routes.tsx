@@ -7,8 +7,13 @@ import RegisterPage from './views/register/index.js';
 import AdminDashboard from './views/admin/index.js';
 import AdminRegistrationsPage from './views/admin/registrations.js';
 import AdminUsersPage from './views/admin/users.js';
+import AdminServicesPage from './views/admin/services.js';
 import BarberDashboard from './views/barber/index.js';
 import OwnerDashboard from './views/owner/index.js';
+import OwnerProfilePage from './views/owner/profile.js';
+import OwnerStaffPage from './views/owner/staff.js';
+import OwnerBookingsPage from './views/owner/bookings.js';
+import OwnerReportsPage from './views/owner/reports.js';
 import CustomerDashboard from './views/customer/index.js';
 import CustomerAddressesPage from './views/customer/addresses.js';
 import NewBookingPage from './views/customer/bookings-new.js';
@@ -28,8 +33,13 @@ export const routes: RouteObject[] = [
       { path: '/admin', element: <AdminDashboard /> },
       { path: '/admin/registrations', element: <AdminRegistrationsPage /> },
       { path: '/admin/users', element: <AdminUsersPage /> },
+      { path: '/admin/services', element: <AdminServicesPage /> },
       { path: '/barber', element: <BarberDashboard /> },
       { path: '/owner', element: <OwnerDashboard /> },
+      { path: '/owner/profile', element: <OwnerProfilePage /> },
+      { path: '/owner/staff', element: <OwnerStaffPage /> },
+      { path: '/owner/bookings', element: <OwnerBookingsPage /> },
+      { path: '/owner/reports', element: <OwnerReportsPage /> },
       { path: '/customer', element: <CustomerDashboard /> },
       { path: '/customer/addresses', element: <CustomerAddressesPage /> },
       { path: '/customer/bookings/new', element: <NewBookingPage /> },
