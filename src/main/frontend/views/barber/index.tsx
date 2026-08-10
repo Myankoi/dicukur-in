@@ -59,16 +59,16 @@ export default function BarberDashboard() {
           desc: 'Menunggu konfirmasi',
           icon: ClipboardList,
           color: '#dc2626',
-          bgGradient: 'from-red-500/10 to-red-900/5',
+          bgGradient: 'bg-red-50/60 border-red-200',
           link: '/barber/bookings',
         },
         {
           label: 'Selesai Hari Ini',
           value: data.todayCompleted,
-          desc: 'Layanan yang sudah dikerjakan',
+          desc: 'Layanan selesai hari ini',
           icon: CheckCircle2,
-          color: '#22c55e',
-          bgGradient: 'from-green-500/10 to-green-900/5',
+          color: '#16a34a',
+          bgGradient: 'bg-emerald-50/60 border-emerald-200',
           link: '/barber/history',
         },
         {
@@ -76,48 +76,50 @@ export default function BarberDashboard() {
           value: data.totalCompleted,
           desc: 'Riwayat semua pesanan',
           icon: TrendingUp,
-          color: '#3b82f6',
-          bgGradient: 'from-blue-500/10 to-blue-900/5',
+          color: '#2563eb',
+          bgGradient: 'bg-blue-50/60 border-blue-200',
           link: '/barber/history',
         },
         {
           label: 'Estimasi Pendapatan',
           value: `Rp ${Number(data.totalEarnings).toLocaleString('id-ID')}`,
-          desc: 'Total dari booking selesai',
+          desc: 'Total booking selesai',
           icon: DollarSign,
-          color: '#eab308',
-          bgGradient: 'from-yellow-500/10 to-yellow-900/5',
+          color: '#d97706',
+          bgGradient: 'bg-amber-50/60 border-amber-200',
           link: '/barber/history',
         },
         {
           label: 'Rating Rata-rata',
           value: Number(data.averageRating).toFixed(1),
-          desc: 'Dari ulasan customer',
+          desc: 'Ulasan dari customer',
           icon: Star,
-          color: '#f59e0b',
-          bgGradient: 'from-amber-500/10 to-amber-900/5',
+          color: '#d97706',
+          bgGradient: 'bg-amber-50/60 border-amber-200',
           link: '/barber/profile',
         },
       ]
     : [];
 
   return (
-    <div>
+    <div className="space-y-8">
       {/* Header with barber pole decorative accent */}
-      <div className="relative mb-8">
-        <div className="absolute -top-2 left-0 w-16 h-1 rounded-full"
-          style={{ background: 'linear-gradient(90deg, #dc2626, #f8fafc, #2563eb)' }} />
-        <h1 className="text-2xl font-bold text-zinc-100 mt-4 flex items-center gap-3">
-          <Scissors size={24} className="text-brand-400" />
-          Dashboard Barber
+      <div className="relative">
+        <div
+          className="absolute -top-3 left-0 w-20 h-1.5 rounded-full"
+          style={{ background: 'linear-gradient(90deg, #dc2626 0%, #ffffff 50%, #2563eb 100%)' }}
+        />
+        <h1 className="text-2xl font-bold text-slate-900 mt-4 flex items-center gap-3">
+          <Scissors size={24} className="text-red-600" />
+          Dashboard Barber Mitra
         </h1>
-        <p className="text-zinc-400 mt-1">Kelola pesanan masuk, jadwal, dan riwayat pekerjaan Anda.</p>
+        <p className="text-slate-500 text-sm mt-1">Kelola pesanan masuk, atur jadwal kerja, dan pantau performa layananmu.</p>
       </div>
 
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-36 rounded-xl bg-zinc-900/50 animate-pulse border border-zinc-800/50" />
+            <div key={i} className="h-36 rounded-xl bg-white border border-slate-200 animate-pulse shadow-sm" />
           ))}
         </div>
       ) : (
@@ -130,19 +132,19 @@ export default function BarberDashboard() {
                 type="button"
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.06, duration: 0.3 }}
-                className={`group relative overflow-hidden rounded-xl border border-zinc-800/60 bg-gradient-to-br ${card.bgGradient} p-5 text-left transition-all duration-200 hover:border-zinc-700 hover:shadow-lg hover:shadow-zinc-900/50 hover:-translate-y-0.5`}
+                transition={{ delay: i * 0.06, duration: 0.2 }}
+                className={`group relative overflow-hidden rounded-xl border bg-white p-5 text-left transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${card.bgGradient}`}
                 onClick={() => navigate(card.link)}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <div className="grid size-10 place-items-center rounded-lg bg-zinc-900/80 border border-zinc-800/60">
+                  <div className="grid size-10 place-items-center rounded-lg bg-white border border-slate-200 shadow-xs">
                     <Icon size={18} style={{ color: card.color }} />
                   </div>
-                  <ArrowRight size={14} className="text-zinc-600 transition-all group-hover:text-zinc-400 group-hover:translate-x-1" />
+                  <ArrowRight size={14} className="text-slate-400 transition-all group-hover:text-blue-600 group-hover:translate-x-1" />
                 </div>
-                <p className="text-2xl font-bold text-zinc-100 mb-1">{card.value}</p>
-                <p className="text-xs font-semibold text-zinc-300 mb-0.5">{card.label}</p>
-                <p className="text-[11px] text-zinc-500">{card.desc}</p>
+                <p className="text-2xl font-bold text-slate-900 mb-1">{card.value}</p>
+                <p className="text-xs font-bold text-slate-800 mb-0.5">{card.label}</p>
+                <p className="text-[11px] text-slate-500">{card.desc}</p>
               </motion.button>
             );
           })}
@@ -150,25 +152,25 @@ export default function BarberDashboard() {
       )}
 
       {/* Quick Actions */}
-      <div className="mt-8">
-        <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-4">Aksi Cepat</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="space-y-4">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">Aksi Cepat</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { label: 'Lihat Pesanan Masuk', path: '/barber/bookings', icon: ClipboardList, accent: '#dc2626' },
-            { label: 'Atur Jadwal Kerja', path: '/barber/schedule', icon: Clock, accent: '#3b82f6' },
-            { label: 'Riwayat Pekerjaan', path: '/barber/history', icon: TrendingUp, accent: '#22c55e' },
+            { label: 'Lihat Pesanan Masuk', path: '/barber/bookings', icon: ClipboardList, accent: 'border-l-4 border-l-red-600', iconColor: 'text-red-600' },
+            { label: 'Atur Jadwal Kerja', path: '/barber/schedule', icon: Clock, accent: 'border-l-4 border-l-blue-600', iconColor: 'text-blue-600' },
+            { label: 'Riwayat Pekerjaan', path: '/barber/history', icon: TrendingUp, accent: 'border-l-4 border-l-emerald-600', iconColor: 'text-emerald-600' },
           ].map((action) => {
             const Icon = action.icon;
             return (
               <button
                 key={action.path}
                 type="button"
-                className="flex items-center gap-3 rounded-lg border border-zinc-800/60 bg-zinc-900/40 px-4 py-3.5 text-sm font-medium text-zinc-300 transition-all hover:border-zinc-700 hover:bg-zinc-900/70 hover:text-zinc-100"
+                className={`flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-4 text-sm font-bold text-slate-800 transition-all hover:border-slate-300 hover:shadow-md ${action.accent}`}
                 onClick={() => navigate(action.path)}
               >
-                <Icon size={18} style={{ color: action.accent }} />
+                <Icon size={18} className={action.iconColor} />
                 <span>{action.label}</span>
-                <ArrowRight size={14} className="ml-auto text-zinc-600" />
+                <ArrowRight size={14} className="ml-auto text-slate-400" />
               </button>
             );
           })}

@@ -175,28 +175,28 @@ export default function AdminUsersPage() {
     switch (status) {
       case 'active':
         return (
-          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-400">
+          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
             <UserCheck size={12} />
             Aktif
           </span>
         );
       case 'inactive':
         return (
-          <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-300">
+          <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-700">
             <Clock size={12} />
             Nonaktif
           </span>
         );
       case 'suspended':
         return (
-          <span className="inline-flex items-center gap-1 rounded-full border border-rose-500/30 bg-rose-500/10 px-2.5 py-0.5 text-xs font-semibold text-rose-400">
+          <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-xs font-bold text-red-700">
             <UserX size={12} />
             Ditangguhkan
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 rounded-full border border-zinc-700 bg-zinc-800 px-2.5 py-0.5 text-xs font-medium text-zinc-300">
+          <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
             {status}
           </span>
         );
@@ -208,10 +208,10 @@ export default function AdminUsersPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-100 font-display">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 font-display">
             Manajemen User Sistem
           </h1>
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm text-slate-500">
             Kelola data akun Pelanggan (Customer) dan Pemilik Usaha (Owner Barbershop) secara lengkap (CRUD).
           </p>
         </div>
@@ -230,7 +230,7 @@ export default function AdminUsersPage() {
             });
             setCreateModalOpen(true);
           }}
-          className="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-4 py-2.5 text-xs font-bold text-zinc-950 shadow-lg shadow-brand-500/20 hover:bg-brand-400 transition"
+          className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-blue-700 transition"
         >
           <Plus size={16} />
           Tambah {activeRoleTab} Baru
@@ -238,14 +238,14 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Role Selection Tabs (Customer vs Owner) */}
-      <div className="flex gap-2 border-b border-zinc-800 pb-3">
+      <div className="flex gap-2 border-b border-slate-200 pb-3">
         <button
           type="button"
           onClick={() => setActiveRoleTab('Customer')}
           className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
             activeRoleTab === 'Customer'
-              ? 'bg-zinc-800 text-brand-300 border border-brand-500/40 shadow-sm'
-              : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200'
+              ? 'bg-blue-50 text-blue-700 border border-blue-200 shadow-xs'
+              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
           }`}
         >
           <User size={18} />
@@ -256,8 +256,8 @@ export default function AdminUsersPage() {
           onClick={() => setActiveRoleTab('Owner')}
           className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
             activeRoleTab === 'Owner'
-              ? 'bg-zinc-800 text-brand-300 border border-brand-500/40 shadow-sm'
-              : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200'
+              ? 'bg-blue-50 text-blue-700 border border-blue-200 shadow-xs'
+              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
           }`}
         >
           <Building2 size={18} />
@@ -291,22 +291,22 @@ export default function AdminUsersPage() {
       )}
 
       {/* Search and Filters */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 backdrop-blur-md">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="relative flex-1 max-w-md">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             placeholder={`Cari nama, email, atau no HP ${activeRoleTab}...`}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-zinc-800 bg-zinc-950 pl-10 pr-4 py-2 text-sm text-zinc-200 placeholder-zinc-500 focus:border-brand-500 focus:outline-none"
+            className="w-full rounded-lg border border-slate-300 bg-slate-50 pl-10 pr-4 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:bg-white focus:outline-none"
           />
         </div>
 
         <div className="flex items-center gap-2">
-          <Filter size={15} className="text-zinc-500" />
-          <span className="text-xs text-zinc-400">Status:</span>
-          <div className="flex gap-1 rounded-lg border border-zinc-800 bg-zinc-950 p-1">
+          <Filter size={15} className="text-slate-400" />
+          <span className="text-xs text-slate-500 font-medium">Status:</span>
+          <div className="flex gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
             {(
               [
                 { id: 'ALL', label: 'Semua' },
@@ -319,10 +319,10 @@ export default function AdminUsersPage() {
                 key={tab.id}
                 type="button"
                 onClick={() => setStatusFilter(tab.id)}
-                className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
+                className={`rounded-md px-3 py-1 text-xs font-bold transition-colors ${
                   statusFilter === tab.id
-                    ? 'bg-brand-500/20 text-brand-300 border border-brand-500/30'
-                    : 'text-zinc-400 hover:text-zinc-200'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
                 }`}
               >
                 {tab.label}
@@ -334,24 +334,24 @@ export default function AdminUsersPage() {
 
       {/* User Table / List */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-16 text-zinc-500 space-y-3">
-          <div className="size-8 animate-spin rounded-full border-2 border-brand-500 border-t-transparent" />
-          <p className="text-sm">Memuat data user {activeRoleTab}...</p>
+        <div className="flex flex-col items-center justify-center py-16 text-slate-400 space-y-3">
+          <div className="size-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+          <p className="text-sm font-medium">Memuat data user {activeRoleTab}...</p>
         </div>
       ) : filteredUsers.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-zinc-800 bg-zinc-900/30 py-16 text-center text-zinc-500">
-          <User size={40} className="mx-auto mb-3 text-zinc-600" />
-          <p className="text-base font-semibold text-zinc-300">Tidak Ada Data {activeRoleTab}</p>
-          <p className="text-xs text-zinc-500">
+        <div className="rounded-xl border border-dashed border-slate-300 bg-white py-16 text-center text-slate-500 shadow-xs">
+          <User size={40} className="mx-auto mb-3 text-slate-400" />
+          <p className="text-base font-semibold text-slate-700">Tidak Ada Data {activeRoleTab}</p>
+          <p className="text-xs text-slate-500">
             {searchQuery || statusFilter !== 'ALL'
               ? 'Tidak ada data user yang sesuai dengan kriteria pencarian.'
               : `Belum ada user ber-role ${activeRoleTab} yang terdaftar.`}
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-900/60 backdrop-blur-md">
-          <table className="w-full text-left text-xs text-zinc-300">
-            <thead className="border-b border-zinc-800 bg-zinc-950/80 text-zinc-400 uppercase font-medium">
+        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+          <table className="w-full text-left text-xs text-slate-700">
+            <thead className="border-b border-slate-200 bg-slate-50 text-slate-500 uppercase font-bold">
               <tr>
                 <th className="px-4 py-3">User</th>
                 <th className="px-4 py-3">Email & No HP</th>
@@ -361,44 +361,44 @@ export default function AdminUsersPage() {
                 <th className="px-4 py-3 text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800/60">
+            <tbody className="divide-y divide-slate-100">
               {filteredUsers.map((u) => (
-                <tr key={u.id} className="hover:bg-zinc-800/40 transition">
-                  <td className="px-4 py-3.5 font-medium text-zinc-100 flex items-center gap-2.5">
-                    <div className="grid size-8 shrink-0 place-items-center rounded-full bg-brand-500/10 text-brand-300 font-bold border border-brand-500/20">
+                <tr key={u.id} className="hover:bg-slate-50/80 transition">
+                  <td className="px-4 py-3.5 font-medium text-slate-900 flex items-center gap-2.5">
+                    <div className="grid size-8 shrink-0 place-items-center rounded-full bg-blue-50 text-blue-700 font-bold border border-blue-200">
                       {u.name ? u.name.charAt(0).toUpperCase() : 'U'}
                     </div>
                     <div>
-                      <p className="font-semibold text-zinc-100 text-sm">{u.name}</p>
-                      {u.notes && <p className="text-[11px] text-zinc-500 truncate max-w-xs">{u.notes}</p>}
+                      <p className="font-bold text-slate-900 text-sm">{u.name}</p>
+                      {u.notes && <p className="text-[11px] text-slate-500 truncate max-w-xs">{u.notes}</p>}
                     </div>
                   </td>
                   <td className="px-4 py-3.5 space-y-0.5">
-                    <div className="flex items-center gap-1.5 text-zinc-200">
-                      <Mail size={13} className="text-zinc-500" />
-                      <span>{u.email}</span>
+                    <div className="flex items-center gap-1.5 text-slate-800">
+                      <Mail size={13} className="text-slate-400" />
+                      <span className="font-semibold">{u.email}</span>
                     </div>
                     {u.phone && (
-                      <div className="flex items-center gap-1.5 text-zinc-400">
-                        <Phone size={13} className="text-zinc-500" />
+                      <div className="flex items-center gap-1.5 text-slate-500">
+                        <Phone size={13} className="text-slate-400" />
                         <span>{u.phone}</span>
                       </div>
                     )}
                   </td>
                   <td className="px-4 py-3.5">
-                    <span className="inline-flex items-center gap-1 rounded bg-zinc-800 px-2 py-0.5 font-medium text-zinc-300 border border-zinc-700">
+                    <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 font-semibold text-slate-700 border border-slate-200">
                       {u.roleName}
                     </span>
                   </td>
                   <td className="px-4 py-3.5">{getStatusBadge(u.status)}</td>
-                  <td className="px-4 py-3.5 text-zinc-400">
+                  <td className="px-4 py-3.5 text-slate-500 font-medium">
                     {u.createdAt ? u.createdAt.split('T')[0] : '-'}
                   </td>
                   <td className="px-4 py-3.5 text-right space-x-1">
                     <button
                       type="button"
                       onClick={() => openEdit(u)}
-                      className="inline-flex items-center gap-1 rounded-lg border border-zinc-700 bg-zinc-800 px-2.5 py-1.5 text-xs font-medium text-zinc-200 hover:bg-zinc-700 transition"
+                      className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition"
                     >
                       <Edit2 size={13} />
                       Edit
@@ -409,7 +409,7 @@ export default function AdminUsersPage() {
                         setSelectedUser(u);
                         setDeleteModalOpen(true);
                       }}
-                      className="inline-flex items-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1.5 text-xs font-medium text-rose-300 hover:bg-rose-600 hover:text-white transition"
+                      className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition"
                     >
                       <Trash2 size={13} />
                       Nonaktifkan

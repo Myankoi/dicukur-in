@@ -28,8 +28,8 @@
 
 @layer base {
   html {
-    color: var(--color-zinc-900);
-    background: var(--color-zinc-50);
+    color: #0f172a;
+    background: #f8fafc;
     font-family: var(--font-sans);
   }
 
@@ -37,7 +37,8 @@
     min-width: 320px;
     min-height: 100vh;
     margin: 0;
-    background: var(--color-zinc-950);
+    background: #f8fafc;
+    color: #0f172a;
     text-rendering: optimizeLegibility;
   }
 

@@ -10,13 +10,13 @@ interface ButtonStyleOptions {
 }
 
 const base =
-  'inline-flex shrink-0 items-center justify-center gap-2 rounded-md font-semibold transition-colors ' +
-  'disabled:pointer-events-none disabled:opacity-50';
+  'inline-flex shrink-0 items-center justify-center gap-2 rounded-lg font-bold transition-all ' +
+  'disabled:pointer-events-none disabled:opacity-50 active:scale-95 shadow-xs';
 
 const variants: Record<ButtonVariant, string> = {
-  primary: 'bg-brand-400 text-zinc-950 hover:bg-brand-300',
-  secondary: 'border border-zinc-700 bg-transparent text-zinc-100 hover:border-brand-400 hover:text-brand-300',
-  ghost: 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100',
+  primary: 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800 border border-blue-700',
+  secondary: 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-400',
+  ghost: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-transparent',
 };
 
 const sizes: Record<ButtonSize, string> = {

@@ -20,6 +20,10 @@ import {
   Users,
   X,
   CheckCheck,
+  Shield,
+  Briefcase,
+  User,
+  Sparkles,
   type LucideIcon,
 } from 'lucide-react';
 import { UserEndpoint, NotificationEndpoint } from '../generated/endpoints.js';
@@ -75,6 +79,37 @@ const navItems: Record<string, NavItem[]> = {
     { label: 'Alamat Saya', path: '/customer/addresses', icon: MapPin },
     { label: 'Pesanan Saya', path: '/customer/bookings', icon: ClipboardList },
   ],
+};
+
+const roleConfig: Record<string, { label: string; badgeBg: string; badgeText: string; badgeBorder: string; icon: LucideIcon }> = {
+  Admin: {
+    label: 'ADMINISTRATOR',
+    badgeBg: 'bg-red-50',
+    badgeText: 'text-red-700',
+    badgeBorder: 'border-red-200',
+    icon: Shield,
+  },
+  Owner: {
+    label: 'PEMILIK MITRA',
+    badgeBg: 'bg-amber-50',
+    badgeText: 'text-amber-700',
+    badgeBorder: 'border-amber-200',
+    icon: Briefcase,
+  },
+  Barber: {
+    label: 'BARBER MITRA',
+    badgeBg: 'bg-emerald-50',
+    badgeText: 'text-emerald-700',
+    badgeBorder: 'border-emerald-200',
+    icon: Scissors,
+  },
+  Customer: {
+    label: 'PELANGGAN',
+    badgeBg: 'bg-blue-50',
+    badgeText: 'text-blue-700',
+    badgeBorder: 'border-blue-200',
+    icon: User,
+  },
 };
 
 export default function MainLayout() {
@@ -152,16 +187,19 @@ export default function MainLayout() {
     navigate('/login');
   };
 
-  const items = user ? (navItems[user.role] ?? []) : [];
+  const userRole = user?.role ?? 'Customer';
+  const currentRoleConfig = roleConfig[userRole] || roleConfig.Customer;
+  const RoleIcon = currentRoleConfig.icon;
+  const items = user ? (navItems[user.role] ?? navItems.Customer) : [];
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-zinc-950 text-zinc-100">
+    <div className="flex h-dvh overflow-hidden bg-slate-50 text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900">
       <AnimatePresence>
         {sidebarOpen && (
           <motion.button
             type="button"
             aria-label="Tutup navigasi"
-            className="fixed inset-0 z-40 bg-zinc-950/80 backdrop-blur-md lg:hidden"
+            className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm lg:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -170,32 +208,33 @@ export default function MainLayout() {
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
+      {/* Sidebar Navigation */}
       <aside
         className={[
-          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-zinc-800/80 bg-zinc-950/95 transition-transform duration-300 ease-in-out lg:static lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-200 bg-white transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 shadow-sm',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
         ].join(' ')}
       >
         {/* Brand Header */}
-        <div className="relative flex h-16 items-center justify-between border-b border-zinc-800/80 px-6 overflow-hidden">
+        <div className="relative flex h-16 items-center justify-between border-b border-slate-200 px-5">
+          {/* Barber Pole Strip accent: Red, White, Blue */}
           <div
             className="absolute top-0 left-0 bottom-0 w-1.5"
-            style={{ background: 'linear-gradient(180deg, #dc2626, #f8fafc, #2563eb)' }}
+            style={{ background: 'linear-gradient(180deg, #dc2626 0%, #ffffff 50%, #2563eb 100%)' }}
           />
           <div className="flex items-center gap-3 pl-2">
-            <span className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 text-white shadow-lg shadow-brand-500/20">
+            <span className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-red-600 via-blue-600 to-blue-700 text-white shadow-md shadow-blue-500/20">
               <Scissors size={18} />
             </span>
             <div>
-              <p className="font-display text-lg font-bold tracking-tight text-zinc-100">dicukur.in</p>
-              <p className="text-[10px] font-semibold tracking-wider text-brand-400 uppercase">Barber Booking</p>
+              <p className="font-display text-lg font-bold tracking-tight text-slate-900">dicukur.in</p>
+              <p className="text-[10px] font-bold tracking-wider text-red-600 uppercase">Barber Platform</p>
             </div>
           </div>
           <button
             type="button"
             aria-label="Tutup menu"
-            className="grid size-8 place-items-center rounded-lg text-zinc-400 hover:bg-zinc-900 hover:text-white lg:hidden"
+            className="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 lg:hidden"
             onClick={() => setSidebarOpen(false)}
           >
             <X size={18} />
@@ -203,7 +242,10 @@ export default function MainLayout() {
         </div>
 
         {/* Navigation Items */}
-        <nav className="flex-1 space-y-1.5 overflow-y-auto px-3.5 py-4 pl-5">
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+          <p className="px-3 pb-2 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+            Menu Utama
+          </p>
           {items.map((item) => {
             const Icon = item.icon;
 
@@ -213,57 +255,71 @@ export default function MainLayout() {
                 to={item.path}
                 end={item.path.split('/').length === 2}
                 className={({ isActive }) => [
-                  'group relative flex h-11 items-center gap-3 rounded-lg px-3.5 text-sm font-medium transition-all duration-200',
+                  'group relative flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-all duration-150',
                   isActive
-                    ? 'bg-gradient-to-r from-brand-500/20 via-brand-400/10 to-transparent text-brand-300 border-l-2 border-brand-400 shadow-sm shadow-brand-500/5'
-                    : 'text-zinc-400 hover:bg-zinc-900/80 hover:text-zinc-100',
+                    ? 'bg-blue-50 text-blue-700 font-semibold border-l-4 border-blue-600 shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900',
                 ].join(' ')}
                 onClick={() => setSidebarOpen(false)}
               >
-                <Icon size={18} className="shrink-0 transition-transform group-hover:scale-110" />
-                <span>{item.label}</span>
+                {({ isActive }) => (
+                  <>
+                    <Icon size={17} className={isActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'} />
+                    <span>{item.label}</span>
+                  </>
+                )}
               </NavLink>
             );
           })}
         </nav>
 
         {/* User Info Footer */}
-        <div className="border-t border-zinc-800/80 bg-zinc-900/40 px-5 py-4 backdrop-blur-sm pl-6">
+        <div className="border-t border-slate-200 bg-slate-50/70 px-4 py-3.5">
           <div className="flex items-center gap-3">
-            <div className="grid size-9 shrink-0 place-items-center rounded-full border border-brand-400/30 bg-zinc-900 text-xs font-bold text-brand-300 uppercase">
+            <div className="grid size-9 shrink-0 place-items-center rounded-lg border border-red-200 bg-red-50 text-xs font-bold text-red-600 uppercase">
               {user?.name?.[0] || 'U'}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-semibold text-zinc-200">{user?.name}</p>
-              <p className="truncate text-[11px] text-zinc-500">{user?.email}</p>
+              <p className="truncate text-xs font-bold text-slate-800">{user?.name || 'Pengguna'}</p>
+              <p className="truncate text-[11px] text-slate-500">{user?.email || 'user@dicukur.in'}</p>
             </div>
           </div>
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-zinc-950">
-        <header className="flex h-16 shrink-0 items-center justify-between border-b border-zinc-800/80 bg-zinc-950/80 px-4 backdrop-blur-md sm:px-6">
-          <button
-            type="button"
-            aria-label="Buka menu"
-            className="grid size-10 place-items-center rounded-lg border border-zinc-800 text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-white lg:hidden"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <Menu size={20} />
-          </button>
+      {/* Main Content Container */}
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-slate-50">
+        {/* Top Navbar */}
+        <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 shadow-xs sm:px-6">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              aria-label="Buka menu"
+              className="grid size-9 place-items-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 lg:hidden"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <Menu size={18} />
+            </button>
 
-          <div className="flex items-center gap-3 ml-auto mr-3">
-            {/* Notification Bell Dropdown */}
+            {/* Role Badge Indicator in Navbar */}
+            <div className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold ${currentRoleConfig.badgeBg} ${currentRoleConfig.badgeText} ${currentRoleConfig.badgeBorder}`}>
+              <RoleIcon size={14} />
+              <span className="tracking-wide text-[11px]">{currentRoleConfig.label}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Notification Dropdown */}
             <div className="relative" ref={notifRef}>
               <button
                 type="button"
-                className="relative grid size-9 place-items-center rounded-lg border border-zinc-800 bg-zinc-900/60 text-zinc-400 transition-colors hover:border-zinc-700 hover:text-zinc-200"
+                aria-label="Notifikasi"
+                className="relative grid size-9 place-items-center rounded-lg border border-slate-200 bg-slate-50 text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-100"
                 onClick={() => setNotifOpen(!notifOpen)}
               >
                 <Bell size={18} />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 grid size-4 place-items-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-md">
+                  <span className="absolute -top-1 -right-1 grid size-4 place-items-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-sm animate-pulse">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
@@ -272,17 +328,18 @@ export default function MainLayout() {
               <AnimatePresence>
                 {notifOpen && (
                   <motion.div
-                    initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                    className="absolute right-0 mt-2 w-80 sm:w-96 rounded-xl border border-zinc-800 bg-zinc-900 shadow-2xl z-50 overflow-hidden"
+                    exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 mt-2 w-80 sm:w-96 rounded-xl border border-slate-200 bg-white shadow-xl z-50 overflow-hidden"
                   >
-                    <div className="flex items-center justify-between border-b border-zinc-800/80 px-4 py-3 bg-zinc-950/60">
+                    <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 bg-slate-50">
                       <div className="flex items-center gap-2">
-                        <Bell size={15} className="text-brand-400" />
-                        <span className="text-xs font-bold text-zinc-200">Notifikasi</span>
+                        <Bell size={15} className="text-blue-600" />
+                        <span className="text-xs font-bold text-slate-800">Notifikasi System</span>
                         {unreadCount > 0 && (
-                          <span className="rounded-full bg-brand-500/20 px-2 py-0.5 text-[10px] font-bold text-brand-300">
+                          <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700">
                             {unreadCount} baru
                           </span>
                         )}
@@ -290,7 +347,7 @@ export default function MainLayout() {
                       {unreadCount > 0 && (
                         <button
                           type="button"
-                          className="flex items-center gap-1 text-[11px] font-semibold text-brand-400 hover:text-brand-300"
+                          className="flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-800 transition-colors"
                           onClick={handleMarkAllAsRead}
                         >
                           <CheckCheck size={13} />
@@ -299,26 +356,26 @@ export default function MainLayout() {
                       )}
                     </div>
 
-                    <div className="max-h-80 overflow-y-auto divide-y divide-zinc-800/50">
+                    <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
                       {notifications.length === 0 ? (
-                        <div className="p-6 text-center text-xs text-zinc-500">Tidak ada notifikasi</div>
+                        <div className="p-8 text-center text-xs text-slate-400">Tidak ada notifikasi baru</div>
                       ) : (
                         notifications.map((n) => (
                           <button
                             key={n.id}
                             type="button"
-                            className={`w-full p-3.5 text-left transition-colors hover:bg-zinc-800/50 ${
-                              !n.isRead ? 'bg-brand-500/5' : ''
+                            className={`w-full p-3.5 text-left transition-colors hover:bg-slate-50 ${
+                              !n.isRead ? 'bg-blue-50/50 border-l-2 border-blue-600' : ''
                             }`}
                             onClick={() => void handleMarkAsRead(n.id)}
                           >
                             <div className="flex items-start justify-between gap-2">
-                              <p className={`text-xs font-semibold ${!n.isRead ? 'text-brand-300' : 'text-zinc-300'}`}>
+                              <p className={`text-xs font-semibold ${!n.isRead ? 'text-blue-700' : 'text-slate-700'}`}>
                                 {n.title}
                               </p>
-                              <span className="text-[10px] text-zinc-500 shrink-0">{n.createdAt}</span>
+                              <span className="text-[10px] text-slate-400 shrink-0">{n.createdAt}</span>
                             </div>
-                            <p className="text-[11px] text-zinc-400 mt-1 line-clamp-2">{n.message}</p>
+                            <p className="text-[11px] text-slate-500 mt-1 line-clamp-2">{n.message}</p>
                           </button>
                         ))
                       )}
@@ -328,27 +385,25 @@ export default function MainLayout() {
               </AnimatePresence>
             </div>
 
-            <span className="hidden rounded-full border border-brand-500/20 bg-brand-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-brand-300 lg:inline-block">
-              {user?.role ?? 'Customer'}
-            </span>
+            {/* Logout Button */}
+            <button
+              type="button"
+              className="inline-flex h-9 items-center gap-2 rounded-lg border border-red-200 bg-red-50/50 px-3.5 text-xs font-semibold text-red-600 transition-all hover:bg-red-100 hover:text-red-700"
+              onClick={handleLogout}
+            >
+              <LogOut size={14} />
+              <span className="hidden sm:inline">Keluar</span>
+            </button>
           </div>
-
-          <button
-            type="button"
-            className="inline-flex h-9 items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900/60 px-3.5 text-xs font-semibold text-zinc-300 transition-all duration-200 hover:border-barber-red/40 hover:bg-zinc-900 hover:text-barber-red-light"
-            onClick={handleLogout}
-          >
-            <LogOut size={15} />
-            <span className="hidden sm:inline">Keluar</span>
-          </button>
         </header>
 
+        {/* Page Content */}
         <motion.main
           key={location.pathname}
-          className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8"
-          initial={{ opacity: 0, y: 6 }}
+          className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50"
+          initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.18, ease: 'easeOut' }}
+          transition={{ duration: 0.15, ease: 'easeOut' }}
         >
           <Outlet />
         </motion.main>
@@ -356,3 +411,4 @@ export default function MainLayout() {
     </div>
   );
 }
+
