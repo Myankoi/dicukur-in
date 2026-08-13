@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 @layer theme, base, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/preflight.css" layer(base);
@@ -68,3 +69,74 @@
   background: var(--color-barber-red);
 }
 
+=======
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css" layer(utilities) important;
+@import "@fontsource-variable/manrope";
+@import "@fontsource-variable/cormorant-garamond";
+
+@source "../../**/*.{html,ts,tsx}";
+
+@theme {
+  --font-sans: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Cormorant Garamond Variable", Georgia, serif;
+  /* Barber pole: Red, White, Blue */
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-300: #93c5fd;
+  --color-brand-400: #60a5fa;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+  --color-barber-red: #dc2626;
+  --color-barber-red-light: #fca5a5;
+  --color-barber-blue: #2563eb;
+  --color-barber-blue-light: #93c5fd;
+  --color-barber-white: #f8fafc;
+  --color-ink-900: #18181b;
+}
+
+@layer base {
+  html {
+    color: #0f172a;
+    background: #f8fafc;
+    font-family: var(--font-sans);
+  }
+
+  body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+    background: #f8fafc;
+    color: #0f172a;
+    text-rendering: optimizeLegibility;
+  }
+
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+::selection {
+  color: var(--color-zinc-950);
+  background: var(--color-brand-300);
+}
+>>>>>>> 37106706632accb6dd0c5a3b6c17edaa31627ce8
