@@ -7,6 +7,9 @@ import com.dicukur.app.barbershop.entity.BarberTimeOff;
 import com.dicukur.app.barbershop.repository.BarberProfileRepository;
 import com.dicukur.app.barbershop.repository.BarberScheduleRepository;
 import com.dicukur.app.barbershop.repository.BarberTimeOffRepository;
+import com.dicukur.app.barbershop.entity.Barbershop;
+import com.dicukur.app.barbershop.entity.BarbershopStaff;
+import com.dicukur.app.barbershop.repository.BarbershopStaffRepository;
 import com.dicukur.app.booking.entity.Booking;
 import com.dicukur.app.booking.repository.BookingRepository;
 import com.dicukur.app.notification.service.NotificationService;
@@ -35,19 +38,22 @@ public class BarberService {
     private final BookingRepository bookingRepository;
     private final CurrentUserService currentUserService;
     private final NotificationService notificationService;
+    private final BarbershopStaffRepository staffRepository;
 
     public BarberService(BarberScheduleRepository scheduleRepository,
                          BarberTimeOffRepository timeOffRepository,
                          BarberProfileRepository profileRepository,
                          BookingRepository bookingRepository,
                          CurrentUserService currentUserService,
-                         NotificationService notificationService) {
+                         NotificationService notificationService,
+                         BarbershopStaffRepository staffRepository) {
         this.scheduleRepository = scheduleRepository;
         this.timeOffRepository = timeOffRepository;
         this.profileRepository = profileRepository;
         this.bookingRepository = bookingRepository;
         this.currentUserService = currentUserService;
         this.notificationService = notificationService;
+        this.staffRepository = staffRepository;
     }
 
     // ======================== SCHEDULE CRUD ========================
@@ -304,6 +310,10 @@ public class BarberService {
             barber.setPhone(request.phone().trim());
             barber.setUpdatedAt(LocalDateTime.now());
         }
+        if (request.photo() != null && !request.photo().isBlank()) {
+            barber.setPhoto(request.photo().trim());
+            barber.setUpdatedAt(LocalDateTime.now());
+        }
 
         return toProfileResponse(barber, profileRepository.save(profile));
     }
@@ -370,6 +380,9 @@ public class BarberService {
     }
 
     private BarberProfileResponse toProfileResponse(User barber, BarberProfile profile) {
+        BarbershopStaff staff = staffRepository != null ? staffRepository.findFirstByBarber_Id(barber.getId()).orElse(null) : null;
+        Barbershop shop = staff != null ? staff.getBarbershop() : null;
+
         return new BarberProfileResponse(
                 barber.getName(),
                 barber.getEmail(),
@@ -383,7 +396,10 @@ public class BarberService {
                 profile.getVerificationStatus(),
                 profile.getAvailabilityStatus(),
                 profile.getRatingAverage(),
-                profile.getTotalCompleted()
+                profile.getTotalCompleted(),
+                barber.getPhoto(),
+                shop != null ? shop.getName() : "Mitra Barbershop Resmi",
+                shop != null ? shop.getBusinessAddress() : "Lokasi Operasional Mitra"
         );
     }
 }

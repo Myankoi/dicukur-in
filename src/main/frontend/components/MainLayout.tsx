@@ -23,6 +23,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { UserEndpoint, NotificationEndpoint } from '../generated/endpoints.js';
+import { BrandMark } from './BrandMark.js';
 
 interface UserInfo {
   name: string;
@@ -155,13 +156,13 @@ export default function MainLayout() {
   const items = user ? (navItems[user.role] ?? []) : [];
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-zinc-950 text-zinc-100">
+    <div className="flex h-dvh overflow-hidden bg-slate-100 text-slate-900">
       <AnimatePresence>
         {sidebarOpen && (
           <motion.button
             type="button"
             aria-label="Tutup navigasi"
-            className="fixed inset-0 z-40 bg-zinc-950/80 backdrop-blur-md lg:hidden"
+            className="fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-sm lg:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -173,29 +174,17 @@ export default function MainLayout() {
       {/* Sidebar */}
       <aside
         className={[
-          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-zinc-800/80 bg-zinc-950/95 transition-transform duration-300 ease-in-out lg:static lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-200 bg-white transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 shadow-sm',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
         ].join(' ')}
       >
         {/* Brand Header */}
-        <div className="relative flex h-16 items-center justify-between border-b border-zinc-800/80 px-6 overflow-hidden">
-          <div
-            className="absolute top-0 left-0 bottom-0 w-1.5"
-            style={{ background: 'linear-gradient(180deg, #dc2626, #f8fafc, #2563eb)' }}
-          />
-          <div className="flex items-center gap-3 pl-2">
-            <span className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 text-white shadow-lg shadow-brand-500/20">
-              <Scissors size={18} />
-            </span>
-            <div>
-              <p className="font-display text-lg font-bold tracking-tight text-zinc-100">dicukur.in</p>
-              <p className="text-[10px] font-semibold tracking-wider text-brand-400 uppercase">Barber Booking</p>
-            </div>
-          </div>
+        <div className="flex h-16 items-center justify-between border-b border-slate-200 px-6 bg-white">
+          <BrandMark />
           <button
             type="button"
             aria-label="Tutup menu"
-            className="grid size-8 place-items-center rounded-lg text-zinc-400 hover:bg-zinc-900 hover:text-white lg:hidden"
+            className="grid size-8 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 lg:hidden"
             onClick={() => setSidebarOpen(false)}
           >
             <X size={18} />
@@ -211,16 +200,16 @@ export default function MainLayout() {
               <NavLink
                 key={item.path}
                 to={item.path}
-                end={item.path.split('/').length === 2}
+                end
                 className={({ isActive }) => [
                   'group relative flex h-11 items-center gap-3 rounded-lg px-3.5 text-sm font-medium transition-all duration-200',
                   isActive
-                    ? 'bg-gradient-to-r from-brand-500/20 via-brand-400/10 to-transparent text-brand-300 border-l-2 border-brand-400 shadow-sm shadow-brand-500/5'
-                    : 'text-zinc-400 hover:bg-zinc-900/80 hover:text-zinc-100',
+                    ? 'bg-red-50 text-red-600 border-l-2 border-red-600 font-bold shadow-sm'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900',
                 ].join(' ')}
                 onClick={() => setSidebarOpen(false)}
               >
-                <Icon size={18} className="shrink-0 transition-transform group-hover:scale-110" />
+                <Icon size={18} className="shrink-0 transition-transform group-hover:scale-110 text-red-600/80 group-[.active]:text-red-600" />
                 <span>{item.label}</span>
               </NavLink>
             );
@@ -228,26 +217,26 @@ export default function MainLayout() {
         </nav>
 
         {/* User Info Footer */}
-        <div className="border-t border-zinc-800/80 bg-zinc-900/40 px-5 py-4 backdrop-blur-sm pl-6">
+        <div className="border-t border-slate-200 bg-slate-50 px-5 py-4 pl-6">
           <div className="flex items-center gap-3">
-            <div className="grid size-9 shrink-0 place-items-center rounded-full border border-brand-400/30 bg-zinc-900 text-xs font-bold text-brand-300 uppercase">
+            <div className="grid size-9 shrink-0 place-items-center rounded-full border border-red-200 bg-red-600 text-xs font-bold text-white uppercase shadow-sm">
               {user?.name?.[0] || 'U'}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-semibold text-zinc-200">{user?.name}</p>
-              <p className="truncate text-[11px] text-zinc-500">{user?.email}</p>
+              <p className="truncate text-xs font-bold text-slate-900">{user?.name}</p>
+              <p className="truncate text-[11px] text-slate-500">{user?.email}</p>
             </div>
           </div>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-zinc-950">
-        <header className="flex h-16 shrink-0 items-center justify-between border-b border-zinc-800/80 bg-zinc-950/80 px-4 backdrop-blur-md sm:px-6">
+      <div className="flex min-w-0 flex-1 flex-col bg-slate-50">
+        <header className="relative z-50 flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white/90 px-4 backdrop-blur-md sm:px-6">
           <button
             type="button"
             aria-label="Buka menu"
-            className="grid size-10 place-items-center rounded-lg border border-zinc-800 text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-white lg:hidden"
+            className="grid size-10 place-items-center rounded-lg border border-slate-200 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 lg:hidden"
             onClick={() => setSidebarOpen(true)}
           >
             <Menu size={20} />
@@ -255,15 +244,15 @@ export default function MainLayout() {
 
           <div className="flex items-center gap-3 ml-auto mr-3">
             {/* Notification Bell Dropdown */}
-            <div className="relative" ref={notifRef}>
+            <div className="relative z-50" ref={notifRef}>
               <button
                 type="button"
-                className="relative grid size-9 place-items-center rounded-lg border border-zinc-800 bg-zinc-900/60 text-zinc-400 transition-colors hover:border-zinc-700 hover:text-zinc-200"
+                className="relative grid size-9 place-items-center rounded-lg border border-slate-200 bg-slate-50 text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900"
                 onClick={() => setNotifOpen(!notifOpen)}
               >
                 <Bell size={18} />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 grid size-4 place-items-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-md">
+                  <span className="absolute -top-1 -right-1 grid size-4 place-items-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-sm">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
@@ -275,14 +264,14 @@ export default function MainLayout() {
                     initial={{ opacity: 0, y: 8, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                    className="absolute right-0 mt-2 w-80 sm:w-96 rounded-xl border border-zinc-800 bg-zinc-900 shadow-2xl z-50 overflow-hidden"
+                    className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl border border-slate-200 bg-white shadow-2xl z-[99999] overflow-hidden"
                   >
-                    <div className="flex items-center justify-between border-b border-zinc-800/80 px-4 py-3 bg-zinc-950/60">
+                    <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 bg-slate-50">
                       <div className="flex items-center gap-2">
-                        <Bell size={15} className="text-brand-400" />
-                        <span className="text-xs font-bold text-zinc-200">Notifikasi</span>
+                        <Bell size={15} className="text-red-600" />
+                        <span className="text-xs font-bold text-slate-900">Notifikasi</span>
                         {unreadCount > 0 && (
-                          <span className="rounded-full bg-brand-500/20 px-2 py-0.5 text-[10px] font-bold text-brand-300">
+                          <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-600">
                             {unreadCount} baru
                           </span>
                         )}
@@ -290,7 +279,7 @@ export default function MainLayout() {
                       {unreadCount > 0 && (
                         <button
                           type="button"
-                          className="flex items-center gap-1 text-[11px] font-semibold text-brand-400 hover:text-brand-300"
+                          className="flex items-center gap-1 text-[11px] font-semibold text-red-600 hover:text-red-700"
                           onClick={handleMarkAllAsRead}
                         >
                           <CheckCheck size={13} />
@@ -299,26 +288,26 @@ export default function MainLayout() {
                       )}
                     </div>
 
-                    <div className="max-h-80 overflow-y-auto divide-y divide-zinc-800/50">
+                    <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
                       {notifications.length === 0 ? (
-                        <div className="p-6 text-center text-xs text-zinc-500">Tidak ada notifikasi</div>
+                        <div className="p-6 text-center text-xs text-slate-500">Tidak ada notifikasi</div>
                       ) : (
                         notifications.map((n) => (
                           <button
                             key={n.id}
                             type="button"
-                            className={`w-full p-3.5 text-left transition-colors hover:bg-zinc-800/50 ${
-                              !n.isRead ? 'bg-brand-500/5' : ''
+                            className={`w-full p-3.5 text-left transition-colors hover:bg-slate-50 ${
+                              !n.isRead ? 'bg-red-50/50' : ''
                             }`}
                             onClick={() => void handleMarkAsRead(n.id)}
                           >
                             <div className="flex items-start justify-between gap-2">
-                              <p className={`text-xs font-semibold ${!n.isRead ? 'text-brand-300' : 'text-zinc-300'}`}>
+                              <p className={`text-xs font-semibold ${!n.isRead ? 'text-red-600' : 'text-slate-800'}`}>
                                 {n.title}
                               </p>
-                              <span className="text-[10px] text-zinc-500 shrink-0">{n.createdAt}</span>
+                              <span className="text-[10px] text-slate-400 shrink-0">{n.createdAt}</span>
                             </div>
-                            <p className="text-[11px] text-zinc-400 mt-1 line-clamp-2">{n.message}</p>
+                            <p className="text-[11px] text-slate-600 mt-1 line-clamp-2">{n.message}</p>
                           </button>
                         ))
                       )}
@@ -328,14 +317,14 @@ export default function MainLayout() {
               </AnimatePresence>
             </div>
 
-            <span className="hidden rounded-full border border-brand-500/20 bg-brand-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-brand-300 lg:inline-block">
+            <span className="hidden rounded-md border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-700 lg:inline-block">
               {user?.role ?? 'Customer'}
             </span>
           </div>
 
           <button
             type="button"
-            className="inline-flex h-9 items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900/60 px-3.5 text-xs font-semibold text-zinc-300 transition-all duration-200 hover:border-barber-red/40 hover:bg-zinc-900 hover:text-barber-red-light"
+            className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3.5 text-xs font-semibold text-slate-700 transition-all duration-200 hover:border-red-300 hover:bg-red-50 hover:text-red-600"
             onClick={handleLogout}
           >
             <LogOut size={15} />

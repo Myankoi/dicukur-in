@@ -8,8 +8,10 @@ import com.dicukur.app.barbershop.dto.ShopServiceResponse;
 import com.dicukur.app.barbershop.dto.StaffResponse;
 import com.dicukur.app.barbershop.entity.BarberProfile;
 import com.dicukur.app.barbershop.entity.Barbershop;
+import com.dicukur.app.barbershop.entity.BarbershopPhoto;
 import com.dicukur.app.barbershop.entity.BarbershopStaff;
 import com.dicukur.app.barbershop.repository.BarberProfileRepository;
+import com.dicukur.app.barbershop.repository.BarbershopPhotoRepository;
 import com.dicukur.app.barbershop.repository.BarbershopRepository;
 import com.dicukur.app.barbershop.repository.BarbershopStaffRepository;
 import com.dicukur.app.common.location.GeoDistance;
@@ -38,18 +40,22 @@ public class BarbershopDiscoveryService {
     private final CustomerAddressRepository addressRepository;
     private final CurrentUserService currentUserService;
 
+    private final BarbershopPhotoRepository photoRepository;
+
     public BarbershopDiscoveryService(BarbershopRepository barbershopRepository,
                                       BarbershopStaffRepository staffRepository,
                                       BarberProfileRepository profileRepository,
                                       BarbershopServiceRepository serviceRepository,
                                       CustomerAddressRepository addressRepository,
-                                      CurrentUserService currentUserService) {
+                                      CurrentUserService currentUserService,
+                                      BarbershopPhotoRepository photoRepository) {
         this.barbershopRepository = barbershopRepository;
         this.staffRepository = staffRepository;
         this.profileRepository = profileRepository;
         this.serviceRepository = serviceRepository;
         this.addressRepository = addressRepository;
         this.currentUserService = currentUserService;
+        this.photoRepository = photoRepository;
     }
 
     @Transactional(readOnly = true)
@@ -89,12 +95,17 @@ public class BarbershopDiscoveryService {
         List<ShopServiceResponse> services = serviceRepository.findByBarbershop_IdAndStatus(id, ACTIVE).stream()
                 .map(this::toService)
                 .toList();
+        List<com.dicukur.app.barbershop.dto.BarbershopPhotoResponse> photos = photoRepository
+                .findByBarbershopIdOrderBySortOrderAsc(id).stream()
+                .map(p -> new com.dicukur.app.barbershop.dto.BarbershopPhotoResponse(
+                        p.getId(), p.getBarbershop().getId(), p.getFilePath(), p.getCaption(), p.getSortOrder(), p.getUploadedAt()))
+                .toList();
 
         return new BarbershopDetailResponse(
                 shop.getId(), shop.getName(), shop.getDescription(), shop.getBusinessAddress(),
                 shop.getDistrict(), shop.getCity(), shop.getProvince(), shop.getBusinessPhone(),
                 shop.getLatitude().doubleValue(), shop.getLongitude().doubleValue(), shop.getServiceRadiusKm(),
-                shop.getRatingAverage(), shop.getTotalCompleted(), staff, services
+                shop.getRatingAverage(), shop.getTotalCompleted(), staff, services, shop.getPhotoUrl(), photos
         );
     }
 
@@ -108,7 +119,7 @@ public class BarbershopDiscoveryService {
                 shop.getId(), shop.getName(), shop.getDescription(), shop.getBusinessAddress(),
                 shop.getDistrict(), shop.getCity(), shop.getProvince(), shop.getLatitude().doubleValue(),
                 shop.getLongitude().doubleValue(), round(distance), shop.getRatingAverage(),
-                shop.getTotalCompleted(), shop.getServiceRadiusKm()
+                shop.getTotalCompleted(), shop.getServiceRadiusKm(), shop.getPhotoUrl()
         );
     }
 
@@ -125,7 +136,7 @@ public class BarbershopDiscoveryService {
         }
         return new StaffResponse(
                 barber.getId(), barber.getName(), staff.getPosition(), profile.getRatingAverage(),
-                profile.getTotalCompleted(), profile.getAvailabilityStatus()
+                profile.getTotalCompleted(), profile.getAvailabilityStatus(), barber.getPhoto()
         );
     }
 

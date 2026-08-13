@@ -14,4 +14,5 @@ public interface BarbershopStaffRepository extends JpaRepository<BarbershopStaff
     Optional<BarbershopStaff> findByBarbershop_IdAndBarber_IdAndEmploymentStatus(Long barbershopId,
                                                                                   Long barberId,
                                                                                   String employmentStatus);
+    Optional<BarbershopStaff> findFirstByBarber_Id(Long barberId);
 }

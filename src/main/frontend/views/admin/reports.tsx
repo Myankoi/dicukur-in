@@ -7,8 +7,6 @@ import {
   Star,
   Users,
   CheckCircle2,
-  XCircle,
-  Building2,
 } from 'lucide-react';
 import { AdminMonitoringEndpoint } from '../../generated/endpoints.js';
 import { Button } from '../../components/ui/Button.js';
@@ -35,85 +33,92 @@ export default function AdminReportsPage() {
   }, [loadReport]);
 
   if (loading) {
-    return <div className="py-16 text-center text-xs text-zinc-500">Memuat data laporan executive...</div>;
+    return <div className="py-16 text-center text-xs font-medium text-slate-500 rounded-2xl border border-slate-200 bg-white">Memuat data laporan executive...</div>;
   }
 
   if (!report) {
-    return <div className="py-16 text-center text-xs text-red-400">Gagal memuat laporan.</div>;
+    return <div className="py-16 text-center text-xs font-medium text-red-600 rounded-2xl border border-red-200 bg-red-50">Gagal memuat laporan.</div>;
   }
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end border-b border-slate-200 pb-6">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-400">Analistik & Kinerja</p>
-          <h1 className="mt-2 font-display text-4xl font-semibold tracking-tight text-zinc-100">
+          <h1 className="font-display text-3xl font-bold tracking-tight text-slate-900">
             Laporan Executive Platform
           </h1>
-          <p className="mt-2 text-sm text-zinc-400">
+          <p className="mt-1 text-sm text-slate-600">
             Ringkasan pendapatan, konversi transaksi cukur, serta performa layanan tiap barber.
           </p>
         </div>
 
-        <Button variant="secondary" size="sm" onClick={() => void loadReport()} disabled={loading}>
+        <Button variant="secondary" size="sm" onClick={() => void loadReport()} disabled={loading} className="bg-white border-slate-300 text-slate-700">
           <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Segarkan Laporan
         </Button>
       </div>
 
       {/* KPI Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 to-zinc-900 p-5 backdrop-blur-sm">
+        <div className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase text-emerald-400">Total Pendapatan</p>
-            <DollarSign size={20} className="text-emerald-400" />
+            <p className="text-xs font-bold uppercase text-emerald-700">Total Pendapatan</p>
+            <div className="grid size-9 place-items-center rounded-xl bg-emerald-50 text-emerald-600">
+              <DollarSign size={18} />
+            </div>
           </div>
-          <p className="mt-3 font-display text-2xl font-bold text-zinc-100">
+          <p className="mt-3 font-display text-2xl font-bold text-slate-900">
             Rp {(report.totalRevenue ?? 0).toLocaleString('id-ID')}
           </p>
-          <p className="mt-1 text-[11px] text-emerald-300/80">Dari transaksi booking selesai</p>
+          <p className="mt-1 text-[11px] text-slate-500 font-medium">Dari transaksi booking selesai</p>
         </div>
 
-        <div className="rounded-xl border border-blue-500/20 bg-gradient-to-br from-blue-500/10 to-zinc-900 p-5 backdrop-blur-sm">
+        <div className="rounded-2xl border border-blue-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase text-blue-400">Booking Selesai</p>
-            <CheckCircle2 size={20} className="text-blue-400" />
+            <p className="text-xs font-bold uppercase text-blue-700">Booking Selesai</p>
+            <div className="grid size-9 place-items-center rounded-xl bg-blue-50 text-blue-600">
+              <CheckCircle2 size={18} />
+            </div>
           </div>
-          <p className="mt-3 font-display text-2xl font-bold text-zinc-100">{report.completedBookings}</p>
-          <p className="mt-1 text-[11px] text-blue-300/80">vs {report.cancelledBookings} dibatalkan</p>
+          <p className="mt-3 font-display text-2xl font-bold text-slate-900">{report.completedBookings}</p>
+          <p className="mt-1 text-[11px] text-slate-500 font-medium">vs {report.cancelledBookings} dibatalkan</p>
         </div>
 
-        <div className="rounded-xl border border-brand-500/20 bg-gradient-to-br from-brand-500/10 to-zinc-900 p-5 backdrop-blur-sm">
+        <div className="rounded-2xl border border-red-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase text-brand-400">Total Mitra Barber</p>
-            <Scissors size={20} className="text-brand-400" />
+            <p className="text-xs font-bold uppercase text-red-700">Total Mitra Barber</p>
+            <div className="grid size-9 place-items-center rounded-xl bg-red-50 text-red-600">
+              <Scissors size={18} />
+            </div>
           </div>
-          <p className="mt-3 font-display text-2xl font-bold text-zinc-100">{report.totalBarbers}</p>
-          <p className="mt-1 text-[11px] text-brand-300/80">{report.totalBarbershops} unit barbershop</p>
+          <p className="mt-3 font-display text-2xl font-bold text-slate-900">{report.totalBarbers}</p>
+          <p className="mt-1 text-[11px] text-slate-500 font-medium">{report.totalBarbershops} unit barbershop</p>
         </div>
 
-        <div className="rounded-xl border border-purple-500/20 bg-gradient-to-br from-purple-500/10 to-zinc-900 p-5 backdrop-blur-sm">
+        <div className="rounded-2xl border border-purple-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase text-purple-400">Pengguna Terdaftar</p>
-            <Users size={20} className="text-purple-400" />
+            <p className="text-xs font-bold uppercase text-purple-700">Pengguna Terdaftar</p>
+            <div className="grid size-9 place-items-center rounded-xl bg-purple-50 text-purple-600">
+              <Users size={18} />
+            </div>
           </div>
-          <p className="mt-3 font-display text-2xl font-bold text-zinc-100">{report.totalUsers}</p>
-          <p className="mt-1 text-[11px] text-purple-300/80">Customer & Barber active</p>
+          <p className="mt-3 font-display text-2xl font-bold text-slate-900">{report.totalUsers}</p>
+          <p className="mt-1 text-[11px] text-slate-500 font-medium">Customer & Barber aktif</p>
         </div>
       </div>
 
       {/* Barber Performance Table */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur-sm space-y-4">
-        <h2 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
-          <ChartNoAxesCombined size={18} className="text-brand-400" /> Performa Barber & Ulasan Customer
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+        <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+          <ChartNoAxesCombined size={18} className="text-red-600" /> Performa Barber & Ulasan Customer
         </h2>
 
         {report.topBarbers?.length === 0 ? (
-          <p className="text-xs text-zinc-500 text-center py-6">Belum ada data performa barber.</p>
+          <p className="text-xs text-slate-500 text-center py-6">Belum ada data performa barber.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-zinc-800 text-zinc-400 uppercase text-[10px] font-bold">
+                <tr className="border-b border-slate-200 text-slate-500 uppercase text-[10px] font-bold">
                   <th className="pb-3 pl-2">Nama Barber</th>
                   <th className="pb-3">Barbershop</th>
                   <th className="pb-3 text-center">Total Janji</th>
@@ -122,21 +127,21 @@ export default function AdminReportsPage() {
                   <th className="pb-3 text-right pr-2">Rating Rata-Rata</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/60">
+              <tbody className="divide-y divide-slate-100">
                 {report.topBarbers?.map((b) => {
                   if (!b) return null;
                   return (
-                  <tr key={b.barberId} className="hover:bg-zinc-800/40 transition-colors">
-                    <td className="py-3 pl-2 font-semibold text-zinc-200">{b.barberName}</td>
-                    <td className="py-3 text-zinc-400">{b.barbershopName}</td>
-                    <td className="py-3 text-center font-bold text-zinc-300">{b.totalBookings}</td>
-                    <td className="py-3 text-center font-bold text-emerald-400">{b.completedBookings}</td>
-                    <td className="py-3 text-right font-bold text-brand-300">
+                  <tr key={b.barberId} className="hover:bg-slate-50 transition-colors">
+                    <td className="py-3 pl-2 font-bold text-slate-900">{b.barberName}</td>
+                    <td className="py-3 text-slate-600">{b.barbershopName}</td>
+                    <td className="py-3 text-center font-bold text-slate-700">{b.totalBookings}</td>
+                    <td className="py-3 text-center font-bold text-emerald-600">{b.completedBookings}</td>
+                    <td className="py-3 text-right font-bold text-red-600">
                       Rp {(b.totalRevenue ?? 0).toLocaleString('id-ID')}
                     </td>
                     <td className="py-3 text-right pr-2">
-                      <span className="inline-flex items-center gap-1 font-bold text-amber-400 justify-end">
-                        <Star size={14} className="fill-amber-400" />
+                      <span className="inline-flex items-center gap-1 font-bold text-amber-600 justify-end">
+                        <Star size={14} className="fill-amber-400 text-amber-400" />
                         {(b.averageRating ?? 0).toFixed(1)}
                       </span>
                     </td>

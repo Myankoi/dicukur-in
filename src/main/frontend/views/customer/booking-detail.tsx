@@ -2,20 +2,12 @@ import { useEffect, useState, useCallback, ChangeEvent } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import {
   ArrowLeft,
-  Calendar,
   CheckCircle2,
-  Clock,
   CreditCard,
   MapPin,
   Navigation,
-  QrCode,
-  Scissors,
-  ShieldAlert,
   Sparkles,
   Star,
-  Upload,
-  UserRound,
-  DollarSign,
   Building2,
 } from 'lucide-react';
 import { BookingEndpoint, PaymentEndpoint, ReviewEndpoint } from '../../generated/endpoints.js';
@@ -72,14 +64,27 @@ export default function CustomerBookingDetailPage() {
     void loadData();
   }, [loadData]);
 
-  const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setProofBase64(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', 'documents');
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      if (!res.ok) {
+        const errJson = await res.json();
+        alert(errJson.error || 'Gagal mengunggah file');
+        return;
+      }
+      const data = await res.json();
+      setProofBase64(data.path);
+    } catch {
+      alert('Gagal mengunggah bukti transfer');
+    }
   };
 
   const handlePaymentSubmit = async () => {
@@ -126,14 +131,14 @@ export default function CustomerBookingDetailPage() {
   };
 
   if (loading) {
-    return <div className="py-16 text-center text-xs text-zinc-500">Memuat detail pesanan...</div>;
+    return <div className="py-16 text-center text-xs font-medium text-slate-500 rounded-2xl border border-slate-200 bg-white max-w-4xl mx-auto">Memuat detail pesanan...</div>;
   }
 
   if (error || !booking) {
     return (
-      <div className="mx-auto max-w-xl py-12 text-center">
-        <p className="text-red-400 text-sm mb-4">{error || 'Pesanan tidak ditemukan'}</p>
-        <Button variant="secondary" size="sm" onClick={() => navigate('/customer/bookings')}>
+      <div className="mx-auto max-w-xl py-12 text-center rounded-2xl border border-red-200 bg-red-50 p-6">
+        <p className="text-red-600 text-sm font-bold mb-4">{error || 'Pesanan tidak ditemukan'}</p>
+        <Button variant="secondary" size="sm" onClick={() => navigate('/customer/bookings')} className="bg-white border-slate-300">
           Kembali ke Daftar Pesanan
         </Button>
       </div>
@@ -143,22 +148,24 @@ export default function CustomerBookingDetailPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-8">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <button
-          type="button"
-          onClick={() => navigate('/customer/bookings')}
-          className="grid size-9 place-items-center rounded-lg border border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white"
-        >
-          <ArrowLeft size={18} />
-        </button>
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-xs font-bold text-brand-300">#{booking.bookingCode}</span>
-            <span className="rounded-full bg-zinc-800 px-2.5 py-0.5 text-[10px] uppercase font-bold text-zinc-300">
-              {booking.status}
-            </span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6">
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => navigate('/customer/bookings')}
+            className="grid size-9 place-items-center rounded-xl border border-slate-300 bg-white text-slate-600 hover:bg-slate-50 shadow-sm"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-xs font-bold text-red-600">#{booking.bookingCode}</span>
+              <span className="rounded-md bg-slate-100 px-2.5 py-0.5 text-[10px] uppercase font-bold text-slate-700 border border-slate-200">
+                {booking.status}
+              </span>
+            </div>
+            <h1 className="font-display text-2xl font-bold text-slate-900 mt-1">Detail Janji Cukur</h1>
           </div>
-          <h1 className="font-display text-2xl font-semibold text-zinc-100 mt-1">Detail Janji Cukur</h1>
         </div>
       </div>
 
@@ -167,26 +174,26 @@ export default function CustomerBookingDetailPage() {
         {/* Left 2 Cols: Details */}
         <div className="md:col-span-2 space-y-6">
           {/* Barber & Shop Info */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur-sm space-y-4">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-brand-400">Penyedia Layanan</h2>
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-red-600">Penyedia Layanan</h2>
             <div className="flex items-center gap-4">
-              <div className="grid size-12 place-items-center rounded-full border border-brand-500/30 bg-zinc-900 text-brand-300 font-bold text-lg">
+              <div className="grid size-12 place-items-center rounded-full border border-red-200 bg-red-50 text-red-600 font-bold text-lg">
                 {booking.barberName?.[0] || 'B'}
               </div>
               <div>
-                <p className="text-base font-bold text-zinc-100">{booking.barberName}</p>
-                <p className="text-xs text-zinc-400">{booking.barbershopName || 'Barber Independent'}</p>
+                <p className="text-base font-bold text-slate-900">{booking.barberName}</p>
+                <p className="text-xs text-slate-500">{booking.barbershopName || 'Barber Independent'}</p>
               </div>
             </div>
 
-            <div className="border-t border-zinc-800/80 pt-4 grid grid-cols-2 gap-4 text-xs">
+            <div className="border-t border-slate-100 pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div>
-                <p className="text-zinc-500">Layanan Grooming</p>
-                <p className="font-semibold text-zinc-200 mt-0.5">{booking.serviceName}</p>
+                <p className="text-slate-500 font-medium">Layanan Grooming</p>
+                <p className="font-bold text-slate-900 mt-0.5">{booking.serviceName}</p>
               </div>
               <div>
-                <p className="text-zinc-500">Jadwal Janji</p>
-                <p className="font-semibold text-zinc-200 mt-0.5">
+                <p className="text-slate-500 font-medium">Jadwal Janji</p>
+                <p className="font-bold text-slate-900 mt-0.5">
                   {booking.startDatetime
                     ? new Date(booking.startDatetime).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })
                     : '-'}
@@ -194,66 +201,66 @@ export default function CustomerBookingDetailPage() {
               </div>
             </div>
 
-            <div className="border-t border-zinc-800/80 pt-4 text-xs">
-              <p className="text-zinc-500">Lokasi Tujuan Cukur</p>
-              <div className="flex items-start gap-2 mt-1">
-                <MapPin size={15} className="text-brand-400 shrink-0 mt-0.5" />
-                <p className="text-zinc-200">{booking.address}</p>
+            <div className="border-t border-slate-100 pt-4 text-xs space-y-2">
+              <p className="text-slate-500 font-medium">Lokasi Tujuan Cukur</p>
+              <div className="flex items-start gap-2">
+                <MapPin size={15} className="text-red-600 shrink-0 mt-0.5" />
+                <p className="text-slate-900 font-medium">{booking.address}</p>
               </div>
               <a
                 href={`https://www.google.com/maps/search/?api=1&query=${booking.latitude},${booking.longitude}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 inline-flex items-center gap-1.5 text-xs text-brand-400 hover:underline"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-red-600 hover:text-red-700"
               >
-                <Navigation size={13} /> Open google maps ({booking.distanceKm?.toFixed(1)} km)
+                <Navigation size={13} /> Bukad Peta Google Maps ({booking.distanceKm?.toFixed(1)} km)
               </a>
             </div>
           </div>
 
           {/* Rincian Biaya */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur-sm space-y-3">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-brand-400">Rincian Pembayaran</h2>
-            <div className="flex justify-between text-xs text-zinc-300 pt-2">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-3">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-red-600">Rincian Pembayaran</h2>
+            <div className="flex justify-between text-xs text-slate-600 pt-2">
               <span>Layanan {booking.serviceName}</span>
-              <span>Rp {(booking.serviceSubtotal ?? 0).toLocaleString('id-ID')}</span>
+              <span className="font-semibold text-slate-900">Rp {(booking.serviceSubtotal ?? 0).toLocaleString('id-ID')}</span>
             </div>
-            <div className="flex justify-between text-xs text-zinc-300">
+            <div className="flex justify-between text-xs text-slate-600">
               <span>Biaya Perjalanan ({booking.distanceKm?.toFixed(1)} km)</span>
-              <span>Rp {(booking.travelFee ?? 0).toLocaleString('id-ID')}</span>
+              <span className="font-semibold text-slate-900">Rp {(booking.travelFee ?? 0).toLocaleString('id-ID')}</span>
             </div>
-            <div className="border-t border-zinc-800 pt-3 flex justify-between text-sm font-bold text-brand-300">
+            <div className="border-t border-slate-100 pt-3 flex justify-between text-sm font-bold text-slate-900">
               <span>Total Tagihan</span>
-              <span>Rp {(booking.totalPrice ?? 0).toLocaleString('id-ID')}</span>
+              <span className="text-red-600">Rp {(booking.totalPrice ?? 0).toLocaleString('id-ID')}</span>
             </div>
           </div>
 
           {/* Customer Rating & Review Box (If Completed) */}
           {booking.status?.toLowerCase() === 'completed' && (
-            <div className="rounded-xl border border-brand-500/30 bg-gradient-to-b from-zinc-900 via-zinc-900/80 to-zinc-950 p-6 space-y-4">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
               <div className="flex items-center gap-2">
-                <Sparkles size={18} className="text-amber-400" />
-                <h2 className="text-sm font-bold text-zinc-100">Ulasan & Rating Customer</h2>
+                <Sparkles size={18} className="text-amber-500" />
+                <h2 className="text-sm font-bold text-slate-900">Ulasan & Rating Customer</h2>
               </div>
 
               {review ? (
-                <div className="space-y-2 border-t border-zinc-800 pt-3 text-xs">
+                <div className="space-y-2 border-t border-slate-100 pt-3 text-xs">
                   <div className="flex items-center gap-1">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <Star
                         key={star}
                         size={16}
-                        className={star <= review.rating! ? 'fill-amber-400 text-amber-400' : 'text-zinc-600'}
+                        className={star <= review.rating! ? 'fill-amber-500 text-amber-500' : 'text-slate-300'}
                       />
                     ))}
-                    <span className="ml-2 font-bold text-zinc-200">{review.rating} / 5</span>
+                    <span className="ml-2 font-bold text-slate-900">{review.rating} / 5</span>
                   </div>
-                  <p className="text-zinc-300 italic">"{review.review}"</p>
-                  <p className="text-[10px] text-zinc-500">Dikirim pada {review.createdAt}</p>
+                  <p className="text-slate-700 italic">"{review.review}"</p>
+                  <p className="text-[10px] text-slate-400">Dikirim pada {review.createdAt}</p>
                 </div>
               ) : (
-                <div className="space-y-4 border-t border-zinc-800 pt-3">
-                  <p className="text-xs text-zinc-400">
+                <div className="space-y-4 border-t border-slate-100 pt-3">
+                  <p className="text-xs text-slate-600">
                     Bagaimana pengalaman kamu dicukur oleh <strong>{booking.barberName}</strong>? Berikan ulasanmu!
                   </p>
 
@@ -267,7 +274,7 @@ export default function CustomerBookingDetailPage() {
                       >
                         <Star
                           size={24}
-                          className={star <= rating ? 'fill-amber-400 text-amber-400' : 'text-zinc-600'}
+                          className={star <= rating ? 'fill-amber-500 text-amber-500' : 'text-slate-300'}
                         />
                       </button>
                     ))}
@@ -278,7 +285,7 @@ export default function CustomerBookingDetailPage() {
                     placeholder="Tulis ulasan pengalaman potong rambutmu di sini..."
                     value={reviewText}
                     onChange={(e) => setReviewText(e.target.value)}
-                    className="w-full rounded-lg border border-zinc-800 bg-zinc-950 p-3 text-xs text-zinc-100 placeholder-zinc-500 focus:border-brand-500 focus:outline-none"
+                    className="w-full rounded-xl border border-slate-300 bg-white p-3 text-xs text-slate-900 placeholder:text-slate-400 focus:border-red-600 focus:outline-none"
                   />
 
                   <Button
@@ -286,6 +293,7 @@ export default function CustomerBookingDetailPage() {
                     size="sm"
                     onClick={() => void handleReviewSubmit()}
                     disabled={submittingReview}
+                    className="bg-red-600 hover:bg-red-700 text-white font-bold"
                   >
                     {submittingReview ? 'Mengirim...' : 'Kirim Ulasan'}
                   </Button>
@@ -297,20 +305,20 @@ export default function CustomerBookingDetailPage() {
 
         {/* Right Col: Payment Action Card */}
         <div className="space-y-6">
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 backdrop-blur-sm space-y-4">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-brand-400">Status Pembayaran</h2>
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-red-600">Status Pembayaran</h2>
 
-            <div className="p-3.5 rounded-lg border border-zinc-800 bg-zinc-950 flex items-center gap-3">
-              <CreditCard size={20} className="text-brand-400 shrink-0" />
+            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 flex items-center gap-3">
+              <CreditCard size={20} className="text-red-600 shrink-0" />
               <div>
-                <p className="text-xs font-bold text-zinc-200 capitalize">
+                <p className="text-xs font-bold text-slate-900 capitalize">
                   {booking.paymentStatus === 'paid'
                     ? 'Lunas'
                     : booking.paymentStatus === 'waiting_verification'
                     ? 'Menunggu Verifikasi Admin'
                     : 'Belum Dibayar'}
                 </p>
-                <p className="text-[10px] text-zinc-500 mt-0.5">
+                <p className="text-[10px] text-slate-500 mt-0.5">
                   {payment ? `Metode: ${payment.paymentMethod?.toUpperCase()}` : 'Belum memilih metode'}
                 </p>
               </div>
@@ -318,38 +326,38 @@ export default function CustomerBookingDetailPage() {
 
             {/* If Payment exists & waiting verification */}
             {payment?.status === 'waiting_verification' && (
-              <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-300 space-y-2">
-                <p className="font-semibold">Bukti Transfer Berhasil Diunggah!</p>
-                <p className="text-[11px] text-amber-200/80">Admin sedang memverifikasi bukti pembayaran kamu.</p>
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs text-amber-800 space-y-2">
+                <p className="font-bold">Bukti Transfer Berhasil Diunggah!</p>
+                <p className="text-[11px] text-amber-700">Admin sedang memverifikasi bukti pembayaran kamu.</p>
                 {payment.proof && (
-                  <img src={payment.proof} alt="Bukti Transfer" className="mt-2 max-h-40 rounded border border-amber-500/40 object-cover" />
+                  <img src={payment.proof} alt="Bukti Transfer" className="mt-2 max-h-40 rounded-xl border border-amber-200 object-cover" />
                 )}
               </div>
             )}
 
             {/* If Payment is Paid */}
             {payment?.status === 'paid' && (
-              <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-300 space-y-1">
-                <p className="font-semibold flex items-center gap-1.5">
-                  <CheckCircle2 size={15} /> Pembayaran Terverifikasi
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-xs text-emerald-800 space-y-1">
+                <p className="font-bold flex items-center gap-1.5">
+                  <CheckCircle2 size={15} className="text-emerald-600" /> Pembayaran Terverifikasi
                 </p>
-                <p className="text-[11px] text-emerald-200/80">Waktu Lunas: {payment.paidAt || '-'}</p>
+                <p className="text-[11px] text-emerald-700">Waktu Lunas: {payment.paidAt || '-'}</p>
               </div>
             )}
 
             {/* If Unpaid: Payment Form */}
             {(!payment || payment.status === 'pending' || payment.status === 'failed') && (
-              <div className="space-y-4 border-t border-zinc-800 pt-4">
-                <p className="text-xs font-semibold text-zinc-200">Pilih Metode Pembayaran:</p>
+              <div className="space-y-4 border-t border-slate-100 pt-4">
+                <p className="text-xs font-bold text-slate-700">Pilih Metode Pembayaran:</p>
 
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('transfer')}
-                    className={`rounded-lg border p-3 text-center text-xs font-semibold transition-all ${
+                    className={`rounded-xl border p-3 text-center text-xs font-bold transition-all ${
                       paymentMethod === 'transfer'
-                        ? 'border-brand-500 bg-brand-500/10 text-brand-300'
-                        : 'border-zinc-800 bg-zinc-950 text-zinc-400'
+                        ? 'border-red-600 bg-red-50 text-red-600 shadow-sm'
+                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
                     }`}
                   >
                     Transfer Bank
@@ -357,10 +365,10 @@ export default function CustomerBookingDetailPage() {
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('cash')}
-                    className={`rounded-lg border p-3 text-center text-xs font-semibold transition-all ${
+                    className={`rounded-xl border p-3 text-center text-xs font-bold transition-all ${
                       paymentMethod === 'cash'
-                        ? 'border-brand-500 bg-brand-500/10 text-brand-300'
-                        : 'border-zinc-800 bg-zinc-950 text-zinc-400'
+                        ? 'border-red-600 bg-red-50 text-red-600 shadow-sm'
+                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
                     }`}
                   >
                     Tunai (Cash)
@@ -368,30 +376,30 @@ export default function CustomerBookingDetailPage() {
                 </div>
 
                 {paymentMethod === 'transfer' && (
-                  <div className="rounded-lg border border-zinc-800 bg-zinc-950 p-4 space-y-3 text-xs">
-                    <div className="flex items-center gap-2 text-brand-400">
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3 text-xs">
+                    <div className="flex items-center gap-2 text-red-600">
                       <Building2 size={16} />
                       <span className="font-bold">Rekening Pembayaran:</span>
                     </div>
-                    <div className="bg-zinc-900 p-2.5 rounded border border-zinc-800 space-y-1">
-                      <p className="text-[11px] text-zinc-400">Bank BCA</p>
-                      <p className="font-mono text-sm font-bold text-zinc-100 tracking-wider">1234 5678 90</p>
-                      <p className="text-[11px] text-zinc-400">a.n. PT Dicukur Digital Indonesia</p>
+                    <div className="bg-white p-3 rounded-xl border border-slate-200 space-y-1">
+                      <p className="text-[11px] text-slate-500 font-medium">Bank BCA</p>
+                      <p className="font-mono text-sm font-bold text-slate-900 tracking-wider">1234 5678 90</p>
+                      <p className="text-[11px] text-slate-500">a.n. PT Dicukur Digital Indonesia</p>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="block text-[11px] font-medium text-zinc-300">Unggah Bukti Transfer:</label>
+                      <label className="block text-[11px] font-bold text-slate-700">Unggah Bukti Transfer:</label>
                       <input
                         type="file"
                         accept="image/*"
                         onChange={handleFileUpload}
-                        className="w-full text-xs text-zinc-400 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-800 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-zinc-200 hover:file:bg-zinc-700"
+                        className="w-full text-xs text-slate-600 file:mr-3 file:rounded-xl file:border-0 file:bg-slate-200 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-slate-800 hover:file:bg-slate-300 cursor-pointer"
                       />
                       {proofBase64 && (
                         <img
                           src={proofBase64}
                           alt="Preview Bukti"
-                          className="mt-2 h-28 rounded border border-zinc-700 object-cover"
+                          className="mt-2 h-28 rounded-xl border border-slate-300 object-cover"
                         />
                       )}
                     </div>
@@ -401,7 +409,7 @@ export default function CustomerBookingDetailPage() {
                 <Button
                   variant="primary"
                   size="sm"
-                  className="w-full"
+                  className="w-full bg-red-600 hover:bg-red-700 text-white font-bold"
                   onClick={() => void handlePaymentSubmit()}
                   disabled={submittingPayment}
                 >

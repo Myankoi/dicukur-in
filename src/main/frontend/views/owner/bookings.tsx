@@ -57,18 +57,14 @@ export default function OwnerBookingsPage() {
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-6 backdrop-blur-xl shadow-xl sm:p-8">
-        <div className="pointer-events-none absolute -right-20 -top-20 size-72 rounded-full bg-emerald-500/10 blur-[100px]" />
+      <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-md sm:p-8">
+        <div className="pointer-events-none absolute -right-20 -top-20 size-72 rounded-full bg-red-600/10 blur-[100px]" />
         
         <div className="space-y-1">
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
-            <CalendarDays size={13} />
-            Monitoring Booking Barbershop
-          </div>
-          <h1 className="font-display text-2xl font-bold tracking-tight text-white sm:text-3xl">
+          <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
             Pesanan Masuk
           </h1>
-          <p className="text-xs text-zinc-400 sm:text-sm">
+          <p className="text-xs text-slate-600 sm:text-sm">
             Pantau seluruh jadwal & alur status booking pelanggan di toko Anda.
           </p>
         </div>
@@ -77,25 +73,25 @@ export default function OwnerBookingsPage() {
       {/* Filter & Search Bar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative flex-1">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             placeholder="Cari kode booking, nama customer, atau nama barber..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-xl border border-zinc-800 bg-zinc-900/70 py-2.5 pl-10 pr-4 text-xs text-zinc-100 placeholder-zinc-500 focus:border-emerald-500/50 focus:outline-none"
+            className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-xs text-slate-900 placeholder-slate-400 focus:border-red-600 focus:outline-none"
           />
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-900/60 p-1">
+        <div className="flex items-center gap-1.5 overflow-x-auto rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
           {['ALL', 'pending', 'accepted', 'in_progress', 'completed', 'cancelled'].map((st) => (
             <button
               key={st}
               type="button"
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
                 statusFilter === st
-                  ? 'bg-zinc-800 text-emerald-400 shadow-sm'
-                  : 'text-zinc-400 hover:text-zinc-200'
+                  ? 'bg-red-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
               onClick={() => setStatusFilter(st)}
             >
@@ -107,47 +103,47 @@ export default function OwnerBookingsPage() {
 
       {/* Bookings Grid */}
       {loading ? (
-        <div className="flex h-48 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900/40">
-          <span className="size-5 animate-spin rounded-full border-2 border-emerald-400 border-t-transparent" />
+        <div className="flex h-48 items-center justify-center rounded-2xl border border-slate-200 bg-white">
+          <span className="size-5 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
         </div>
       ) : filteredBookings.length === 0 ? (
-        <div className="flex h-48 flex-col items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 text-center">
-          <CalendarDays size={32} className="text-zinc-600 mb-2" />
-          <p className="text-xs font-semibold text-zinc-300">Belum Ada Pesanan</p>
-          <p className="text-[11px] text-zinc-500 mt-1">Belum ada booking yang sesuai dengan filter ini.</p>
+        <div className="flex h-48 flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
+          <CalendarDays size={32} className="text-slate-400 mb-2" />
+          <p className="text-xs font-bold text-slate-800">Belum Ada Pesanan</p>
+          <p className="text-[11px] text-slate-500 mt-1">Belum ada booking yang sesuai dengan filter ini.</p>
         </div>
       ) : (
         <div className="space-y-3">
           {filteredBookings.map((b) => (
             <div
               key={b.id}
-              className="flex flex-col gap-4 rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-5 backdrop-blur-xl transition-all hover:border-zinc-700/80 sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-red-300 hover:shadow-md sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs font-semibold text-amber-400">#{b.bookingCode}</span>
-                  <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-300">
+                  <span className="font-mono text-xs font-bold text-red-600">#{b.bookingCode}</span>
+                  <span className="rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-700">
                     {b.status}
                   </span>
                 </div>
-                <h3 className="font-semibold text-sm text-zinc-100 flex items-center gap-2">
-                  <User size={15} className="text-zinc-400" />
+                <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                  <User size={15} className="text-slate-500" />
                   Pelanggan
-                  <span className="text-xs font-normal text-zinc-500">• Barber: {b.barberName || '-'}</span>
+                  <span className="text-xs font-normal text-slate-500">• Barber: {b.barberName || '-'}</span>
                 </h3>
-                <p className="text-xs text-zinc-400 flex items-center gap-2">
-                  <Clock size={13} className="text-zinc-500" />
+                <p className="text-xs text-slate-600 flex items-center gap-2">
+                  <Clock size={13} className="text-slate-400" />
                   {b.startDatetime || '-'}
-                  <span className="text-zinc-600">•</span>
-                  <MapPin size={13} className="text-zinc-500" />
+                  <span className="text-slate-300">•</span>
+                  <MapPin size={13} className="text-slate-400" />
                   {b.address || 'Alamat Customer'}
                 </p>
               </div>
 
-              <div className="flex items-center justify-between gap-4 border-t border-zinc-800/60 pt-3 sm:border-0 sm:pt-0 sm:justify-end">
+              <div className="flex items-center justify-between gap-4 border-t border-slate-100 pt-3 sm:border-0 sm:pt-0 sm:justify-end">
                 <div className="text-left sm:text-right">
-                  <span className="block text-[10px] text-zinc-500 uppercase tracking-wider">Total Biaya</span>
-                  <span className="font-display font-semibold text-sm text-emerald-400">
+                  <span className="block text-[10px] text-slate-500 uppercase tracking-wider font-bold">Total Biaya</span>
+                  <span className="font-display font-bold text-sm text-emerald-600">
                     {formatCurrency(b.totalPrice)}
                   </span>
                 </div>

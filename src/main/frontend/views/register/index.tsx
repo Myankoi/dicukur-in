@@ -217,19 +217,19 @@ export default function RegisterPage() {
   if (complete) {
     const needsReview = form.accountType !== 'customer';
     return (
-      <AuthShell>
+      <AuthShell wide>
         <motion.div
-          className="rounded-md border border-zinc-800 bg-zinc-900/55 p-7 text-center sm:p-10"
+          className="rounded-xl border border-slate-200 bg-white p-7 text-center sm:p-10 shadow-xl"
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
         >
-          <span className="mx-auto grid size-14 place-items-center rounded-full bg-brand-400/15 text-brand-300">
+          <span className="mx-auto grid size-14 place-items-center rounded-full bg-emerald-100 text-emerald-600">
             <CircleCheck size={28} />
           </span>
-          <h1 className="mt-6 font-display text-3xl font-semibold text-white">
+          <h1 className="mt-6 font-display text-3xl font-bold text-slate-900">
             {needsReview ? 'Pendaftaran sudah dikirim.' : 'Akunmu sudah siap.'}
           </h1>
-          <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-zinc-500">
+          <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-slate-600">
             {needsReview
               ? 'Tim admin akan memeriksa profil mitramu. Kamu bisa masuk setelah akun disetujui.'
               : 'Registrasi berhasil. Masuk dan mulai buat janji pertamamu.'}
@@ -249,13 +249,13 @@ export default function RegisterPage() {
 
   return (
     <AuthShell wide>
-      <div className="rounded-md border border-zinc-800 bg-zinc-900/55 p-5 shadow-2xl shadow-black/20 sm:p-8">
+      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xl sm:p-8">
         <div className="flex items-start justify-between gap-6">
           <div>
-            <p className="text-xs font-semibold text-brand-300">Buat akun baru</p>
-            <h1 className="mt-2 font-display text-3xl font-semibold text-white">Bergabung dengan dicukur.in</h1>
+            <p className="text-xs font-bold uppercase tracking-wider text-red-600">Buat akun baru</p>
+            <h1 className="mt-2 font-display text-3xl font-bold text-slate-900">Bergabung dengan dicukur.in</h1>
           </div>
-          <span className="shrink-0 text-xs text-zinc-600">{step} / 3</span>
+          <span className="shrink-0 text-xs font-bold text-slate-400">{step} / 3</span>
         </div>
 
         <ol className="mt-7 grid grid-cols-3 gap-2" aria-label="Progres registrasi">
@@ -265,8 +265,8 @@ export default function RegisterPage() {
             const done = step > number;
             return (
               <li key={label}>
-                <div className={`h-1 rounded-full ${done || active ? 'bg-brand-400' : 'bg-zinc-800'}`} />
-                <p className={`mt-2 hidden text-[11px] sm:block ${active ? 'text-zinc-200' : 'text-zinc-600'}`}>
+                <div className={`h-1 rounded-full ${done || active ? 'bg-red-600' : 'bg-slate-200'}`} />
+                <p className={`mt-2 hidden text-[11px] font-semibold sm:block ${active ? 'text-red-600' : 'text-slate-400'}`}>
                   {label}
                 </p>
               </li>
@@ -277,7 +277,7 @@ export default function RegisterPage() {
         {error && (
           <div
             role="alert"
-            className="mt-6 rounded-md border border-red-900/70 bg-red-950/45 px-4 py-3 text-xs leading-5 text-red-300"
+            className="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium leading-5 text-red-700"
           >
             {error}
           </div>
@@ -294,7 +294,7 @@ export default function RegisterPage() {
             >
               {step === 1 && (
                 <div>
-                  <h2 className="text-sm font-semibold text-zinc-100">Kamu akan menggunakan dicukur.in sebagai apa?</h2>
+                  <h2 className="text-sm font-bold text-slate-900">Kamu akan menggunakan dicukur.in sebagai apa?</h2>
                   <div className="mt-4 grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Jenis akun">
                     {accountOptions.map((option) => {
                       const Icon = option.icon;
@@ -306,16 +306,16 @@ export default function RegisterPage() {
                           role="radio"
                           aria-checked={selected}
                           className={[
-                            'min-h-32 rounded-md border p-4 text-left transition-colors',
+                            'min-h-32 rounded-xl border p-4 text-left transition-all',
                             selected
-                              ? 'border-brand-400 bg-brand-400/10'
-                              : 'border-zinc-800 bg-zinc-950/30 hover:border-zinc-700',
+                              ? 'border-red-600 bg-red-50/60 shadow-sm'
+                              : 'border-slate-200 bg-white hover:border-slate-300',
                           ].join(' ')}
                           onClick={() => selectAccountType(option.value)}
                         >
-                          <Icon size={20} className={selected ? 'text-brand-300' : 'text-zinc-500'} />
-                          <span className="mt-4 block text-xs font-semibold text-zinc-100">{option.title}</span>
-                          <span className="mt-1 block text-[11px] leading-5 text-zinc-600">{option.description}</span>
+                          <Icon size={20} className={selected ? 'text-red-600' : 'text-slate-400'} />
+                          <span className="mt-4 block text-xs font-bold text-slate-900">{option.title}</span>
+                          <span className="mt-1 block text-[11px] leading-5 text-slate-600">{option.description}</span>
                         </button>
                       );
                     })}
@@ -347,8 +347,8 @@ export default function RegisterPage() {
 
               {step === 2 && (
                 <div>
-                  <h2 className="text-sm font-semibold text-zinc-100">Siapkan akses akunmu</h2>
-                  <p className="mt-1 text-xs leading-5 text-zinc-600">
+                  <h2 className="text-sm font-bold text-slate-900">Siapkan akses akunmu</h2>
+                  <p className="mt-1 text-xs leading-5 text-slate-600">
                     Email dipakai untuk login dan informasi penting terkait pesanan.
                   </p>
                   <div className="mt-6 space-y-5">
@@ -391,23 +391,23 @@ export default function RegisterPage() {
                 <div>
                   {form.accountType === 'customer' && (
                     <div>
-                      <h2 className="text-sm font-semibold text-zinc-100">Periksa kembali akunmu</h2>
-                      <dl className="mt-5 divide-y divide-zinc-800 border-y border-zinc-800 text-xs">
+                      <h2 className="text-sm font-bold text-slate-900">Periksa kembali akunmu</h2>
+                      <dl className="mt-5 divide-y divide-slate-100 border-y border-slate-200 text-xs">
                         <div className="flex justify-between gap-4 py-3">
-                          <dt className="text-zinc-600">Jenis akun</dt>
-                          <dd className="text-zinc-200">Pelanggan</dd>
+                          <dt className="text-slate-500">Jenis akun</dt>
+                          <dd className="text-slate-900 font-bold">Pelanggan</dd>
                         </div>
                         <div className="flex justify-between gap-4 py-3">
-                          <dt className="text-zinc-600">Nama</dt>
-                          <dd className="text-right text-zinc-200">{form.name}</dd>
+                          <dt className="text-slate-500">Nama</dt>
+                          <dd className="text-right text-slate-900 font-medium">{form.name}</dd>
                         </div>
                         <div className="flex justify-between gap-4 py-3">
-                          <dt className="text-zinc-600">Email</dt>
-                          <dd className="text-right text-zinc-200">{form.email}</dd>
+                          <dt className="text-slate-500">Email</dt>
+                          <dd className="text-right text-slate-900 font-medium">{form.email}</dd>
                         </div>
                         <div className="flex justify-between gap-4 py-3">
-                          <dt className="text-zinc-600">Telepon</dt>
-                          <dd className="text-zinc-200">{form.phone}</dd>
+                          <dt className="text-slate-500">Telepon</dt>
+                          <dd className="text-slate-900 font-medium">{form.phone}</dd>
                         </div>
                       </dl>
                     </div>
@@ -415,7 +415,7 @@ export default function RegisterPage() {
 
                   {form.accountType === 'owner' && (
                     <div>
-                      <h2 className="text-sm font-semibold text-zinc-100">Profil barbershop</h2>
+                      <h2 className="text-sm font-bold text-slate-900">Profil barbershop</h2>
                       <div className="mt-5 grid gap-5 sm:grid-cols-2">
                         <InputField
                           label="Nama barbershop"
@@ -446,10 +446,10 @@ export default function RegisterPage() {
                     </div>
                   )}
 
-                  <label className="mt-6 flex cursor-pointer items-start gap-3 border-t border-zinc-800 pt-5 text-xs leading-5 text-zinc-500">
+                  <label className="mt-6 flex cursor-pointer items-start gap-3 border-t border-slate-200 pt-5 text-xs leading-5 text-slate-600">
                     <input
                       type="checkbox"
-                      className="mt-0.5 size-4 rounded border-zinc-700 accent-[var(--color-brand-400)]"
+                      className="mt-0.5 size-4 rounded border-slate-300 accent-red-600"
                       checked={form.agreed}
                       onChange={(event) => update('agreed', event.target.checked)}
                     />
@@ -463,9 +463,9 @@ export default function RegisterPage() {
             </motion.div>
           </AnimatePresence>
 
-          <div className="mt-8 flex items-center justify-between gap-3 border-t border-zinc-800 pt-6">
+          <div className="mt-8 flex items-center justify-between gap-3 border-t border-slate-200 pt-6">
             {step === 1 ? (
-              <Link to="/login" className="text-xs font-medium text-zinc-600 hover:text-zinc-300">
+              <Link to="/login" className="text-xs font-bold text-red-600 hover:text-red-700">
                 Sudah punya akun?
               </Link>
             ) : (

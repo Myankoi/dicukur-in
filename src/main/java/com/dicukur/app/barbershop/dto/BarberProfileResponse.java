@@ -15,6 +15,9 @@ public record BarberProfileResponse(
         String verificationStatus,
         String availabilityStatus,
         BigDecimal ratingAverage,
-        Integer totalCompleted
+        Integer totalCompleted,
+        String photo,
+        String barbershopName,
+        String barbershopAddress
 ) {
 }

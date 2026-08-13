@@ -58,19 +58,18 @@ export default function LoginPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
       >
-        <div className="rounded-md border border-zinc-800 bg-zinc-900/55 p-6 shadow-2xl shadow-black/20 sm:p-8">
-          <p className="text-xs font-semibold text-brand-300">Portal akun</p>
-          <h1 className="mt-3 font-display text-3xl font-semibold text-white">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xl sm:p-8">
+          <h1 className="font-display text-3xl font-bold text-slate-900">
             Selamat datang kembali.
           </h1>
-          <p className="mt-2 text-sm leading-6 text-zinc-500">
+          <p className="mt-2 text-sm leading-6 text-slate-600">
             Masuk dengan email yang terdaftar untuk melanjutkan.
           </p>
 
           {error && (
             <div
               role="alert"
-              className="mt-6 rounded-md border border-red-900/70 bg-red-950/45 px-4 py-3 text-xs leading-5 text-red-300"
+              className="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium leading-5 text-red-700"
             >
               {error}
             </div>
@@ -103,7 +102,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
-                className="absolute bottom-0 right-0 grid size-11 place-items-center text-zinc-500 transition-colors hover:text-zinc-200"
+                className="absolute bottom-0 right-0 grid size-11 place-items-center text-slate-400 transition-colors hover:text-slate-700"
                 onClick={() => setShowPassword((visible) => !visible)}
               >
                 {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
@@ -116,9 +115,9 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-xs text-zinc-500">
+          <p className="mt-6 text-center text-xs text-slate-600">
             Belum punya akun?{' '}
-            <Link to="/register" className="font-semibold text-brand-300 hover:text-brand-100">
+            <Link to="/register" className="font-bold text-red-600 hover:text-red-700">
               Daftar sekarang
             </Link>
           </p>

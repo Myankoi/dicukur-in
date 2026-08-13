@@ -9,6 +9,7 @@ public record BarberProfileUpdateRequest(
         Integer experienceYears,
         String baseAddress,
         BigDecimal baseLatitude,
-        BigDecimal baseLongitude
+        BigDecimal baseLongitude,
+        String photo
 ) {
 }

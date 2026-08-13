@@ -12,20 +12,20 @@ function FieldFrame({ label, htmlFor, hint, error, children }: FieldFrameProps) 
   return (
     <div className="space-y-2">
       <div className="flex items-baseline justify-between gap-3">
-        <label htmlFor={htmlFor} className="text-xs font-semibold text-zinc-300">
+        <label htmlFor={htmlFor} className="text-xs font-bold text-slate-700">
           {label}
         </label>
-        {hint && <span className="text-[11px] text-zinc-600">{hint}</span>}
+        {hint && <span className="text-[11px] text-slate-500">{hint}</span>}
       </div>
       {children}
-      {error && <p className="text-xs text-red-400">{error}</p>}
+      {error && <p className="text-xs font-medium text-red-600">{error}</p>}
     </div>
   );
 }
 
 const controlStyles =
-  'w-full rounded-md border border-zinc-700 bg-zinc-950/70 px-3.5 text-sm text-zinc-100 ' +
-  'placeholder:text-zinc-600 transition-colors hover:border-zinc-600 focus:border-brand-400 focus:outline-none';
+  'w-full rounded-lg border border-slate-300 bg-white px-3.5 text-sm text-slate-900 ' +
+  'placeholder:text-slate-400 transition-colors hover:border-slate-400 focus:border-red-600 focus:outline-none';
 
 interface InputFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;

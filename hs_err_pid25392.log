@@ -1,0 +1,294 @@
+#
+# There is insufficient memory for the Java Runtime Environment to continue.
+# Native memory allocation (mmap) failed to map 264241152 bytes. Error detail: G1 virtual space
+# Possible reasons:
+#   The system is out of physical RAM or swap space
+#   This process is running with CompressedOops enabled, and the Java Heap may be blocking the growth of the native heap
+# Possible solutions:
+#   Reduce memory load on the system
+#   Increase physical memory or swap space
+#   Check if swap backing store is full
+#   Decrease Java heap size (-Xmx/-Xms)
+#   Decrease number of Java threads
+#   Decrease Java thread stack sizes (-Xss)
+#   Set larger code cache with -XX:ReservedCodeCacheSize=
+#   JVM is running with Zero Based Compressed Oops mode in which the Java heap is
+#     placed in the first 32GB address space. The Java Heap base address is the
+#     maximum limit for the native heap growth. Please use -XX:HeapBaseMinAddress
+#     to set the Java Heap base and to place the Java Heap above 32GB virtual address.
+# This output file may be truncated or incomplete.
+#
+#  Out of Memory Error (os_windows.cpp:3714), pid=25392, tid=25728
+#
+# JRE version:  (21.0.11+10) (build )
+# Java VM: OpenJDK 64-Bit Server VM (21.0.11+10-LTS, mixed mode, sharing, tiered, compressed oops, compressed class ptrs, g1 gc, windows-amd64)
+# No core dump will be written. Minidumps are not enabled by default on client versions of Windows
+#
+
+---------------  S U M M A R Y ------------
+
+Command Line: -Dmaven.multiModuleProjectDirectory=C:\Projects\Intellij\dicukur-in org.apache.maven.wrapper.MavenWrapperMain spring-boot:run
+
+Host: 13th Gen Intel(R) Core(TM) i9-13900H, 20 cores, 15G,  Windows 11 , 64 bit Build 26100 (10.0.26100.8972)
+Time: Thu Aug 13 04:51:35 2026 SE Asia Standard Time elapsed time: 2.044357 seconds (0d 0h 0m 2s)
+
+---------------  T H R E A D  ---------------
+
+Current thread (0x00000178978bec20):  JavaThread "Unknown thread" [_thread_in_vm, id=25728, stack(0x00000072d1500000,0x00000072d1600000) (1024K)]
+
+Stack: [0x00000072d1500000,0x00000072d1600000]
+Native frames: (J=compiled Java code, j=interpreted, Vv=VM code, C=native code)
+V  [jvm.dll+0x6d7e19]
+V  [jvm.dll+0x8b5096]
+V  [jvm.dll+0x8b764e]
+V  [jvm.dll+0x8b7d33]
+V  [jvm.dll+0x284596]
+V  [jvm.dll+0x6d4735]
+V  [jvm.dll+0x6c845a]
+V  [jvm.dll+0x35ef08]
+V  [jvm.dll+0x366b46]
+V  [jvm.dll+0x3b7c2e]
+V  [jvm.dll+0x3b7ed8]
+V  [jvm.dll+0x33310c]
+V  [jvm.dll+0x333c5b]
+V  [jvm.dll+0x87f04b]
+V  [jvm.dll+0x3c4bb1]
+V  [jvm.dll+0x868295]
+V  [jvm.dll+0x457c41]
+V  [jvm.dll+0x459831]
+C  [jli.dll+0x52dc]
+C  [ucrtbase.dll+0x2cd30]
+C  [KERNEL32.DLL+0x2ccb7]
+C  [ntdll.dll+0xaad6c]
+
+
+---------------  P R O C E S S  ---------------
+
+Threads class SMR info:
+_java_thread_list=0x00007ffbbc96b1c8, length=0, elements={
+}
+
+Java Threads: ( => current thread )
+Total: 0
+
+Other Threads:
+  0x00000178979059e0 WorkerThread "GC Thread#0"                     [id=22272, stack(0x00000072d1600000,0x00000072d1700000) (1024K)]
+  0x00000178979197a0 ConcurrentGCThread "G1 Main Marker"            [id=11364, stack(0x00000072d1700000,0x00000072d1800000) (1024K)]
+  0x000001789791a0c0 WorkerThread "G1 Conc#0"                       [id=21048, stack(0x00000072d1800000,0x00000072d1900000) (1024K)]
+
+[error occurred during error reporting (printing all threads), id 0xc0000005, EXCEPTION_ACCESS_VIOLATION (0xc0000005) at pc=0x00007ffbbc0657f7]
+VM state: not at safepoint (not fully initialized)
+
+VM Mutex/Monitor currently owned by a thread:  ([mutex/lock_event])
+[0x00007ffbbc9df670] Heap_lock - owner thread: 0x00000178978bec20
+
+Heap address: 0x0000000704a00000, size: 4022 MB, Compressed Oops mode: Zero based, Oop shift amount: 3
+
+CDS archive(s) mapped at: [0x0000000000000000-0x0000000000000000-0x0000000000000000), size 0, SharedBaseAddress: 0x0000000800000000, ArchiveRelocationMode: 1.
+Narrow klass base: 0x0000000000000000, Narrow klass shift: 0, Narrow klass range: 0x0
+
+GC Precious Log:
+ CardTable entry size: 512
+ Card Set container configuration: InlinePtr #cards 4 size 8 Array Of Cards #cards 16 size 48 Howl #buckets 8 coarsen threshold 3686 Howl Bitmap #cards 512 size 80 coarsen threshold 460 Card regions per heap region 1 cards per card region 4096
+
+Heap:
+ garbage-first heap   total 0K, used 0K [0x0000000704a00000, 0x0000000800000000)
+  region size 2048K, 0 young (0K), 0 survivors (0K)
+
+[error occurred during error reporting (printing heap information), id 0xc0000005, EXCEPTION_ACCESS_VIOLATION (0xc0000005) at pc=0x00007ffbbc451789]
+GC Heap History (0 events):
+No events
+
+Dll operation events (1 events):
+Event: 0.012 Loaded shared library C:\Users\RAMADIAN\.jdks\temurin-21.0.11\bin\java.dll
+
+Deoptimization events (0 events):
+No events
+
+Classes loaded (0 events):
+No events
+
+Classes unloaded (0 events):
+No events
+
+Classes redefined (0 events):
+No events
+
+Internal exceptions (0 events):
+No events
+
+ZGC Phase Switch (0 events):
+No events
+
+VM Operations (0 events):
+No events
+
+Memory protections (0 events):
+No events
+
+Nmethod flushes (0 events):
+No events
+
+Events (0 events):
+No events
+
+
+Dynamic libraries:
+0x00007ff63c2e0000 - 0x00007ff63c2ee000 	C:\Users\RAMADIAN\.jdks\temurin-21.0.11\bin\java.exe
+0x00007ffc7e6e0000 - 0x00007ffc7e946000 	C:\WINDOWS\SYSTEM32\ntdll.dll
+0x00007ffc7d740000 - 0x00007ffc7d809000 	C:\WINDOWS\System32\KERNEL32.DLL
+0x00007ffc7bd40000 - 0x00007ffc7c13f000 	C:\WINDOWS\System32\KERNELBASE.dll
+0x00007ffc7c2b0000 - 0x00007ffc7c3fc000 	C:\WINDOWS\System32\ucrtbase.dll
+0x00007ffc74e00000 - 0x00007ffc74e1e000 	C:\Users\RAMADIAN\.jdks\temurin-21.0.11\bin\VCRUNTIME140.dll
+0x00007ffc720a0000 - 0x00007ffc720b8000 	C:\Users\RAMADIAN\.jdks\temurin-21.0.11\bin\jli.dll
+0x00007ffc7d570000 - 0x00007ffc7d736000 	C:\WINDOWS\System32\USER32.dll
+0x00007ffc58e60000 - 0x00007ffc590f1000 	C:\WINDOWS\WinSxS\amd64_microsoft.windows.common-controls_6595b64144ccf1df_6.0.26100.8972_none_3e0da176e32f9d4b\COMCTL32.dll
+0x00007ffc7c150000 - 0x00007ffc7c177000 	C:\WINDOWS\System32\win32u.dll
+0x00007ffc7ddf0000 - 0x00007ffc7de99000 	C:\WINDOWS\System32\msvcrt.dll
+0x00007ffc7e000000 - 0x00007ffc7e02b000 	C:\WINDOWS\System32\GDI32.dll
+0x00007ffc7c180000 - 0x00007ffc7c2a9000 	C:\WINDOWS\System32\gdi32full.dll
+0x00007ffc7b9b0000 - 0x00007ffc7ba53000 	C:\WINDOWS\System32\msvcp_win.dll
+0x00007ffc7c7c0000 - 0x00007ffc7c7f2000 	C:\WINDOWS\System32\IMM32.DLL
+0x00007ffc48b40000 - 0x00007ffc48c32000 	C:\Main Storage\Installations\Windhawk\Engine\1.6.1\64\windhawk.dll
+0x00007ffc7dba0000 - 0x00007ffc7dc5c000 	C:\WINDOWS\System32\ADVAPI32.dll
+0x00007ffc7d470000 - 0x00007ffc7d519000 	C:\WINDOWS\System32\sechost.dll
+0x00007ffc7e030000 - 0x00007ffc7e148000 	C:\WINDOWS\System32\RPCRT4.dll
+0x00007ffc53730000 - 0x00007ffc5375b000 	C:\ProgramData\Windhawk\Engine\Mods\64\explorer-details-better-file-sizes_1.5.1_163326.dll
+0x00007ffc7d180000 - 0x00007ffc7d319000 	C:\WINDOWS\System32\ole32.dll
+0x00007ffc7d810000 - 0x00007ffc7db95000 	C:\WINDOWS\System32\combase.dll
+0x00007ffc7d320000 - 0x00007ffc7d3f9000 	C:\WINDOWS\System32\OLEAUT32.dll
+0x00007ffc7c9f0000 - 0x00007ffc7d178000 	C:\WINDOWS\System32\SHELL32.dll
+0x00007ffc480d0000 - 0x00007ffc48279000 	C:\ProgramData\Windhawk\Engine\Mods\64\libc++.whl
+0x00007ffc49c60000 - 0x00007ffc49c9a000 	C:\ProgramData\Windhawk\Engine\Mods\64\libunwind.whl
+0x00007ffc734e0000 - 0x00007ffc735d4000 	C:\WINDOWS\SYSTEM32\PROPSYS.dll
+0x00007ffc537f0000 - 0x00007ffc53818000 	C:\ProgramData\Windhawk\Engine\Mods\64\macos-minimize-animation_3.1.2_304132.dll
+0x00007ffc74590000 - 0x00007ffc74bca000 	C:\WINDOWS\SYSTEM32\d2d1.dll
+0x00007ffc786f0000 - 0x00007ffc7871f000 	C:\WINDOWS\SYSTEM32\dwmapi.dll
+0x00007ffc4c070000 - 0x00007ffc4c099000 	C:\ProgramData\Windhawk\Engine\Mods\64\slick-window-arrangement_1.0.2_361122.dll
+0x00007ffc7dcf0000 - 0x00007ffc7dde9000 	C:\WINDOWS\System32\shcore.dll
+0x00007ffc753a0000 - 0x00007ffc753ac000 	C:\Users\RAMADIAN\.jdks\temurin-21.0.11\bin\vcruntime140_1.dll
+0x00007ffc5e820000 - 0x00007ffc5e8ad000 	C:\Users\RAMADIAN\.jdks\temurin-21.0.11\bin\msvcp140.dll
+0x00007ffbbbd20000 - 0x00007ffbbcac2000 	C:\Users\RAMADIAN\.jdks\temurin-21.0.11\bin\server\jvm.dll
+0x00007ffc7c4c0000 - 0x00007ffc7c542000 	C:\WINDOWS\System32\WS2_32.dll
+0x00007ffc70880000 - 0x00007ffc708b6000 	C:\WINDOWS\SYSTEM32\WINMM.dll
+0x00007ffc7a410000 - 0x00007ffc7a46e000 	C:\WINDOWS\SYSTEM32\POWRPROF.dll
+0x00007ffc698a0000 - 0x00007ffc698ab000 	C:\WINDOWS\SYSTEM32\VERSION.dll
+0x00007ffc7a3f0000 - 0x00007ffc7a405000 	C:\WINDOWS\SYSTEM32\UMPDC.dll
+0x00007ffc7a700000 - 0x00007ffc7a71b000 	C:\WINDOWS\SYSTEM32\kernel.appcore.dll
+0x00007ffc73660000 - 0x00007ffc7366a000 	C:\Users\RAMADIAN\.jdks\temurin-21.0.11\bin\jimage.dll
+0x00007ffc79120000 - 0x00007ffc79362000 	C:\WINDOWS\SYSTEM32\DBGHELP.DLL
+0x00007ffc50070000 - 0x00007ffc500ab000 	C:\WINDOWS\SYSTEM32\dbgcore.DLL
+0x00007ffc7baf0000 - 0x00007ffc7bb9c000 	C:\WINDOWS\System32\bcryptPrimitives.dll
+0x00007ffc72080000 - 0x00007ffc720a0000 	C:\Users\RAMADIAN\.jdks\temurin-21.0.11\bin\java.dll
+
+JVMTI agents: none
+
+dbghelp: loaded successfully - version: 4.0.5 - missing functions: none
+symbol engine: initialized successfully - sym options: 0x614 - pdb path: .;C:\Users\RAMADIAN\.jdks\temurin-21.0.11\bin;C:\WINDOWS\SYSTEM32;C:\WINDOWS\WinSxS\amd64_microsoft.windows.common-controls_6595b64144ccf1df_6.0.26100.8972_none_3e0da176e32f9d4b;C:\Main Storage\Installations\Windhawk\Engine\1.6.1\64;C:\ProgramData\Windhawk\Engine\Mods\64;C:\Users\RAMADIAN\.jdks\temurin-21.0.11\bin\server
+
+VM Arguments:
+jvm_args: -Dmaven.multiModuleProjectDirectory=C:\Projects\Intellij\dicukur-in 
+java_command: org.apache.maven.wrapper.MavenWrapperMain spring-boot:run
+java_class_path (initial): C:\Projects\Intellij\dicukur-in\.mvn\wrapper\maven-wrapper.jar
+Launcher Type: SUN_STANDARD
+
+[Global flags]
+     intx CICompilerCount                          = 12                                        {product} {ergonomic}
+     uint ConcGCThreads                            = 4                                         {product} {ergonomic}
+     uint G1ConcRefinementThreads                  = 15                                        {product} {ergonomic}
+   size_t G1HeapRegionSize                         = 2097152                                   {product} {ergonomic}
+    uintx GCDrainStackTargetSize                   = 64                                        {product} {ergonomic}
+   size_t InitialHeapSize                          = 264241152                                 {product} {ergonomic}
+   size_t MarkStackSize                            = 4194304                                   {product} {ergonomic}
+   size_t MaxHeapSize                              = 4217372672                                {product} {ergonomic}
+   size_t MinHeapDeltaBytes                        = 2097152                                   {product} {ergonomic}
+   size_t MinHeapSize                              = 8388608                                   {product} {ergonomic}
+    uintx NonNMethodCodeHeapSize                   = 7602480                                {pd product} {ergonomic}
+    uintx NonProfiledCodeHeapSize                  = 122027880                              {pd product} {ergonomic}
+    uintx ProfiledCodeHeapSize                     = 122027880                              {pd product} {ergonomic}
+    uintx ReservedCodeCacheSize                    = 251658240                              {pd product} {ergonomic}
+     bool SegmentedCodeCache                       = true                                      {product} {ergonomic}
+   size_t SoftMaxHeapSize                          = 4217372672                             {manageable} {ergonomic}
+     bool UseCompressedOops                        = true                           {product lp64_product} {ergonomic}
+     bool UseG1GC                                  = true                                      {product} {ergonomic}
+     bool UseLargePagesIndividualAllocation        = false                                  {pd product} {ergonomic}
+
+Logging:
+Log output configuration:
+ #0: stdout all=warning uptime,level,tags foldmultilines=false
+ #1: stderr all=off uptime,level,tags foldmultilines=false
+
+Release file:
+<release file has not been read>
+Environment Variables:
+JAVA_HOME=C:\Users\RAMADIAN\.jdks\temurin-21.0.11
+PATH=C:\Main Storage\Installations\nodejs;%PATH%;C:\Users\RAMADIAN\AppData\Local\Android\Sdk\platform-tools;C:\Users\RAMADIAN\AppData\Local\Yarn\config\global\node_modules\.bin;C:\Users\RAMADIAN\AppData\Roaming\Composer\vendor\bin;C:\Program Files\Google\Chrome\Application;C:\Program Files\Common Files\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\;C:\Program Files (x86)\Microsoft SQL Server\160\Tools\Binn\;C:\Program Files\Microsoft SQL Server\160\Tools\Binn\;C:\Program Files\Microsoft SQL Server\160\DTS\Binn\;C:\Program Files\NVIDIA Corporation\NVIDIA App\NvDLISR;C:\Program Files (x86)\Microsoft SQL Server\160\DTS\Binn\;C:\Program Files\dotnet\;C:\Main Storage\Installations\flutter\bin;C:\Main Storage\Installations\Git\cmd;C:\Main Storage\Installations\nodejs\;C:\ProgramData\chocolatey\bin;C:\Users\RAMADIAN\.jdks\temurin-17.0.17\bin;C:\Main Storage\Installations\Antigravity\bin;C:\Users\RAMADIAN\AppData\Local\Programs\Ollama;C:\Users\RAMADIAN\.local\bin;C:\Users\RAMADIAN\.dotnet\tools;C:\Users\RAMADIAN\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\RAMADIAN\AppData\Local\Programs\Antigravity IDE\bin;C:\Users\RAMADIAN\AppData\Local\Programs\DockerDesktop\resources\bin;C:\Users\RAMADIAN\AppData\Roaming\npm;C:\Users\RAMADIAN\AppData\Local\Android\Sdk\platform-tools;C:\Users\RAMADIAN\AppData\Local\Yarn\config\global\node_modules\.bin;C:\Users\RAMADIAN\AppData\Roaming\Composer\vendor\bin;C:\Program Files\Google\Chrome\Application;C:\Program Files\Common Files\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\;C:\Program Files (x86)\Microsoft SQL Server\160\Tools\Binn\;C:\Program Files\Microsoft SQL Server\160\Tools\Binn\;C:\Program Files\Microsoft SQL Server\160\DTS\Binn\;C:\Program Files\NVIDIA Corporation\NVIDIA App\NvDLISR;C:\Program Files (x86)\Microsoft SQL Server\160\DTS\Binn\;C:\Program Files\dotnet\;C:\Main Storage\Installations\flutter\bin;C:\Main Storage\Installations\Git\cmd;C:\Main Storage\Installations\nodejs\;C:\ProgramData\chocolatey\bin;C:\Users\RAMADIAN\.jdks\temurin-17.0.17\bin;C:\Main Storage\Installations\Antigravity\bin;C:\Users\RAMADIAN\AppData\Local\Programs\Ollama;C:\Users\RAMADIAN\.local\bin;C:\Users\RAMADIAN\.dotnet\tools;C:\Users\RAMADIAN\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\RAMADIAN\AppData\Local\Programs\Antigravity IDE\bin;C:\Users\RAMADIAN\AppData\Local\Programs\DockerDesktop\resources\bin;C:\Users\RAMADIAN\AppData\Roaming\npm;C:\Users\RAMADIAN\AppData\Local\Android\Sdk\platform-tools;C:\Projects\laragon\bin\php\php-8.3.31-nts-Win32-vs16-x64;C:\Users\RAMADIAN\scoop\shims;C:\Projects\laragon\bin;C:\Projects\laragon\bin\apache\httpd-2.4.54-win64-VS16\bin;C:\Projects\laragon\bin\composer;C:\Projects\laragon\bin\git\bin;C:\Projects\laragon\bin\git\cmd;C:\Projects\laragon\bin\git\mingw64\bin;C:\Projects\laragon\bin\git\usr\bin;C:\Projects\laragon\bin\laragon\utils;C:\Projects\laragon\bin\mysql\mysql-8.0.44-winx64\bin;C:\Projects\laragon\bin\nginx\nginx-1.22.0;C:\Projects\laragon\bin\ngrok;C:\Projects\laragon\bin\nodejs\node-v18;C:\Projects\laragon\bin\notepad++;C:\Projects\laragon\bin\php\php-8.3.16-Win32-vs16-x64;C:\Projects\laragon\bin\python\python-3.10;C:\Projects\laragon\bin\python\python-3.10\Scripts;C:\Projects\laragon\bin\redis\redis-x64-5.0.14.1;C:\Projects\laragon\bin\telnet;C:\Projects\laragon\usr\bin;C:\Users\RAMADIAN\AppData\Local\Yarn\config\global\node_modules\.bin;C:\Users\RAMADIAN\AppData\Roaming\Composer\vendor\bin;C:\Program Files\Google\Chrome\Application;C:\Program Files\Common Files\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\;C:\Program Files (x86)\Microsoft SQL Server\160\Tools\Binn\;C:\Program Files\Microsoft SQL Server\160\Tools\Binn\;C:\Program Files\Microsoft SQL Server\160\DTS\Binn\;C:\Program Files\NVIDIA Corporation\NVIDIA App\NvDLISR;C:\Program Files (x86)\Microsoft SQL Server\160\DTS\Binn\;C:\Program Files\dotnet\;C:\Main Storage\Installations\flutter\bin;C:\Main Storage\Installations\Git\cmd;C:\Main Storage\Installations\nodejs\;C:\ProgramData\chocolatey\bin;C:\Users\RAMADIAN\.jdks\temurin-17.0.17\bin;C:\Main Storage\Installations\Antigravity\bin;C:\Users\RAMADIAN\AppData\Local\Programs\Ollama;C:\Users\RAMADIAN\.local\bin;C:\Users\RAMADIAN\.dotnet\tools;C:\Users\RAMADIAN\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\RAMADIAN\AppData\Local\Programs\Antigravity IDE\bin;C:\Users\RAMADIAN\AppData\Local\Programs\DockerDesktop\resources\bin;C:\Users\RAMADIAN\AppData\Roaming\npm;C:\Users\RAMADIAN\AppData\Local\Android\Sdk\platform-tools;C:\Projects\laragon\bin\php\php-8.3.31-nts-Win32-vs16-x64
+USERNAME=RAMADIAN
+LANG=en_US.UTF-8
+OS=Windows_NT
+PROCESSOR_IDENTIFIER=Intel64 Family 6 Model 186 Stepping 2, GenuineIntel
+TMP=C:\Users\RAMADIAN\AppData\Local\Temp
+TEMP=C:\Users\RAMADIAN\AppData\Local\Temp
+
+
+
+
+Periodic native trim disabled
+
+---------------  S Y S T E M  ---------------
+
+OS:
+ Windows 11 , 64 bit Build 26100 (10.0.26100.8972)
+OS uptime: 0 days 0:36 hours
+Hyper-V role detected
+
+CPU: total 20 (initial active 20) (10 cores per cpu, 2 threads per core) family 6 model 186 stepping 2 microcode 0x5105, cx8, cmov, fxsr, ht, mmx, 3dnowpref, sse, sse2, sse3, ssse3, sse4.1, sse4.2, popcnt, lzcnt, tsc, tscinvbit, avx, avx2, aes, erms, clmul, bmi1, bmi2, adx, sha, fma, vzeroupper, clflush, clflushopt, clwb, hv, serialize, rdtscp, rdpid, fsrm, f16c, cet_ibt, cet_ss
+Processor Information for processor 0
+  Max Mhz: 2600, Current Mhz: 1496, Mhz Limit: 2600
+Processor Information for processor 1
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 2
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 3
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 4
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 5
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 6
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 7
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 8
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 9
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 10
+  Max Mhz: 2600, Current Mhz: 1496, Mhz Limit: 2600
+Processor Information for processor 11
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 12
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 13
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 14
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 15
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 16
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 17
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 18
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+Processor Information for processor 19
+  Max Mhz: 2600, Current Mhz: 2600, Mhz Limit: 2600
+
+Memory: 4k page, system-wide physical 16087M (2655M free)
+TotalPageFile size 16087M (AvailPageFile size 111M)
+current process WorkingSet (physical memory assigned to process): 16M, peak: 16M
+current process commit charge ("private bytes"): 76M, peak: 328M
+
+vm_info: OpenJDK 64-Bit Server VM (21.0.11+10-LTS) for windows-amd64 JRE (21.0.11+10-LTS), built on 2026-04-21T00:00:00Z by "admin" with MS VC++ 17.12 (VS2022)
+
+END.

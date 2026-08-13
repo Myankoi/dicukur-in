@@ -5,7 +5,6 @@ import {
   Plus,
   Trash2,
   Save,
-  X,
   CalendarOff,
   Loader2,
   AlertCircle,
@@ -29,7 +28,6 @@ interface TimeOffItem {
 }
 
 const DAY_NAMES = ['', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
-const DAY_SHORT = ['', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
 
 export default function BarberSchedulePage() {
   const [schedules, setSchedules] = useState<ScheduleItem[]>([]);
@@ -169,7 +167,6 @@ export default function BarberSchedulePage() {
     } catch { return s; }
   };
 
-  // Group schedules by day
   const grouped = new Map<number, ScheduleItem[]>();
   for (const s of schedules) {
     const list = grouped.get(s.dayOfWeek) || [];
@@ -178,38 +175,36 @@ export default function BarberSchedulePage() {
   }
 
   return (
-    <div>
+    <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
-      <div className="relative mb-6">
-        <div className="absolute -top-2 left-0 w-16 h-1 rounded-full"
-          style={{ background: 'linear-gradient(90deg, #dc2626, #f8fafc, #2563eb)' }} />
-        <h1 className="text-2xl font-bold text-zinc-100 mt-4 flex items-center gap-3">
-          <Clock size={24} className="text-brand-400" />
-          Jadwal & Hari Libur
+      <div className="border-b border-slate-200 pb-6">
+        <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-3 font-display">
+          <Clock size={24} className="text-red-600" />
+          Jadwal & Hari Libur Barber
         </h1>
-        <p className="text-zinc-400 mt-1">Atur jadwal kerja mingguan dan hari libur Anda.</p>
+        <p className="text-slate-600 mt-1 text-sm">Atur jam operasional keberangkatan dan waktu istirahat Anda.</p>
       </div>
 
       {/* Messages */}
       {error && (
-        <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+        <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium text-red-700">
           <AlertCircle size={16} /> {error}
         </div>
       )}
       {success && (
-        <div className="mb-4 flex items-center gap-2 rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm text-green-300">
+        <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-medium text-emerald-800">
           <CheckCircle2 size={16} /> {success}
         </div>
       )}
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 p-1 rounded-lg bg-zinc-900/50 border border-zinc-800/50 w-fit">
+      <div className="flex gap-1 p-1 rounded-xl bg-white border border-slate-200 shadow-sm w-fit">
         <button
           type="button"
-          className={`rounded-md px-4 py-2 text-sm font-medium transition-all ${
+          className={`rounded-lg px-4 py-2 text-xs font-bold transition-all ${
             activeTab === 'schedule'
-              ? 'bg-brand-600/20 text-brand-300 border border-brand-500/30'
-              : 'text-zinc-400 hover:text-zinc-200'
+              ? 'bg-red-600 text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
           onClick={() => setActiveTab('schedule')}
         >
@@ -217,10 +212,10 @@ export default function BarberSchedulePage() {
         </button>
         <button
           type="button"
-          className={`rounded-md px-4 py-2 text-sm font-medium transition-all ${
+          className={`rounded-lg px-4 py-2 text-xs font-bold transition-all ${
             activeTab === 'timeoff'
-              ? 'bg-barber-red/20 text-red-300 border border-red-500/30'
-              : 'text-zinc-400 hover:text-zinc-200'
+              ? 'bg-red-600 text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
           onClick={() => setActiveTab('timeoff')}
         >
@@ -229,21 +224,19 @@ export default function BarberSchedulePage() {
       </div>
 
       {loading ? (
-        <div className="space-y-3">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-16 rounded-xl bg-zinc-900/50 animate-pulse border border-zinc-800/50" />
-          ))}
+        <div className="flex h-48 items-center justify-center rounded-2xl border border-slate-200 bg-white">
+          <span className="size-5 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
         </div>
       ) : (
         <>
           {/* SCHEDULE TAB */}
           {activeTab === 'schedule' && (
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">Jadwal Kerja Mingguan</h2>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Jadwal Kerja Mingguan</h2>
                 <button
                   type="button"
-                  className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-brand-500 transition-colors"
+                  className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700 transition"
                   onClick={() => openScheduleForm()}
                 >
                   <Plus size={14} /> Tambah Jadwal
@@ -251,41 +244,41 @@ export default function BarberSchedulePage() {
               </div>
 
               {schedules.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-center rounded-xl border border-zinc-800/50 bg-zinc-900/20">
-                  <Calendar size={32} className="text-zinc-600 mb-3" />
-                  <p className="text-zinc-400 font-medium">Belum ada jadwal</p>
-                  <p className="text-zinc-500 text-sm mt-1">Tambahkan jadwal kerja mingguan Anda</p>
+                <div className="flex flex-col items-center justify-center py-16 text-center rounded-2xl border border-slate-200 bg-white shadow-sm">
+                  <Calendar size={32} className="text-slate-400 mb-3" />
+                  <p className="text-slate-900 font-bold text-sm">Belum ada jadwal</p>
+                  <p className="text-slate-500 text-xs mt-1">Tambahkan jadwal kerja mingguan Anda</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {[1, 2, 3, 4, 5, 6, 7].map((day) => {
                     const daySchedules = grouped.get(day) || [];
                     return (
-                      <div key={day} className="rounded-xl border border-zinc-800/60 bg-zinc-900/30 overflow-hidden">
-                        <div className="px-4 py-2.5 border-b border-zinc-800/40 bg-zinc-900/50">
-                          <p className="text-sm font-semibold text-zinc-200">{DAY_NAMES[day]}</p>
+                      <div key={day} className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                        <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
+                          <p className="text-xs font-bold text-slate-900">{DAY_NAMES[day]}</p>
                         </div>
                         <div className="p-3 space-y-2 min-h-[60px]">
                           {daySchedules.length === 0 ? (
-                            <p className="text-xs text-zinc-600 italic">Libur</p>
+                            <p className="text-xs text-slate-400 italic">Libur</p>
                           ) : (
                             daySchedules.map((s) => (
-                              <div key={s.id} className="flex items-center justify-between rounded-lg bg-zinc-800/30 px-3 py-2 border border-zinc-800/30">
+                              <div key={s.id} className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 border border-slate-200">
                                 <div className="flex items-center gap-2">
-                                  <Clock size={13} className="text-brand-400" />
-                                  <span className="text-sm text-zinc-200 font-medium">{s.startTime} - {s.endTime}</span>
-                                  <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
-                                    s.status === 'active' ? 'bg-green-500/15 text-green-400' : 'bg-zinc-700/50 text-zinc-500'
+                                  <Clock size={13} className="text-red-600" />
+                                  <span className="text-xs text-slate-900 font-bold">{s.startTime} - {s.endTime}</span>
+                                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                                    s.status === 'active' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-200 text-slate-600'
                                   }`}>
-                                    {s.status === 'active' ? 'Aktif' : 'Nonaktif'}
+                                    {s.status === 'active' ? 'Aktif' : 'Off'}
                                   </span>
                                 </div>
                                 <div className="flex gap-1">
-                                  <button type="button" className="grid size-7 place-items-center rounded text-zinc-500 hover:text-brand-300 hover:bg-zinc-800 transition-colors"
+                                  <button type="button" className="grid size-7 place-items-center rounded-lg text-slate-400 hover:text-red-600 hover:bg-slate-200 transition"
                                     onClick={() => openScheduleForm(s)}>
                                     <Save size={13} />
                                   </button>
-                                  <button type="button" className="grid size-7 place-items-center rounded text-zinc-500 hover:text-red-400 hover:bg-zinc-800 transition-colors"
+                                  <button type="button" className="grid size-7 place-items-center rounded-lg text-slate-400 hover:text-red-600 hover:bg-slate-200 transition"
                                     onClick={() => handleDeleteSchedule(s.id)}>
                                     <Trash2 size={13} />
                                   </button>
@@ -304,12 +297,12 @@ export default function BarberSchedulePage() {
 
           {/* TIME OFF TAB */}
           {activeTab === 'timeoff' && (
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">Hari Libur / Time Off</h2>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Hari Libur / Time Off</h2>
                 <button
                   type="button"
-                  className="inline-flex items-center gap-2 rounded-lg bg-barber-red px-3.5 py-2 text-xs font-semibold text-white hover:bg-red-500 transition-colors"
+                  className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700 transition"
                   onClick={() => { clearMessages(); setShowTimeOffForm(true); }}
                 >
                   <Plus size={14} /> Tambah Libur
@@ -317,10 +310,10 @@ export default function BarberSchedulePage() {
               </div>
 
               {timeOffs.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-center rounded-xl border border-zinc-800/50 bg-zinc-900/20">
-                  <CalendarOff size={32} className="text-zinc-600 mb-3" />
-                  <p className="text-zinc-400 font-medium">Belum ada hari libur</p>
-                  <p className="text-zinc-500 text-sm mt-1">Tambahkan waktu libur jika Anda tidak tersedia</p>
+                <div className="flex flex-col items-center justify-center py-16 text-center rounded-2xl border border-slate-200 bg-white shadow-sm">
+                  <CalendarOff size={32} className="text-slate-400 mb-3" />
+                  <p className="text-slate-900 font-bold text-sm">Belum ada hari libur</p>
+                  <p className="text-slate-500 text-xs mt-1">Tambahkan waktu libur jika Anda tidak tersedia</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -330,18 +323,18 @@ export default function BarberSchedulePage() {
                       initial={{ opacity: 0, x: -8 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.04 }}
-                      className="flex items-center justify-between rounded-xl border border-zinc-800/60 bg-zinc-900/30 px-5 py-3.5"
+                      className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-5 py-3.5 shadow-sm"
                     >
                       <div className="flex items-center gap-3">
-                        <CalendarOff size={16} className="text-red-400 shrink-0" />
+                        <CalendarOff size={16} className="text-red-600 shrink-0" />
                         <div>
-                          <p className="text-sm font-medium text-zinc-200">{formatDatetime(to.startDatetime)}</p>
-                          <p className="text-xs text-zinc-500">sampai {formatDatetime(to.endDatetime)}</p>
+                          <p className="text-xs font-bold text-slate-900">{formatDatetime(to.startDatetime)}</p>
+                          <p className="text-xs text-slate-500">sampai {formatDatetime(to.endDatetime)}</p>
                         </div>
                       </div>
                       <button
                         type="button"
-                        className="grid size-8 place-items-center rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                        className="grid size-8 place-items-center rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition"
                         onClick={() => handleDeleteTimeOff(to.id)}
                       >
                         <Trash2 size={15} />
@@ -358,91 +351,89 @@ export default function BarberSchedulePage() {
       {/* Schedule Form Dialog */}
       <AnimatePresence>
         {showScheduleForm && (
-          <motion.div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/80 backdrop-blur-md p-4"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm">
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-6 shadow-xl">
-              <h3 className="text-lg font-bold text-zinc-100 mb-4">{editingSchedule ? 'Edit Jadwal' : 'Tambah Jadwal'}</h3>
+              className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-4">
+              <h3 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3">{editingSchedule ? 'Edit Jadwal' : 'Tambah Jadwal'}</h3>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="sch-day" className="block text-xs font-semibold text-zinc-400 mb-1.5">Hari</label>
+                  <label htmlFor="sch-day" className="block text-xs font-bold text-slate-700 mb-1">Hari</label>
                   <select id="sch-day" value={schDay} onChange={(e) => setSchDay(Number(e.target.value))}
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm text-zinc-200 focus:border-brand-500 focus:outline-none">
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:border-red-600 focus:outline-none">
                     {[1,2,3,4,5,6,7].map(d => <option key={d} value={d}>{DAY_NAMES[d]}</option>)}
                   </select>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label htmlFor="sch-start" className="block text-xs font-semibold text-zinc-400 mb-1.5">Jam Mulai</label>
+                    <label htmlFor="sch-start" className="block text-xs font-bold text-slate-700 mb-1">Jam Mulai</label>
                     <input id="sch-start" type="time" value={schStart} onChange={(e) => setSchStart(e.target.value)}
-                      className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm text-zinc-200 focus:border-brand-500 focus:outline-none" />
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:border-red-600 focus:outline-none" />
                   </div>
                   <div>
-                    <label htmlFor="sch-end" className="block text-xs font-semibold text-zinc-400 mb-1.5">Jam Selesai</label>
+                    <label htmlFor="sch-end" className="block text-xs font-bold text-slate-700 mb-1">Jam Selesai</label>
                     <input id="sch-end" type="time" value={schEnd} onChange={(e) => setSchEnd(e.target.value)}
-                      className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm text-zinc-200 focus:border-brand-500 focus:outline-none" />
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:border-red-600 focus:outline-none" />
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="sch-status" className="block text-xs font-semibold text-zinc-400 mb-1.5">Status</label>
+                  <label htmlFor="sch-status" className="block text-xs font-bold text-slate-700 mb-1">Status</label>
                   <select id="sch-status" value={schStatus} onChange={(e) => setSchStatus(e.target.value)}
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm text-zinc-200 focus:border-brand-500 focus:outline-none">
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:border-red-600 focus:outline-none">
                     <option value="active">Aktif</option>
                     <option value="inactive">Nonaktif</option>
                   </select>
                 </div>
               </div>
-              <div className="flex justify-end gap-2 mt-6">
-                <button type="button" className="rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm font-medium text-zinc-300 hover:bg-zinc-700"
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button type="button" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
                   onClick={() => setShowScheduleForm(false)}>
                   Batal
                 </button>
                 <button type="button" disabled={processing}
-                  className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50"
                   onClick={handleSaveSchedule}>
                   {processing ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                   Simpan
                 </button>
               </div>
             </motion.div>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
       {/* Time Off Form Dialog */}
       <AnimatePresence>
         {showTimeOffForm && (
-          <motion.div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/80 backdrop-blur-md p-4"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm">
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-6 shadow-xl">
-              <h3 className="text-lg font-bold text-zinc-100 mb-4">Tambah Hari Libur</h3>
+              className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-4">
+              <h3 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3">Tambah Hari Libur</h3>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="to-start" className="block text-xs font-semibold text-zinc-400 mb-1.5">Mulai Libur</label>
+                  <label htmlFor="to-start" className="block text-xs font-bold text-slate-700 mb-1">Mulai Libur</label>
                   <input id="to-start" type="datetime-local" value={toStart} onChange={(e) => setToStart(e.target.value)}
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm text-zinc-200 focus:border-brand-500 focus:outline-none" />
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:border-red-600 focus:outline-none" />
                 </div>
                 <div>
-                  <label htmlFor="to-end" className="block text-xs font-semibold text-zinc-400 mb-1.5">Selesai Libur</label>
+                  <label htmlFor="to-end" className="block text-xs font-bold text-slate-700 mb-1">Selesai Libur</label>
                   <input id="to-end" type="datetime-local" value={toEnd} onChange={(e) => setToEnd(e.target.value)}
-                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm text-zinc-200 focus:border-brand-500 focus:outline-none" />
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:border-red-600 focus:outline-none" />
                 </div>
               </div>
-              <div className="flex justify-end gap-2 mt-6">
-                <button type="button" className="rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm font-medium text-zinc-300 hover:bg-zinc-700"
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button type="button" className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
                   onClick={() => setShowTimeOffForm(false)}>
                   Batal
                 </button>
                 <button type="button" disabled={processing}
-                  className="inline-flex items-center gap-2 rounded-lg bg-barber-red px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-500 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-50"
                   onClick={handleSaveTimeOff}>
                   {processing ? <Loader2 size={16} className="animate-spin" /> : <CalendarOff size={16} />}
                   Tambah Libur
                 </button>
               </div>
             </motion.div>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>

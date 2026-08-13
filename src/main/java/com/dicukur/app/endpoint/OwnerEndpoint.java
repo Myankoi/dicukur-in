@@ -41,4 +41,20 @@ public class OwnerEndpoint {
     public StaffResponse toggleStaffStatus(Long staffId) {
         return ownerService.toggleStaffStatus(staffId);
     }
+
+    public List<BarbershopPhotoResponse> getMyPhotos() {
+        return ownerService.getMyPhotos();
+    }
+
+    public BarbershopPhotoResponse addPhoto(String filePath, String caption) {
+        return ownerService.addPhoto(filePath, caption);
+    }
+
+    public void deletePhoto(Long photoId) {
+        ownerService.deletePhoto(photoId);
+    }
+
+    public BarbershopDetailResponse updateMainPhoto(String photoUrl) {
+        return ownerService.updateMainPhoto(photoUrl);
+    }
 }

@@ -71,6 +71,9 @@ public class Barbershop {
     @Column(nullable = false, length = 20)
     private String status;
 
+    @Column(name = "photo_url", length = 500)
+    private String photoUrl;
+
     @Column(name = "rating_average", nullable = false, precision = 3, scale = 2)
     private BigDecimal ratingAverage;
 

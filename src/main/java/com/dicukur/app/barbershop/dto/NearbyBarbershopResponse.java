@@ -15,6 +15,7 @@ public record NearbyBarbershopResponse(
         double distanceKm,
         BigDecimal ratingAverage,
         Integer totalCompleted,
-        BigDecimal serviceRadiusKm
+        BigDecimal serviceRadiusKm,
+        String photoUrl
 ) {
 }

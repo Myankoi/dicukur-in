@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { CalendarDays, Filter, RefreshCw, Search, UserRound, Scissors, MapPin, DollarSign } from 'lucide-react';
+import { Filter, RefreshCw, Search } from 'lucide-react';
 import { AdminMonitoringEndpoint } from '../../generated/endpoints.js';
 import { Button } from '../../components/ui/Button.js';
 import type AdminBookingResponse from '../../generated/com/dicukur/app/admin/dto/AdminBookingResponse.js';
@@ -40,44 +40,43 @@ export default function AdminBookingsPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end border-b border-slate-200 pb-6">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-400">Monitoring Sistem</p>
-          <h1 className="mt-2 font-display text-4xl font-semibold tracking-tight text-zinc-100">
+          <h1 className="font-display text-3xl font-bold tracking-tight text-slate-900">
             Seluruh Transaksi Booking
           </h1>
-          <p className="mt-2 text-sm text-zinc-400">Pantau seluruh janji cukur customer dan barber secara real-time.</p>
+          <p className="mt-1 text-sm text-slate-600">Pantau seluruh janji cukur customer dan barber secara real-time.</p>
         </div>
 
-        <Button variant="secondary" size="sm" onClick={() => void loadBookings()} disabled={loading}>
+        <Button variant="secondary" size="sm" onClick={() => void loadBookings()} disabled={loading} className="bg-white border-slate-300 text-slate-700">
           <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Segarkan
         </Button>
       </div>
 
       {/* Filter Bar */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="relative flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             placeholder="Cari kode booking, nama customer, atau barber..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-lg border border-zinc-800 bg-zinc-950 pl-9 pr-4 py-2 text-xs text-zinc-100 placeholder-zinc-500 focus:border-brand-500 focus:outline-none"
+            className="w-full rounded-xl border border-slate-300 bg-white pl-9 pr-4 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-red-600 focus:outline-none"
           />
         </div>
 
         <div className="flex items-center gap-2 overflow-x-auto">
-          <Filter size={15} className="text-zinc-500 shrink-0" />
+          <Filter size={15} className="text-slate-400 shrink-0" />
           {['ALL', 'PENDING', 'ACCEPTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED_BY_CUSTOMER'].map((status) => (
             <button
               key={status}
               type="button"
               onClick={() => setStatusFilter(status)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-colors ${
+              className={`rounded-lg px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-colors ${
                 statusFilter === status
-                  ? 'bg-brand-500 text-white'
-                  : 'bg-zinc-950 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 border border-zinc-800'
+                  ? 'bg-red-600 text-white shadow-sm'
+                  : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
               }`}
             >
               {status}
@@ -88,9 +87,9 @@ export default function AdminBookingsPage() {
 
       {/* Booking List */}
       {loading ? (
-        <div className="py-16 text-center text-xs text-zinc-500">Memuat data booking...</div>
+        <div className="py-16 text-center text-xs font-medium text-slate-500 rounded-2xl border border-slate-200 bg-white">Memuat data booking...</div>
       ) : filteredBookings.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-zinc-800 p-12 text-center text-xs text-zinc-500">
+        <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center text-xs font-medium text-slate-500 shadow-sm">
           Tidak ada data booking yang cocok dengan filter.
         </div>
       ) : (
@@ -98,23 +97,23 @@ export default function AdminBookingsPage() {
           {filteredBookings.map((b) => (
             <div
               key={b.id}
-              className="rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-5 backdrop-blur-sm transition-all hover:border-zinc-700"
+              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-red-200"
             >
-              <div className="flex flex-col justify-between gap-3 border-b border-zinc-800/60 pb-4 sm:flex-row sm:items-center">
+              <div className="flex flex-col justify-between gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center">
                 <div className="flex items-center gap-3">
-                  <span className="font-mono text-xs font-bold text-brand-300">#{b.bookingCode}</span>
-                  <span className="text-xs text-zinc-500">·</span>
-                  <span className="text-xs font-semibold text-zinc-300">{b.startDatetime || '-'}</span>
+                  <span className="font-mono text-xs font-bold text-red-600">#{b.bookingCode}</span>
+                  <span className="text-xs text-slate-400">·</span>
+                  <span className="text-xs font-semibold text-slate-700">{b.startDatetime || '-'}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="rounded-full bg-zinc-800 px-2.5 py-0.5 text-[10px] font-bold uppercase text-zinc-300">
+                  <span className="rounded-md bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold uppercase text-slate-700 border border-slate-200">
                     {b.status}
                   </span>
                   <span
-                    className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${
+                    className={`rounded-md px-2.5 py-0.5 text-[10px] font-bold uppercase ${
                       b.paymentStatus === 'paid'
-                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                        : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : 'bg-amber-50 text-amber-700 border border-amber-200'
                     }`}
                   >
                     {b.paymentStatus}
@@ -124,22 +123,22 @@ export default function AdminBookingsPage() {
 
               <div className="mt-4 grid gap-4 sm:grid-cols-4 text-xs">
                 <div>
-                  <p className="text-[10px] uppercase font-bold text-zinc-500">Customer</p>
-                  <p className="font-semibold text-zinc-100 mt-0.5">{b.customerName}</p>
-                  <p className="text-[11px] text-zinc-500">{b.customerEmail}</p>
+                  <p className="text-[10px] uppercase font-bold text-slate-500">Customer</p>
+                  <p className="font-bold text-slate-900 mt-0.5">{b.customerName}</p>
+                  <p className="text-[11px] text-slate-500">{b.customerEmail}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase font-bold text-zinc-500">Barber / Barbershop</p>
-                  <p className="font-semibold text-zinc-100 mt-0.5">{b.barberName}</p>
-                  <p className="text-[11px] text-zinc-500">{b.barbershopName}</p>
+                  <p className="text-[10px] uppercase font-bold text-slate-500">Barber / Barbershop</p>
+                  <p className="font-bold text-slate-900 mt-0.5">{b.barberName}</p>
+                  <p className="text-[11px] text-slate-500">{b.barbershopName}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase font-bold text-zinc-500">Layanan</p>
-                  <p className="font-semibold text-zinc-100 mt-0.5">{b.serviceName}</p>
+                  <p className="text-[10px] uppercase font-bold text-slate-500">Layanan</p>
+                  <p className="font-bold text-slate-900 mt-0.5">{b.serviceName}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase font-bold text-zinc-500">Total Harga</p>
-                  <p className="font-bold text-brand-300 mt-0.5">Rp {(b.totalPrice ?? 0).toLocaleString('id-ID')}</p>
+                  <p className="text-[10px] uppercase font-bold text-slate-500">Total Harga</p>
+                  <p className="font-bold text-red-600 mt-0.5">Rp {(b.totalPrice ?? 0).toLocaleString('id-ID')}</p>
                 </div>
               </div>
             </div>

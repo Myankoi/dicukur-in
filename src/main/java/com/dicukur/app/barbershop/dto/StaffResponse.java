@@ -13,10 +13,14 @@ public record StaffResponse(
         String joinedAt,
         BigDecimal ratingAverage,
         Integer totalCompleted,
-        String availabilityStatus
+        String availabilityStatus,
+        String photo
 ) {
     // Constructor fleksibel untuk BarbershopDiscoveryService
+    public StaffResponse(Long id, String name, String position, BigDecimal ratingAverage, Integer totalCompleted, String availabilityStatus, String photo) {
+        this(id, id, name, null, null, position, "active", null, ratingAverage, totalCompleted, availabilityStatus, photo);
+    }
     public StaffResponse(Long id, String name, String position, BigDecimal ratingAverage, Integer totalCompleted, String availabilityStatus) {
-        this(id, id, name, null, null, position, "active", null, ratingAverage, totalCompleted, availabilityStatus);
+        this(id, id, name, null, null, position, "active", null, ratingAverage, totalCompleted, availabilityStatus, null);
     }
 }

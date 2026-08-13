@@ -10,26 +10,26 @@
 @theme {
   --font-sans: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Cormorant Garamond Variable", Georgia, serif;
-  /* Barber pole: Red, White, Blue */
-  --color-brand-50: #eff6ff;
-  --color-brand-100: #dbeafe;
-  --color-brand-300: #93c5fd;
-  --color-brand-400: #60a5fa;
-  --color-brand-500: #3b82f6;
-  --color-brand-600: #2563eb;
-  --color-brand-700: #1d4ed8;
+  /* Barber pole: Red, White, Royal Blue */
+  --color-brand-50: #fef2f2;
+  --color-brand-100: #fee2e2;
+  --color-brand-300: #fca5a5;
+  --color-brand-400: #f87171;
+  --color-brand-500: #ef4444;
+  --color-brand-600: #dc2626;
+  --color-brand-700: #b91c1c;
   --color-barber-red: #dc2626;
-  --color-barber-red-light: #fca5a5;
+  --color-barber-red-light: #fee2e2;
   --color-barber-blue: #2563eb;
-  --color-barber-blue-light: #93c5fd;
-  --color-barber-white: #f8fafc;
-  --color-ink-900: #18181b;
+  --color-barber-blue-light: #dbeafe;
+  --color-barber-white: #ffffff;
+  --color-ink-900: #0f172a;
 }
 
 @layer base {
   html {
-    color: var(--color-zinc-900);
-    background: var(--color-zinc-50);
+    color: #0f172a;
+    background: #ffffff;
     font-family: var(--font-sans);
   }
 
@@ -37,7 +37,8 @@
     min-width: 320px;
     min-height: 100vh;
     margin: 0;
-    background: var(--color-zinc-950);
+    background: #ffffff;
+    color: #0f172a;
     text-rendering: optimizeLegibility;
   }
 
@@ -51,7 +52,7 @@
   input:focus-visible,
   textarea:focus-visible,
   select:focus-visible {
-    outline: 2px solid var(--color-brand-500);
+    outline: 2px solid var(--color-barber-red);
     outline-offset: 2px;
   }
 }
@@ -63,6 +64,7 @@
 }
 
 ::selection {
-  color: var(--color-zinc-950);
-  background: var(--color-brand-300);
+  color: #ffffff;
+  background: var(--color-barber-red);
 }
+

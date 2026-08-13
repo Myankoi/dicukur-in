@@ -18,6 +18,8 @@ public record BarbershopDetailResponse(
         BigDecimal ratingAverage,
         Integer totalCompleted,
         List<StaffResponse> staff,
-        List<ShopServiceResponse> services
+        List<ShopServiceResponse> services,
+        String photoUrl,
+        List<BarbershopPhotoResponse> photos
 ) {
 }

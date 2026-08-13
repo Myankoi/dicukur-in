@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { LocateFixed, MapPin, Plus, Search, Star, Trash2 } from 'lucide-react';
+import { LocateFixed, MapPin, Pencil, Plus, Search, Star, Trash2 } from 'lucide-react';
 import { CustomerAddressEndpoint } from '../../generated/endpoints.js';
 import { Button } from '../../components/ui/Button.js';
 import { InputField, TextareaField } from '../../components/ui/Field.js';
@@ -241,17 +241,17 @@ function MapPicker({ latitude, longitude, onLocationSelect }: MapPickerProps) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <label className="text-xs font-semibold text-zinc-300">
+        <label className="text-xs font-bold text-slate-700">
           Lokasi Google Maps (Klik peta / cari lokasi)
         </label>
-        <span className="text-[11px] text-zinc-500">Klik peta atau geser penanda untuk memilih titik</span>
+        <span className="text-[11px] text-slate-500">Klik peta atau geser penanda untuk memilih titik</span>
       </div>
 
       {/* Search Input for Map */}
       <div className="relative">
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <div className="relative flex-1">
-            <Search size={16} className="absolute left-3 top-3 text-zinc-500" />
+            <Search size={16} className="absolute left-3.5 top-3.5 text-slate-400" />
             <input
               type="text"
               value={searchQuery}
@@ -263,7 +263,7 @@ function MapPicker({ latitude, longitude, onLocationSelect }: MapPickerProps) {
                 }
               }}
               placeholder="Cari nama jalan / tempat di peta (contoh: Monas, Jakarta Pusat)..."
-              className="h-11 w-full rounded-md border border-zinc-700 bg-zinc-950/70 pl-9 pr-3 text-xs text-zinc-100 placeholder:text-zinc-600 focus:border-brand-400 focus:outline-none"
+              className="h-11 w-full rounded-xl border border-slate-300 bg-white pl-9 pr-3 text-xs text-slate-900 placeholder:text-slate-400 focus:border-red-600 focus:outline-none"
             />
           </div>
           <Button
@@ -272,6 +272,7 @@ function MapPicker({ latitude, longitude, onLocationSelect }: MapPickerProps) {
             variant="secondary"
             disabled={isSearching}
             onClick={() => void handleSearch()}
+            className="bg-white border-slate-300 text-slate-700 hover:bg-slate-50 font-bold shrink-0"
           >
             {isSearching ? 'Mencari...' : 'Cari di Peta'}
           </Button>
@@ -279,16 +280,16 @@ function MapPicker({ latitude, longitude, onLocationSelect }: MapPickerProps) {
 
         {/* Search Results Dropdown */}
         {searchResults.length > 0 && (
-          <div className="absolute z-[1000] mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-zinc-700 bg-zinc-900 shadow-2xl backdrop-blur-md">
+          <div className="absolute z-[1000] mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-2xl">
             {searchResults.map((item) => (
               <button
                 key={item.place_id}
                 type="button"
                 onClick={() => selectSearchResult(item)}
-                className="w-full border-b border-zinc-800 p-3 text-left transition-colors hover:bg-zinc-800/80"
+                className="w-full border-b border-slate-100 p-3 text-left transition-colors hover:bg-slate-50"
               >
-                <p className="text-xs font-semibold text-brand-300">{item.display_name.split(',')[0]}</p>
-                <p className="mt-0.5 line-clamp-1 text-[11px] text-zinc-400">{item.display_name}</p>
+                <p className="text-xs font-bold text-red-600">{item.display_name.split(',')[0]}</p>
+                <p className="mt-0.5 line-clamp-1 text-[11px] text-slate-500">{item.display_name}</p>
               </button>
             ))}
           </div>
@@ -296,10 +297,10 @@ function MapPicker({ latitude, longitude, onLocationSelect }: MapPickerProps) {
       </div>
 
       {/* Map Element */}
-      <div className="relative h-72 w-full overflow-hidden rounded-md border border-zinc-700 bg-zinc-900 shadow-inner">
+      <div className="relative h-72 w-full overflow-hidden rounded-xl border border-slate-300 bg-slate-100 shadow-inner">
         <div ref={mapContainerRef} className="h-full w-full" />
         {!mapLoaded && (
-          <div className="absolute inset-0 flex items-center justify-center bg-zinc-950/80 text-xs text-zinc-400">
+          <div className="absolute inset-0 flex items-center justify-center bg-slate-900/40 text-xs text-white">
             Memuat Google Maps...
           </div>
         )}
@@ -312,6 +313,7 @@ export default function CustomerAddressesPage() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [form, setForm] = useState(initialForm);
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -370,6 +372,30 @@ export default function CustomerAddressesPage() {
     );
   };
 
+  const handleStartCreate = () => {
+    setEditingId(null);
+    setForm(initialForm);
+    setShowForm(true);
+  };
+
+  const handleStartEdit = (address: Address) => {
+    setEditingId(address.id);
+    setForm({
+      label: address.label || 'Rumah',
+      recipientName: address.recipientName || '',
+      phone: address.phone || '',
+      fullAddress: address.fullAddress || '',
+      city: address.city || '',
+      province: address.province || '',
+      postalCode: address.postalCode || '',
+      latitude: String(address.latitude || ''),
+      longitude: String(address.longitude || ''),
+      notes: address.notes || '',
+      isDefault: address.isDefault ?? false,
+    });
+    setShowForm(true);
+  };
+
   const saveAddress = async (event: FormEvent) => {
     event.preventDefault();
     setError('');
@@ -381,7 +407,7 @@ export default function CustomerAddressesPage() {
     }
     setSaving(true);
     try {
-      await CustomerAddressEndpoint.create({
+      const payload = {
         label: form.label,
         recipientName: form.recipientName,
         phone: form.phone,
@@ -394,8 +420,16 @@ export default function CustomerAddressesPage() {
         longitude,
         notes: form.notes,
         isDefault: form.isDefault,
-      });
+      };
+
+      if (editingId) {
+        await CustomerAddressEndpoint.update(editingId, payload);
+      } else {
+        await CustomerAddressEndpoint.create(payload);
+      }
+
       setForm(initialForm);
+      setEditingId(null);
       setShowForm(false);
       await loadAddresses();
     } catch (cause) {
@@ -426,30 +460,31 @@ export default function CustomerAddressesPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+      <div className="flex flex-col justify-between gap-4 border-b border-slate-200 pb-6 sm:flex-row sm:items-end">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-400">Lokasi Layanan</p>
-          <h1 className="mt-2 font-display text-4xl font-semibold tracking-tight text-zinc-100">Alamat Saya</h1>
-          <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-400">
+          <h1 className="font-display text-3xl font-bold tracking-tight text-slate-900">Alamat Saya</h1>
+          <p className="mt-1 max-w-xl text-sm text-slate-600">
             Barber datang ke alamat yang kamu tentukan. Koordinat dipakai untuk menghitung jarak dan biaya perjalanan.
           </p>
         </div>
-        <Button onClick={() => setShowForm((value) => !value)}>
+        <Button onClick={() => (showForm ? setShowForm(false) : handleStartCreate())} className="bg-red-600 hover:bg-red-700 text-white font-bold">
           <Plus size={17} />
           {showForm ? 'Tutup Form' : 'Tambah Alamat'}
         </Button>
       </div>
 
-      {error && <p className="rounded-md border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs text-red-300">{error}</p>}
+      {error && <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium text-red-700">{error}</p>}
 
       {showForm && (
-        <form onSubmit={saveAddress} className="space-y-6 rounded-xl border border-zinc-800/80 bg-zinc-900/60 p-6 shadow-2xl backdrop-blur-md sm:p-8">
-          <div className="flex items-center justify-between gap-4 border-b border-zinc-800/80 pb-5">
+        <form onSubmit={saveAddress} className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <div className="flex items-center justify-between gap-4 border-b border-slate-100 pb-5">
             <div>
-              <h2 className="font-display text-2xl font-semibold text-zinc-100">Tambah Alamat Baru</h2>
-              <p className="mt-1 text-xs text-zinc-400">Pilih lokasi di Google Maps atau cari alamat agar lokasi presisi.</p>
+              <h2 className="font-display text-2xl font-bold text-slate-900">
+                {editingId ? 'Edit Data Alamat' : 'Tambah Alamat Baru'}
+              </h2>
+              <p className="mt-1 text-xs text-slate-500">Pilih lokasi di Google Maps atau cari alamat agar lokasi presisi.</p>
             </div>
-            <Button type="button" variant="secondary" size="sm" onClick={useCurrentLocation}>
+            <Button type="button" variant="secondary" size="sm" onClick={useCurrentLocation} className="border-slate-300 text-slate-700 bg-white hover:bg-slate-50 font-bold">
               <LocateFixed size={15} />
               Ambil Lokasi GPS
             </Button>
@@ -484,32 +519,34 @@ export default function CustomerAddressesPage() {
 
           <TextareaField label="Catatan Tambahan untuk Barber" name="notes" value={form.notes} onChange={(event) => updateForm('notes', event.target.value)} placeholder="Contoh: masuk lewat gerbang samping, ada anjing penjaga, dll." />
 
-          <label className="flex items-center gap-3 text-xs font-semibold text-zinc-300">
-            <input type="checkbox" checked={form.isDefault} onChange={(event) => updateForm('isDefault', event.target.checked)} className="size-4 rounded border-zinc-700 bg-zinc-950 accent-brand-500" />
+          <label className="flex items-center gap-3 text-xs font-bold text-slate-700">
+            <input type="checkbox" checked={form.isDefault} onChange={(event) => updateForm('isDefault', event.target.checked)} className="size-4 rounded border-slate-300 bg-white accent-red-600" />
             Jadikan alamat utama untuk pencarian
           </label>
 
-          <div className="flex justify-end gap-3 border-t border-zinc-800/80 pt-5">
-            <Button type="button" variant="ghost" onClick={() => setShowForm(false)}>Batal</Button>
-            <Button type="submit" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan Alamat'}</Button>
+          <div className="flex justify-end gap-3 border-t border-slate-100 pt-5">
+            <Button type="button" variant="ghost" onClick={() => setShowForm(false)} className="text-slate-600 hover:bg-slate-100">Batal</Button>
+            <Button type="submit" disabled={saving} className="bg-red-600 hover:bg-red-700 text-white font-bold">
+              {saving ? 'Menyimpan...' : editingId ? 'Perbarui Alamat' : 'Simpan Alamat'}
+            </Button>
           </div>
         </form>
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <p className="text-xs text-zinc-500">Memuat data alamat...</p>
+        <div className="flex items-center justify-center py-16 rounded-2xl border border-slate-200 bg-white">
+          <p className="text-xs text-slate-500 font-medium">Memuat data alamat...</p>
         </div>
       ) : addresses.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-zinc-800 bg-zinc-900/40 px-6 py-16 text-center backdrop-blur-sm">
-          <span className="mx-auto grid size-12 place-items-center rounded-xl border border-brand-400/20 bg-zinc-950 text-brand-400 shadow-inner">
+        <div className="rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center shadow-sm">
+          <span className="mx-auto grid size-12 place-items-center rounded-xl border border-red-200 bg-red-50 text-red-600 shadow-sm">
             <MapPin size={24} />
           </span>
-          <h2 className="mt-4 font-display text-2xl font-semibold text-zinc-100">Belum Ada Alamat Tersimpan</h2>
-          <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-zinc-400">
+          <h2 className="mt-4 font-display text-2xl font-bold text-slate-900">Belum Ada Alamat Tersimpan</h2>
+          <p className="mx-auto mt-2 max-w-md text-xs text-slate-500">
             Tambahkan lokasi pertama kamu agar sistem dapat mencari barbershop terdekat di sekitarmu.
           </p>
-          <Button className="mt-6" onClick={() => setShowForm(true)}>
+          <Button className="mt-6 bg-red-600 hover:bg-red-700 text-white font-bold" onClick={handleStartCreate}>
             <Plus size={16} /> Tambah Alamat Sekarang
           </Button>
         </div>
@@ -518,50 +555,74 @@ export default function CustomerAddressesPage() {
           {addresses.map((address) => (
             <article
               key={address.id}
-              className="group relative flex flex-col justify-between rounded-xl border border-zinc-800/80 bg-zinc-900/60 p-6 backdrop-blur-sm transition-all duration-200 hover:border-zinc-700 hover:bg-zinc-900"
+              className="group relative flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-200 hover:border-red-300 hover:shadow-md"
             >
               <div>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <span className="grid size-10 place-items-center rounded-lg border border-brand-400/30 bg-zinc-950 text-brand-300">
+                    <span className="grid size-10 place-items-center rounded-xl border border-red-200 bg-red-50 text-red-600 font-bold">
                       <MapPin size={18} />
                     </span>
                     <div>
-                      <h2 className="font-semibold text-zinc-100">{address.label || 'Alamat'}</h2>
+                      <h2 className="font-bold text-slate-900">{address.label || 'Alamat'}</h2>
                       {address.isDefault && (
-                        <p className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-brand-300">
-                          <Star size={10} fill="currentColor" /> Utama
+                        <p className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-red-600">
+                          <Star size={10} className="fill-red-600" /> Utama
                         </p>
                       )}
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => void removeAddress(address.id)}
-                    className="text-zinc-500 transition-colors hover:text-red-400"
-                    aria-label={`Hapus ${address.label || 'alamat'}`}
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleStartEdit(address)}
+                      className="p-1 text-slate-400 hover:text-blue-600 transition-colors"
+                      title="Edit Alamat"
+                    >
+                      <Pencil size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void removeAddress(address.id)}
+                      className="p-1 text-slate-400 hover:text-red-600 transition-colors"
+                      title="Hapus Alamat"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </div>
 
-                <p className="mt-4 text-xs leading-relaxed text-zinc-300">{address.fullAddress}</p>
-                <p className="mt-2 text-[11px] text-zinc-500">
+                <p className="mt-4 text-xs leading-relaxed text-slate-700 font-medium">{address.fullAddress}</p>
+                <p className="mt-2 text-[11px] text-slate-500">
                   {[address.city, address.province, address.postalCode].filter(Boolean).join(', ')}
                 </p>
+                {address.phone && (
+                  <p className="mt-1 text-[11px] text-slate-500">
+                    Penerima: <span className="font-semibold text-slate-800">{address.recipientName || '-'}</span> ({address.phone})
+                  </p>
+                )}
               </div>
 
-              {!address.isDefault && (
-                <div className="mt-6 border-t border-zinc-800/80 pt-4">
+              <div className="mt-6 border-t border-slate-100 pt-4 flex items-center justify-between">
+                {!address.isDefault ? (
                   <button
                     type="button"
                     onClick={() => void makeDefault(address.id)}
-                    className="text-xs font-semibold text-brand-400 hover:text-brand-300"
+                    className="text-xs font-bold text-red-600 hover:text-red-700"
                   >
                     Jadikan Alamat Utama
                   </button>
-                </div>
-              )}
+                ) : (
+                  <span className="text-xs font-semibold text-slate-400">Alamat Utama</span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => handleStartEdit(address)}
+                  className="text-xs font-bold text-blue-600 hover:text-blue-700"
+                >
+                  Edit Alamat
+                </button>
+              </div>
             </article>
           ))}
         </div>
