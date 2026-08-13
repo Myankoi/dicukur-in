@@ -25,11 +25,7 @@ function FieldFrame({ label, htmlFor, hint, error, children }: FieldFrameProps) 
 
 const controlStyles =
   'w-full rounded-lg border border-slate-300 bg-white px-3.5 text-sm text-slate-900 ' +
-<<<<<<< HEAD
-  'placeholder:text-slate-400 transition-colors hover:border-slate-400 focus:border-red-600 focus:outline-none';
-=======
-  'placeholder:text-slate-400 transition-colors hover:border-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 focus:outline-none shadow-xs';
->>>>>>> 37106706632accb6dd0c5a3b6c17edaa31627ce8
+  'placeholder:text-slate-400 transition-colors hover:border-slate-400 focus:border-blue-600 focus:outline-none';
 
 interface InputFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;

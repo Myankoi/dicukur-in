@@ -7,14 +7,13 @@ import {
   ShieldAlert,
   Sparkles,
   UserRound,
-  XCircle,
   RefreshCw,
   Navigation,
   CheckCircle2,
   Clock,
-  ChevronRight,
+  CreditCard,
 } from 'lucide-react';
-import { BookingEndpoint } from '../../generated/endpoints.js';
+import { BookingEndpoint, PaymentEndpoint } from '../../generated/endpoints.js';
 import { Button } from '../../components/ui/Button.js';
 import type BookingResponse from '../../generated/com/dicukur/app/booking/dto/BookingResponse.js';
 
@@ -23,7 +22,7 @@ export default function CustomerBookingsPage() {
   const [bookings, setBookings] = useState<BookingResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [cancellingId, setCancellingId] = useState<number>();
+  const [actionLoadingId, setActionLoadingId] = useState<number>();
   const [error, setError] = useState('');
 
   const loadBookings = useCallback(async (isSilent = false) => {
@@ -57,15 +56,39 @@ export default function CustomerBookingsPage() {
   const handleCancel = async (id?: number) => {
     if (!id) return;
     if (!window.confirm('Apakah kamu yakin ingin membatalkan pesanan ini?')) return;
-    setCancellingId(id);
+    setActionLoadingId(id);
     try {
       await BookingEndpoint.cancel(id, 'Dibatalkan oleh customer');
       await loadBookings();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Gagal membatalkan pesanan');
     } finally {
-      setCancellingId(undefined);
+      setActionLoadingId(undefined);
     }
+  };
+
+  const handlePay = async (id?: number) => {
+    if (!id) return;
+    setActionLoadingId(id);
+    try {
+      await PaymentEndpoint.submitPayment({ bookingId: id, paymentMethod: 'qris' });
+      await loadBookings();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Gagal memproses pembayaran');
+    } finally {
+      setActionLoadingId(undefined);
+    }
+  };
+
+  const canCancel = (status?: string) => {
+    const s = status?.toUpperCase();
+    return s === 'PENDING' || s === 'ACCEPTED';
+  };
+
+  const canPay = (status?: string, paymentStatus?: string) => {
+    const s = status?.toUpperCase();
+    const p = paymentStatus?.toLowerCase();
+    return (s === 'COMPLETED' || s === 'IN_PROGRESS' || s === 'ACCEPTED') && p !== 'paid';
   };
 
   const getStatusBadge = (status?: string) => {

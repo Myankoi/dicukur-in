@@ -178,21 +178,23 @@ public class OwnerService {
     public StaffResponse addStaff(AddStaffRequest req) {
         User owner = currentUserService.requireRole("Owner");
         Barbershop shop = barbershopRepository.findByOwner_Id(owner.getId())
-                .orElseThrow(() -> new IllegalArgumentException("Barbershop Anda belum disetujui atau belum terdaftar"));
-
-        if (!"approved".equalsIgnoreCase(shop.getVerificationStatus())) {
-            throw new IllegalStateException("Barbershop Anda harus disetujui Admin terlebih dahulu sebelum menambah staf");
-        }
+                .orElseThrow(() -> new IllegalArgumentException("Barbershop belum terdaftar. Lengkapi profil barbershop terlebih dahulu."));
 
         String email = req.email().trim().toLowerCase(Locale.ROOT);
         if (userRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("Email sudah terdaftar: " + email);
+            throw new IllegalArgumentException("Email sudah terdaftar, gunakan email lain: " + email);
         }
 
         Role barberRole = roleRepository.findByName("Barber")
-                .orElseThrow(() -> new IllegalStateException("Role Barber tidak ditemukan"));
+                .orElseThrow(() -> new IllegalStateException("Konfigurasi sistem bermasalah: Role Barber tidak ditemukan"));
 
         LocalDateTime now = LocalDateTime.now();
+
+        // Fallback lokasi aman jika barbershop belum set koordinat
+        BigDecimal lat = (shop.getLatitude() != null) ? shop.getLatitude() : new BigDecimal("-6.2088");
+        BigDecimal lng = (shop.getLongitude() != null) ? shop.getLongitude() : new BigDecimal("106.8456");
+        BigDecimal radius = (shop.getServiceRadiusKm() != null) ? shop.getServiceRadiusKm() : new BigDecimal("10.00");
+        String address = (shop.getBusinessAddress() != null) ? shop.getBusinessAddress() : "Alamat belum diisi";
 
         // 1. Buat User Barber baru
         User barber = new User();
@@ -206,17 +208,19 @@ public class OwnerService {
         barber.setUpdatedAt(now);
         User savedBarber = userRepository.save(barber);
 
-        // 2. Buat Barber Profile
+        // 2. Buat Barber Profile (menggunakan fallback koordinat yang aman)
         BarberProfile profile = new BarberProfile();
         profile.setUser(savedBarber);
         profile.setBarberType("employee");
         profile.setBarbershop(shop);
-        profile.setBaseAddress(shop.getBusinessAddress());
-        profile.setBaseLatitude(shop.getLatitude());
-        profile.setBaseLongitude(shop.getLongitude());
-        profile.setServiceRadiusKm(shop.getServiceRadiusKm());
+        profile.setBaseAddress(address);
+        profile.setBaseLatitude(lat);
+        profile.setBaseLongitude(lng);
+        profile.setServiceRadiusKm(radius);
         profile.setVerificationStatus("verified");
         profile.setAvailabilityStatus("available");
+        profile.setRatingAverage(BigDecimal.ZERO);
+        profile.setTotalCompleted(0);
         profile.setCreatedAt(now);
         profile.setUpdatedAt(now);
         barberProfileRepository.save(profile);

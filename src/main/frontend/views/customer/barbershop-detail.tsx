@@ -68,15 +68,22 @@ export default function BarbershopDetailPage() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [barberId, setBarberId] = useState<number>();
   const [serviceId, setServiceId] = useState<number>();
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('10:00');
+  const getTodayDateStr = () => new Date().toLocaleDateString('en-CA');
+  const getFutureTimeStr = () => {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() + 30);
+    return d.toTimeString().slice(0, 5);
+  };
+
+  const [date, setDate] = useState(getTodayDateStr());
+  const [time, setTime] = useState(getFutureTimeStr());
   const [notes, setNotes] = useState('');
   const [addressId, setAddressId] = useState<number>();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  
+
   // Carousel & Modal State
   const [currentSlide, setCurrentSlide] = useState(0);
   const [activePhoto, setActivePhoto] = useState<string | null>(null);
@@ -92,7 +99,7 @@ export default function BarbershopDetailPage() {
         const nextAddresses = (addressResult ?? []).filter(Boolean) as Address[];
         setShop(nextShop);
         setAddresses(nextAddresses);
-        setBarberId(nextShop.staff[0]?.barberUserId);
+        setBarberId(nextShop.staff[0]?.barberUserId ?? (nextShop.staff[0] as any)?.staffId);
         setServiceId(nextShop.services[0]?.id);
         setAddressId(nextAddresses.find((item) => item.isDefault)?.id ?? nextAddresses[0]?.id);
       })
@@ -180,7 +187,7 @@ export default function BarbershopDetailPage() {
                   onClick={() => setActivePhoto(galleryList[currentSlide])}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent pointer-events-none" />
-                
+
                 {/* Carousel Arrow Controls */}
                 {galleryList.length > 1 && (
                   <>
@@ -213,9 +220,8 @@ export default function BarbershopDetailPage() {
                         key={i}
                         type="button"
                         onClick={() => setCurrentSlide(i)}
-                        className={`h-2 rounded-full transition-all ${
-                          currentSlide === i ? 'w-6 bg-red-600' : 'w-2 bg-white/60 hover:bg-white'
-                        }`}
+                        className={`h-2 rounded-full transition-all ${currentSlide === i ? 'w-6 bg-red-600' : 'w-2 bg-white/60 hover:bg-white'
+                          }`}
                       />
                     ))}
                   </div>
@@ -230,11 +236,10 @@ export default function BarbershopDetailPage() {
                       key={idx}
                       type="button"
                       onClick={() => setCurrentSlide(idx)}
-                      className={`relative h-20 w-32 shrink-0 overflow-hidden rounded-xl border-2 transition-all ${
-                        currentSlide === idx
-                          ? 'border-red-600 shadow-md scale-105'
-                          : 'border-slate-200 opacity-70 hover:opacity-100 hover:border-slate-300'
-                      }`}
+                      className={`relative h-20 w-32 shrink-0 overflow-hidden rounded-xl border-2 transition-all ${currentSlide === idx
+                        ? 'border-red-600 shadow-md scale-105'
+                        : 'border-slate-200 opacity-70 hover:opacity-100 hover:border-slate-300'
+                        }`}
                     >
                       <img src={photo} alt={`Galeri ${idx + 1}`} className="h-full w-full object-cover" />
                     </button>
@@ -254,7 +259,7 @@ export default function BarbershopDetailPage() {
             </div>
 
             <p className="flex items-center gap-2 text-xs font-medium text-slate-700">
-              <MapPin size={16} className="shrink-0 text-red-600" />
+              <MapPin size={16} className="shrink-0 text-blue-600" />
               <span>{shop.address}, {shop.city}, {shop.province}</span>
             </p>
             {shop.description && <p className="text-xs leading-relaxed text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200">{shop.description}</p>}
@@ -263,7 +268,7 @@ export default function BarbershopDetailPage() {
           {/* Scalable & Searchable Barber Selection Section */}
           <section className="space-y-4">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-red-600">Tim Barber Professional ({shop.staff.length})</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-blue-600">Tim Barber Professional ({shop.staff.length})</p>
               <h2 className="mt-1 font-display text-2xl font-bold text-slate-900">1. Pilih Karyawan Barber</h2>
             </div>
 
@@ -282,19 +287,19 @@ export default function BarbershopDetailPage() {
                       placeholder={`Cari dari ${shop.staff.length} karyawan barber...`}
                       value={barberSearch}
                       onChange={(e) => setBarberSearch(e.target.value)}
-                      className="w-full rounded-xl border border-slate-300 bg-white pl-9 pr-4 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-red-600 focus:outline-none shadow-sm"
+                      className="w-full rounded-xl border border-slate-300 bg-white pl-9 pr-4 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-blue-600 focus:outline-none shadow-sm"
                     />
                   </div>
                 )}
 
                 {/* Currently Selected Barber Banner summary */}
                 {selectedBarber && (
-                  <div className="flex items-center justify-between rounded-xl border border-red-200 bg-red-50/80 px-4 py-2.5 text-xs">
+                  <div className="flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50/80 px-4 py-2.5 text-xs">
                     <div className="flex items-center gap-2.5">
-                      <UserCheck size={16} className="text-red-600 shrink-0" />
+                      <UserCheck size={16} className="text-blue-600 shrink-0" />
                       <div>
                         <span className="font-bold text-slate-900">Barber Dipilih: </span>
-                        <span className="font-extrabold text-red-600">{selectedBarber.name}</span>
+                        <span className="font-extrabold text-blue-600">{selectedBarber.name}</span>
                         <span className="text-slate-500 ml-1">({selectedBarber.position || 'Barber'})</span>
                       </div>
                     </div>
@@ -318,29 +323,31 @@ export default function BarbershopDetailPage() {
                           key={staff.barberUserId}
                           type="button"
                           onClick={() => setBarberId(staff.barberUserId)}
-                          className={`group relative flex flex-col justify-between rounded-2xl border p-4 text-left shadow-sm transition-all duration-200 ${
-                            isSelected
-                              ? 'border-red-600 bg-red-50/60 ring-2 ring-red-600/20'
-                              : 'border-slate-200 bg-white hover:border-slate-300'
-                          }`}
+                          className={`group relative flex flex-col justify-between rounded-2xl border p-4 text-left shadow-sm transition-all duration-200 ${isSelected
+                            ? 'border-blue-600 bg-blue-50/60 ring-2 ring-blue-600/20'
+                            : 'border-slate-200 bg-white hover:border-slate-300'
+                            }`}
                         >
                           <div className="flex items-start justify-between gap-3">
                             {staff.photo ? (
                               <img src={staff.photo} alt={staff.name} className="size-11 rounded-xl object-cover border border-slate-200" />
                             ) : (
-                              <span className="grid size-11 place-items-center rounded-xl border border-red-200 bg-red-50 text-red-600 font-bold">
+                              <span className="grid size-11 place-items-center rounded-xl border border-blue-200 bg-blue-50 text-blue-600 font-bold">
                                 <UserRound size={20} />
                               </span>
                             )}
-                            {isSelected && <CheckCircle2 size={20} className="text-red-600" />}
+                            {isSelected && <CheckCircle2 size={20} className="text-blue-600" />}
                           </div>
 
                           <div className="mt-4">
-                            <h3 className={`font-bold text-sm ${isSelected ? 'text-red-600' : 'text-slate-900'}`}>
+                            <h3 className={`font-bold text-sm ${isSelected ? 'text-blue-600' : 'text-slate-900'}`}>
                               {staff.name}
                             </h3>
                             <p className="mt-0.5 text-[11px] text-slate-500">
-                              {staff.position || 'Barber'} · <span className="font-bold text-emerald-600">{staff.availabilityStatus}</span>
+                              {staff.position || 'Barber'} ·{' '}
+                              <span className={staff.availabilityStatus === 'available' ? 'font-bold text-emerald-600' : 'font-bold text-slate-400'}>
+                                {staff.availabilityStatus === 'available' ? '● Tersedia' : '○ Tidak Tersedia'}
+                              </span>
                             </p>
                           </div>
 
@@ -359,7 +366,7 @@ export default function BarbershopDetailPage() {
           {/* Section Services with DYNAMIC DISTINCT ICONS */}
           <section className="space-y-4">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-red-600">Pilihan Layanan Cukur</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-blue-600">Pilihan Layanan Cukur</p>
               <h2 className="mt-1 font-display text-2xl font-bold text-slate-900">2. Pilih Kebutuhan Grooming</h2>
             </div>
 
@@ -374,16 +381,15 @@ export default function BarbershopDetailPage() {
                     key={service.id}
                     type="button"
                     onClick={() => setServiceId(service.id)}
-                    className={`flex w-full items-center justify-between gap-4 p-4 text-left transition-colors ${
-                      isSelected ? 'bg-red-50/70 ring-1 ring-red-200 inset-0' : 'hover:bg-slate-50'
-                    }`}
+                    className={`flex w-full items-center justify-between gap-4 p-4 text-left transition-colors ${isSelected ? 'bg-blue-50/70 ring-1 ring-blue-200 inset-0' : 'hover:bg-slate-50'
+                      }`}
                   >
                     <div className="flex items-center gap-3.5">
-                      <span className={`grid size-11 shrink-0 place-items-center rounded-xl border ${isSelected ? 'border-red-600 bg-red-600 text-white shadow-sm' : `${iconInfo.border} ${iconInfo.bg} ${iconInfo.text}`}`}>
+                      <span className={`grid size-11 shrink-0 place-items-center rounded-xl border ${isSelected ? 'border-blue-600 bg-blue-600 text-white shadow-sm' : `${iconInfo.border} ${iconInfo.bg} ${iconInfo.text}`}`}>
                         <IconComponent size={20} />
                       </span>
                       <div>
-                        <span className={`block text-sm font-bold ${isSelected ? 'text-red-600' : 'text-slate-900'}`}>
+                        <span className={`block text-sm font-bold ${isSelected ? 'text-blue-600' : 'text-slate-900'}`}>
                           {service.name}
                         </span>
                         <span className="mt-0.5 block text-xs text-slate-500">
@@ -391,7 +397,7 @@ export default function BarbershopDetailPage() {
                         </span>
                       </div>
                     </div>
-                    <span className="shrink-0 text-sm font-bold text-red-600">
+                    <span className="shrink-0 text-sm font-bold text-blue-600">
                       Rp {service.price.toLocaleString('id-ID')}
                     </span>
                   </button>
@@ -404,7 +410,7 @@ export default function BarbershopDetailPage() {
         {/* Right Column: Sticky Booking Form */}
         <form onSubmit={createBooking} className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:sticky lg:top-6 sm:p-7">
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-red-600">Konfirmasi Jadwal</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-blue-600">Konfirmasi Jadwal</p>
             <h2 className="mt-1 font-display text-2xl font-bold text-slate-900">Buat Booking</h2>
             <p className="mt-1 text-xs leading-relaxed text-slate-600">
               Biaya perjalanan final akan dihitung otomatis dari titik alamatmu ke lokasi operasional barber.
@@ -415,11 +421,11 @@ export default function BarbershopDetailPage() {
           {success && <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-xs font-medium text-emerald-800">{success}</p>}
 
           <label className="block space-y-1.5">
-            <span className="text-xs font-bold text-slate-700">Alamat Tujuan Dikirim</span>
+            <span className="text-xs font-bold text-slate-700">Lokasi Tujuan Barber (Alamat Panggilan)</span>
             <select
               value={addressId ?? ''}
               onChange={(event) => setAddressId(Number(event.target.value))}
-              className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-xs font-bold text-slate-900 focus:border-red-600 focus:outline-none"
+              className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-xs font-bold text-slate-900 focus:border-blue-600 focus:outline-none"
             >
               {addresses.map((address) => (
                 <option key={address.id} value={address.id}>
@@ -439,14 +445,14 @@ export default function BarbershopDetailPage() {
           {selectedService && (
             <div className="flex items-center justify-between border-t border-slate-100 pt-4 text-xs">
               <span className="flex items-center gap-2 text-slate-600 font-medium">
-                <Clock3 size={14} className="text-red-600" />
+                <Clock3 size={14} className="text-blue-600" />
                 {selectedService.name} ({selectedService.duration}m)
               </span>
-              <span className="font-bold text-red-600">Rp {selectedService.price.toLocaleString('id-ID')}+</span>
+              <span className="font-bold text-blue-600">Rp {selectedService.price.toLocaleString('id-ID')}+</span>
             </div>
           )}
 
-          <Button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white font-bold shadow-md shadow-red-600/20" disabled={saving || !shop.staff.length || !shop.services.length}>
+          <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-md shadow-blue-600/20" disabled={saving || !shop.staff.length || !shop.services.length}>
             <span>{saving ? 'Membuat Booking...' : 'Konfirmasi & Simpan Booking'}</span>
             <CalendarDays size={17} />
           </Button>

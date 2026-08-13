@@ -17,7 +17,9 @@ import com.dicukur.app.barbershop.repository.BarbershopStaffRepository;
 import com.dicukur.app.common.location.GeoDistance;
 import com.dicukur.app.security.CurrentUserService;
 import com.dicukur.app.service.entity.BarbershopService;
+import com.dicukur.app.service.entity.ServiceOffering;
 import com.dicukur.app.service.repository.BarbershopServiceRepository;
+import com.dicukur.app.service.repository.ServiceOfferingRepository;
 import com.dicukur.app.user.entity.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,15 +39,16 @@ public class BarbershopDiscoveryService {
     private final BarbershopStaffRepository staffRepository;
     private final BarberProfileRepository profileRepository;
     private final BarbershopServiceRepository serviceRepository;
+    private final ServiceOfferingRepository offeringRepository;
     private final CustomerAddressRepository addressRepository;
     private final CurrentUserService currentUserService;
-
     private final BarbershopPhotoRepository photoRepository;
 
     public BarbershopDiscoveryService(BarbershopRepository barbershopRepository,
                                       BarbershopStaffRepository staffRepository,
                                       BarberProfileRepository profileRepository,
                                       BarbershopServiceRepository serviceRepository,
+                                      ServiceOfferingRepository offeringRepository,
                                       CustomerAddressRepository addressRepository,
                                       CurrentUserService currentUserService,
                                       BarbershopPhotoRepository photoRepository) {
@@ -53,6 +56,7 @@ public class BarbershopDiscoveryService {
         this.staffRepository = staffRepository;
         this.profileRepository = profileRepository;
         this.serviceRepository = serviceRepository;
+        this.offeringRepository = offeringRepository;
         this.addressRepository = addressRepository;
         this.currentUserService = currentUserService;
         this.photoRepository = photoRepository;
@@ -92,9 +96,18 @@ public class BarbershopDiscoveryService {
                 .map(this::toStaff)
                 .filter(item -> item != null)
                 .toList();
-        List<ShopServiceResponse> services = serviceRepository.findByBarbershop_IdAndStatus(id, ACTIVE).stream()
-                .map(this::toService)
-                .toList();
+
+        // BUG 4 FIX: Fallback ke global ServiceOffering jika barbershop tidak memiliki kustomisasi layanan
+        List<BarbershopService> shopServices = serviceRepository.findByBarbershop_IdAndStatus(id, ACTIVE);
+        List<ShopServiceResponse> services;
+        if (!shopServices.isEmpty()) {
+            services = shopServices.stream().map(this::toService).toList();
+        } else {
+            // Tidak ada kustomisasi layanan untuk barbershop ini — gunakan layanan global aktif
+            services = offeringRepository.findAllByStatus(ACTIVE).stream()
+                    .map(this::toGlobalService)
+                    .toList();
+        }
         List<com.dicukur.app.barbershop.dto.BarbershopPhotoResponse> photos = photoRepository
                 .findByBarbershopIdOrderBySortOrderAsc(id).stream()
                 .map(p -> new com.dicukur.app.barbershop.dto.BarbershopPhotoResponse(
@@ -146,8 +159,16 @@ public class BarbershopDiscoveryService {
         Integer duration = shopService.getBusinessDuration() != null
                 ? shopService.getBusinessDuration() : shopService.getService().getDuration();
         return new ShopServiceResponse(
-                shopService.getService().getId(), shopService.getService().getName(),
+                shopService.getId(), shopService.getService().getName(),
                 shopService.getService().getDescription(), price, duration
+        );
+    }
+
+    // BUG 4 FIX: Konversi global ServiceOffering ke ShopServiceResponse (tanpa kustomisasi)
+    private ShopServiceResponse toGlobalService(ServiceOffering offering) {
+        return new ShopServiceResponse(
+                offering.getId(), offering.getName(),
+                offering.getDescription(), offering.getPrice(), offering.getDuration()
         );
     }
 

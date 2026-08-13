@@ -8,25 +8,19 @@ import {
   UserX,
   Mail,
   Phone,
-  Clock,
-  CheckCircle2,
-  XCircle,
   X,
-  Sparkles,
   Scissors,
-  ShieldCheck,
   ToggleLeft,
   ToggleRight,
 } from 'lucide-react';
 import { OwnerEndpoint } from '../../generated/endpoints.js';
 import type StaffResponse from '../../generated/com/dicukur/app/barbershop/dto/StaffResponse.js';
 import type AddStaffRequest from '../../generated/com/dicukur/app/barbershop/dto/AddStaffRequest.js';
+import { toast } from '../../components/ui/Toast.js';
 
 export default function OwnerStaffPage() {
   const [staffList, setStaffList] = useState<StaffResponse[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Modal State: Add Staff
@@ -42,12 +36,11 @@ export default function OwnerStaffPage() {
 
   const fetchStaff = async () => {
     setLoading(true);
-    setError(null);
     try {
       const data = await OwnerEndpoint.getMyStaff();
       setStaffList(((data || []).filter(Boolean)) as StaffResponse[]);
     } catch (err: any) {
-      setError(err?.message || 'Gagal memuat daftar staf barber.');
+      toast.error('Gagal memuat daftar karyawan', err?.message);
     } finally {
       setLoading(false);
     }
@@ -71,14 +64,13 @@ export default function OwnerStaffPage() {
   const handleAddStaffSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setProcessing(true);
-    setError(null);
     try {
       await OwnerEndpoint.addStaff(form);
-      setSuccessMsg(`Barber baru "${form.name}" berhasil ditambahkan sebagai karyawan!`);
+      toast.success(`Barber "${form.name}" berhasil didaftarkan`, 'Akun barber baru siap menerima booking.');
       setCreateModalOpen(false);
       await fetchStaff();
     } catch (err: any) {
-      setError(err?.message || 'Gagal mendaftarkan karyawan barber baru.');
+      toast.error('Gagal mendaftarkan barber', err?.message || 'Periksa kembali data yang dimasukkan.');
     } finally {
       setProcessing(false);
     }
@@ -89,10 +81,10 @@ export default function OwnerStaffPage() {
     try {
       await OwnerEndpoint.toggleStaffStatus(staff.staffId);
       const newSt = staff.employmentStatus === 'active' ? 'nonaktif' : 'aktif';
-      setSuccessMsg(`Status karyawan "${staff.name}" diubah menjadi ${newSt}.`);
+      toast.success(`Status "${staff.name}" diubah menjadi ${newSt}`);
       await fetchStaff();
     } catch (err: any) {
-      setError(err?.message || 'Gagal mengubah status karyawan.');
+      toast.error('Gagal mengubah status karyawan', err?.message);
     }
   };
 
@@ -122,7 +114,7 @@ export default function OwnerStaffPage() {
 
           <button
             type="button"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-red-600/20 transition-all hover:bg-red-700 active:scale-95 border border-red-600"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-blue-600/20 transition-all hover:bg-blue-700 active:scale-95 border border-blue-600"
             onClick={handleOpenCreateModal}
           >
             <Plus size={16} />
@@ -131,44 +123,7 @@ export default function OwnerStaffPage() {
         </div>
       </div>
 
-      {/* Notifications */}
-      <AnimatePresence>
-        {successMsg && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-medium text-emerald-800"
-          >
-            <div className="flex items-center gap-2">
-              <CheckCircle2 size={16} className="text-emerald-600" />
-              <span>{successMsg}</span>
-            </div>
-            <button type="button" onClick={() => setSuccessMsg(null)}>
-              <X size={15} />
-            </button>
-          </motion.div>
-        )}
-
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="flex items-center justify-between rounded-xl border border-red-200 bg-red-50 p-4 text-xs font-medium text-red-700"
-          >
-            <div className="flex items-center gap-2">
-              <XCircle size={16} className="text-red-600" />
-              <span>{error}</span>
-            </div>
-            <button type="button" onClick={() => setError(null)}>
-              <X size={15} />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Search Bar */}
+      {/* search bar */}
       <div className="relative max-w-md">
         <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
         <input
@@ -176,14 +131,14 @@ export default function OwnerStaffPage() {
           placeholder="Cari nama, email, atau posisi barber..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-xs text-slate-900 placeholder-slate-400 focus:border-red-600 focus:outline-none"
+          className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-600 focus:outline-none"
         />
       </div>
 
       {/* Staff Grid */}
       {loading ? (
         <div className="flex h-48 items-center justify-center rounded-2xl border border-slate-200 bg-white">
-          <span className="size-5 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
+          <span className="size-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
         </div>
       ) : filteredStaff.length === 0 ? (
         <div className="flex h-48 flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
@@ -210,7 +165,7 @@ export default function OwnerStaffPage() {
                 <div>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="grid size-11 place-items-center rounded-2xl border border-red-200 bg-red-50 text-sm font-bold text-red-600 uppercase">
+                      <div className="grid size-11 place-items-center rounded-2xl border border-blue-200 bg-blue-50 text-sm font-bold text-blue-600 uppercase">
                         {staf.name?.[0] || 'B'}
                       </div>
                       <div>
@@ -300,7 +255,7 @@ export default function OwnerStaffPage() {
                     placeholder="Nama staf barber"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="w-full rounded-xl border border-slate-300 bg-white py-2 px-3 text-xs text-slate-900 focus:border-red-600 focus:outline-none"
+                    className="w-full rounded-xl border border-slate-300 bg-white py-2 px-3 text-xs text-slate-900 focus:border-blue-600 focus:outline-none"
                   />
                 </div>
 
@@ -312,7 +267,7 @@ export default function OwnerStaffPage() {
                     placeholder="barber@email.com"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    className="w-full rounded-xl border border-slate-300 bg-white py-2 px-3 text-xs text-slate-900 focus:border-red-600 focus:outline-none"
+                    className="w-full rounded-xl border border-slate-300 bg-white py-2 px-3 text-xs text-slate-900 focus:border-blue-600 focus:outline-none"
                   />
                 </div>
 
@@ -323,7 +278,7 @@ export default function OwnerStaffPage() {
                     placeholder="08xxxxxxxxxx"
                     value={form.phone || ''}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                    className="w-full rounded-xl border border-slate-300 bg-white py-2 px-3 text-xs text-slate-900 focus:border-red-600 focus:outline-none"
+                    className="w-full rounded-xl border border-slate-300 bg-white py-2 px-3 text-xs text-slate-900 focus:border-blue-600 focus:outline-none"
                   />
                 </div>
 
@@ -336,7 +291,7 @@ export default function OwnerStaffPage() {
                     placeholder="Min. 6 karakter"
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    className="w-full rounded-xl border border-slate-300 bg-white py-2 px-3 text-xs text-slate-900 focus:border-red-600 focus:outline-none"
+                    className="w-full rounded-xl border border-slate-300 bg-white py-2 px-3 text-xs text-slate-900 focus:border-blue-600 focus:outline-none"
                   />
                 </div>
 
@@ -347,7 +302,7 @@ export default function OwnerStaffPage() {
                     placeholder="Contoh: Senior Barber / Junior Barber"
                     value={form.position || ''}
                     onChange={(e) => setForm({ ...form, position: e.target.value })}
-                    className="w-full rounded-xl border border-slate-300 bg-white py-2 px-3 text-xs text-slate-900 focus:border-red-600 focus:outline-none"
+                    className="w-full rounded-xl border border-slate-300 bg-white py-2 px-3 text-xs text-slate-900 focus:border-blue-600 focus:outline-none"
                   />
                 </div>
 
@@ -362,7 +317,7 @@ export default function OwnerStaffPage() {
                   <button
                     type="submit"
                     disabled={processing}
-                    className="rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-red-600/20 transition-all hover:bg-red-700 disabled:opacity-50 border border-red-600"
+                    className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-600/20 transition-all hover:bg-blue-700 disabled:opacity-50 border border-blue-600"
                   >
                     {processing ? 'Mendaftarkan...' : 'Daftarkan Barber'}
                   </button>

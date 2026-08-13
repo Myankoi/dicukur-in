@@ -1,269 +1,206 @@
-import { ArrowRight, CalendarCheck, MapPin, Scissors, ShieldCheck, WalletCards } from 'lucide-react';
-import { Link } from 'react-router';
+import { useEffect, useState } from 'react';
+import { ArrowRight, Calendar, MapPin, Scissors, Clock, Plus, ChevronRight } from 'lucide-react';
+import { Link, useNavigate } from 'react-router';
+import { BookingEndpoint, CustomerAddressEndpoint } from '../../generated/endpoints.js';
 import { Button } from '../../components/ui/Button.js';
-
-const HERO_IMAGE = 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1200&auto=format&fit=crop&q=80';
+import type BookingResponse from '../../generated/com/dicukur/app/booking/dto/BookingResponse.js';
 
 export default function CustomerDashboard() {
+  const navigate = useNavigate();
+  const [recentBookings, setRecentBookings] = useState<BookingResponse[]>([]);
+  const [defaultAddress, setDefaultAddress] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      BookingEndpoint.getMyBookings(),
+      CustomerAddressEndpoint.getMyAddresses(),
+    ])
+      .then(([bookings, addresses]) => {
+        setRecentBookings(((bookings ?? []).filter(Boolean) as BookingResponse[]).slice(0, 3));
+        const def = (addresses ?? []).find((a) => a?.isDefault) ?? addresses?.[0];
+        if (def) {
+          setDefaultAddress(`${def.label || 'Alamat'} · ${def.fullAddress}`);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const activeBooking = recentBookings.find(
+    (b) => b.status && !['completed', 'cancelled', 'cancelled_by_customer'].includes(b.status.toLowerCase())
+  );
+
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
-<<<<<<< HEAD
-      {/* Visual Hero Banner with High Quality Barbershop Background Image */}
-      <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-slate-900 shadow-lg">
-        {/* Background Image with Gradient Overlay */}
-        <div className="absolute inset-0 z-0">
-          <img
-            src={HERO_IMAGE}
-            alt="Barbershop Interior"
-            className="h-full w-full object-cover opacity-25"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900/90 to-transparent" />
-        </div>
-
-        {/* Top Accent Bar */}
-        <div
-          className="relative z-10 h-1.5 w-full"
-          style={{ background: 'linear-gradient(90deg, #dc2626 0%, #ffffff 50%, #2563eb 100%)' }}
-        />
-
-        <div className="relative z-10 p-8 sm:p-12 max-w-2xl">
-          <span className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-3.5 py-1 text-xs font-bold text-red-400 backdrop-blur-md mb-4">
-            <Scissors size={14} /> Platform Grooming On-Demand #1
-          </span>
-
-          <h1 className="font-display text-4xl font-bold leading-tight text-white sm:text-5xl">
-            Grooming Pria Eksklusif <br />
-            <span className="text-red-500">Langsung ke Lokasi Kamu.</span>
-          </h1>
-
-          <p className="mt-4 max-w-lg text-sm leading-relaxed text-slate-300 sm:text-base">
-            Pilih tempat cukur mitra resmi, tentukan barber profesional favoritmu, dan atur pemotongan rambut eksklusif di rumah atau kantor.
-=======
-      {/* Light Luxury Hero Banner */}
-      <section className="relative overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-900 via-blue-800 to-slate-900 p-8 text-white shadow-xl sm:p-12">
-        {/* Glow ambient background graphics */}
-        <div className="absolute -right-16 -top-16 size-80 rounded-full bg-red-500/20 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-20 right-32 size-64 rounded-full bg-blue-400/20 blur-2xl pointer-events-none" />
-
-        <div className="relative z-10 max-w-2xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1 text-xs font-semibold text-white backdrop-blur-md">
-            <Sparkles size={14} className="text-yellow-300" />
-            <span className="uppercase tracking-widest text-[10px] font-bold">Barber Booking Platform</span>
+    <div className="mx-auto max-w-5xl space-y-6">
+      {/* Sleek Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-xs font-bold text-blue-600 uppercase tracking-wider">
+            <Scissors size={14} /> Dashboard Pelanggan
           </div>
-
-          <h1 className="mt-4 font-display text-4xl font-semibold leading-tight text-white sm:text-5xl lg:text-6xl">
-            Grooming Pria Eksklusif <br />
-            <span className="text-transparent bg-gradient-to-r from-red-300 via-white to-blue-200 bg-clip-text">
-              Langsung ke Lokasi Kamu.
-            </span>
-          </h1>
-
-          <p className="mt-4 max-w-lg text-sm leading-relaxed text-blue-100 sm:text-base">
-            Pilih barbershop mitra resmi, tentukan barber favoritmu, dan atur jadwal pemotongan rambut tanpa perlu antre di tempat.
->>>>>>> 37106706632accb6dd0c5a3b6c17edaa31627ce8
+          <h1 className="font-display text-2xl font-bold text-slate-900">Selamat Datang di Dicukur.in</h1>
+          <p className="text-xs text-slate-600 flex items-center gap-1.5 mt-0.5">
+            <MapPin size={13} className="text-slate-400 shrink-0" />
+            <span className="truncate">{defaultAddress || 'Belum ada alamat lokasi cukur yang diatur'}</span>
           </p>
-
-          <div className="mt-8 flex flex-wrap items-center gap-4">
-            <Link to="/customer/bookings/new">
-<<<<<<< HEAD
-              <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white font-bold shadow-lg shadow-red-600/30">
-=======
-              <Button size="lg" className="bg-red-600 hover:bg-red-700 text-white border-0 shadow-lg shadow-red-900/30">
->>>>>>> 37106706632accb6dd0c5a3b6c17edaa31627ce8
-                <span>Cari Barbershop</span>
-                <ArrowRight size={17} />
-              </Button>
-            </Link>
-            <Link to="/customer/addresses">
-<<<<<<< HEAD
-              <Button variant="secondary" size="lg" className="border-slate-700 text-slate-200 bg-slate-800/80 hover:bg-slate-800 font-bold backdrop-blur-md">
-=======
-              <Button variant="secondary" size="lg" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
->>>>>>> 37106706632accb6dd0c5a3b6c17edaa31627ce8
-                <MapPin size={16} />
-                <span>Atur Alamat Saya</span>
-              </Button>
-            </Link>
-          </div>
         </div>
 
-        {/* Feature badges */}
-<<<<<<< HEAD
-        <div className="relative z-10 grid gap-4 border-t border-slate-800/80 bg-slate-950/60 p-6 backdrop-blur-md sm:grid-cols-3">
-          <div className="flex items-center gap-3">
-            <span className="grid size-10 place-items-center rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 font-bold">
-=======
-        <div className="mt-10 grid gap-4 border-t border-white/10 pt-6 sm:grid-cols-3">
-          <div className="flex items-center gap-3">
-            <span className="grid size-9 place-items-center rounded-lg bg-white/10 text-white border border-white/20">
->>>>>>> 37106706632accb6dd0c5a3b6c17edaa31627ce8
-              <ShieldCheck size={18} />
-            </span>
-            <div>
-              <p className="text-xs font-bold text-white">Barbershop Resmi</p>
-<<<<<<< HEAD
-              <p className="text-[11px] text-slate-400">Terverifikasi oleh admin</p>
-=======
-              <p className="text-[11px] text-blue-200">Terverifikasi oleh admin</p>
->>>>>>> 37106706632accb6dd0c5a3b6c17edaa31627ce8
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-<<<<<<< HEAD
-            <span className="grid size-10 place-items-center rounded-xl border border-blue-500/20 bg-blue-500/10 text-blue-400 font-bold">
-=======
-            <span className="grid size-9 place-items-center rounded-lg bg-white/10 text-white border border-white/20">
->>>>>>> 37106706632accb6dd0c5a3b6c17edaa31627ce8
-              <Scissors size={18} />
-            </span>
-            <div>
-              <p className="text-xs font-bold text-white">Barber Profesional</p>
-<<<<<<< HEAD
-              <p className="text-[11px] text-slate-400">Karyawan berpengalaman</p>
-=======
-              <p className="text-[11px] text-blue-200">Karyawan berpengalaman</p>
->>>>>>> 37106706632accb6dd0c5a3b6c17edaa31627ce8
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-<<<<<<< HEAD
-            <span className="grid size-10 place-items-center rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 font-bold">
-=======
-            <span className="grid size-9 place-items-center rounded-lg bg-white/10 text-white border border-white/20">
->>>>>>> 37106706632accb6dd0c5a3b6c17edaa31627ce8
-              <MapPin size={18} />
-            </span>
-            <div>
-              <p className="text-xs font-bold text-white">Perhitungan Akurat</p>
-<<<<<<< HEAD
-              <p className="text-[11px] text-slate-400">Jarak & biaya real-time</p>
-=======
-              <p className="text-[11px] text-blue-200">Jarak & biaya real-time</p>
->>>>>>> 37106706632accb6dd0c5a3b6c17edaa31627ce8
-            </div>
-          </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs"
+            onClick={() => navigate('/customer/bookings/new')}
+          >
+            <Plus size={16} /> Pesan Barber Sekarang
+          </Button>
         </div>
-      </section>
+      </div>
 
-      {/* Main Interactive Navigation Cards with Visual Cover Photos */}
-      <div className="grid gap-5 md:grid-cols-3">
-        {[
-          {
-            icon: CalendarCheck,
-            title: 'Atur Booking',
-            desc: 'Pilih barber profesional dan layanan terbaik dari barbershop terdekat di sekitar lokasimu.',
-            to: '/customer/bookings/new',
-            badge: 'Pesan Sekarang',
-<<<<<<< HEAD
-            image: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600&auto=format&fit=crop&q=80',
-=======
-            borderColor: 'hover:border-red-500',
-            iconColor: 'text-red-600 bg-red-50 border-red-200',
->>>>>>> 37106706632accb6dd0c5a3b6c17edaa31627ce8
-          },
-          {
-            icon: MapPin,
-            title: 'Kelola Alamat',
-            desc: 'Simpan lokasi rumah atau kantor di Google Maps dan jadikan alamat utama untuk perhitungan jarak.',
-            to: '/customer/addresses',
-            badge: 'Titik Lokasi',
-<<<<<<< HEAD
-            image: 'https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=600&auto=format&fit=crop&q=80',
-=======
-            borderColor: 'hover:border-blue-500',
-            iconColor: 'text-blue-600 bg-blue-50 border-blue-200',
->>>>>>> 37106706632accb6dd0c5a3b6c17edaa31627ce8
-          },
-          {
-            icon: WalletCards,
-            title: 'Pantau Pesanan',
-            desc: 'Lihat status keberangkatan barber, rincian biaya, jadwal datang, dan lakukan pembayaran digital.',
-            to: '/customer/bookings',
-            badge: 'Riwayat & Bayar',
-<<<<<<< HEAD
-            image: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=600&auto=format&fit=crop&q=80',
-          },
-        ].map((item) => {
-          const Icon = item.icon;
+      {/* Active Booking Banner (If Any) */}
+      {activeBooking && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-5 shadow-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800 border border-amber-300">
+              <Clock size={14} /> Pesan Berlangsung #{activeBooking.bookingCode}
+            </span>
+            <span className="text-xs font-bold capitalize text-amber-900">{activeBooking.status}</span>
+          </div>
 
-          return (
-            <article
-              key={item.to}
-              className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-red-300 hover:shadow-md"
-            >
-              {/* Card Image Header */}
-              <div className="relative h-44 w-full overflow-hidden bg-slate-100">
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
-                <span className="absolute top-3 right-3 inline-flex items-center rounded-md border border-white/20 bg-slate-900/80 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-md">
-                  {item.badge}
-                </span>
-                <span className="absolute bottom-3 left-3 grid size-10 place-items-center rounded-xl bg-white text-red-600 shadow-md">
-                  <Icon size={20} />
-                </span>
-              </div>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs border-t border-amber-200/60 pt-3">
+            <div>
+              <p className="font-bold text-slate-900">{activeBooking.serviceName} · {activeBooking.barberName}</p>
+              <p className="text-slate-600 mt-0.5">{activeBooking.barbershopName}</p>
+            </div>
 
-              <div className="p-6 flex-1 flex flex-col justify-between">
-                <div>
-                  <h2 className="font-display text-xl font-bold text-slate-900 group-hover:text-red-600 transition-colors">
-                    {item.title}
-                  </h2>
-                  <p className="mt-2 text-xs leading-relaxed text-slate-600">{item.desc}</p>
-                </div>
-
-                <Link
-                  to={item.to}
-                  className="mt-6 inline-flex items-center gap-2 text-xs font-bold text-red-600 transition-colors group-hover:text-red-700"
-                >
-                  <span>Akses Fitur</span>
-                  <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
-                </Link>
-              </div>
-            </article>
-=======
-            borderColor: 'hover:border-red-500',
-            iconColor: 'text-red-600 bg-red-50 border-red-200',
-          },
-        ].map((item) => {
-          const Icon = item.icon;
-          return (
             <Link
-              key={item.title}
-              to={item.to}
-              className={`group relative flex flex-col justify-between overflow-hidden rounded-xl border border-slate-200 bg-white p-6 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${item.borderColor}`}
+              to={`/customer/bookings/${activeBooking.id}`}
+              className="inline-flex items-center gap-1 font-bold text-blue-600 hover:text-blue-700"
             >
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className={`grid size-12 place-items-center rounded-xl border ${item.iconColor}`}>
-                    <Icon size={22} />
-                  </span>
-                  <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-slate-600 uppercase">
-                    {item.badge}
-                  </span>
+              <span>Lihat Detail Status</span>
+              <ChevronRight size={15} />
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Main Action Grid */}
+      <div className="grid gap-5 sm:grid-cols-3">
+        <Link
+          to="/customer/bookings/new"
+          className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"
+        >
+          <div className="space-y-3">
+            <span className="grid size-11 place-items-center rounded-xl border border-blue-200 bg-blue-50 text-blue-600 shadow-sm">
+              <Scissors size={20} />
+            </span>
+            <div>
+              <h2 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">Pesan Barber</h2>
+              <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                Cari barbershop mitra terdekat dan pilih barber untuk dipanggil ke lokasimu.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 flex items-center justify-between text-xs font-bold text-blue-600">
+            <span>Cari Barbershop</span>
+            <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
+          </div>
+        </Link>
+
+        <Link
+          to="/customer/bookings"
+          className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"
+        >
+          <div className="space-y-3">
+            <span className="grid size-11 place-items-center rounded-xl border border-slate-200 bg-slate-50 text-slate-700 shadow-sm">
+              <Calendar size={20} />
+            </span>
+            <div>
+              <h2 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">Riwayat Booking</h2>
+              <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                Pantau status pemesanan aktif, bayar pesanan, dan lihat riwayat cukur.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 flex items-center justify-between text-xs font-bold text-blue-600">
+            <span>Lihat Pesanan</span>
+            <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
+          </div>
+        </Link>
+
+        <Link
+          to="/customer/addresses"
+          className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"
+        >
+          <div className="space-y-3">
+            <span className="grid size-11 place-items-center rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-600 shadow-sm">
+              <MapPin size={20} />
+            </span>
+            <div>
+              <h2 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">Kelola Alamat</h2>
+              <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                Atur titik lokasi rumah/kantor untuk perhitungan jarak perjalanan barber.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 flex items-center justify-between text-xs font-bold text-blue-600">
+            <span>Atur Alamat</span>
+            <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
+          </div>
+        </Link>
+      </div>
+
+      {/* Recent Bookings Section */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+          <h2 className="font-bold text-sm text-slate-900">Pesanan Terakhir</h2>
+          <Link to="/customer/bookings" className="text-xs font-bold text-blue-600 hover:text-blue-700">
+            Lihat Semua →
+          </Link>
+        </div>
+
+        {loading ? (
+          <p className="py-6 text-center text-xs text-slate-500">Memuat pesanan...</p>
+        ) : recentBookings.length === 0 ? (
+          <div className="py-8 text-center text-xs text-slate-500 space-y-2">
+            <p>Belum ada pemesanan cukur yang dibuat.</p>
+            <Button
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold"
+              onClick={() => navigate('/customer/bookings/new')}
+            >
+              Buat Pemesanan Pertama
+            </Button>
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {recentBookings.map((b) => (
+              <div key={b.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-bold text-blue-600">#{b.bookingCode}</span>
+                    <span className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700 uppercase">
+                      {b.status}
+                    </span>
+                  </div>
+                  <p className="font-bold text-slate-900 mt-1">{b.serviceName} · {b.barberName}</p>
                 </div>
 
-                <h2 className="mt-6 font-display text-2xl font-bold tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
-                  {item.title}
-                </h2>
-                <p className="mt-2.5 text-xs leading-relaxed text-slate-500">
-                  {item.desc}
-                </p>
+                <div className="flex items-center gap-4">
+                  <span className="font-bold text-slate-900">Rp {(b.totalPrice ?? 0).toLocaleString('id-ID')}</span>
+                  <Link
+                    to={`/customer/bookings/${b.id}`}
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-bold text-slate-700 hover:bg-slate-50"
+                  >
+                    Detail
+                  </Link>
+                </div>
               </div>
-
-              <div className="mt-8 flex items-center gap-2 text-xs font-bold text-blue-600">
-                <span>Akses Fitur</span>
-                <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
-              </div>
-            </Link>
->>>>>>> 37106706632accb6dd0c5a3b6c17edaa31627ce8
-          );
-        })}
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

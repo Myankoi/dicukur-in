@@ -542,8 +542,8 @@ export default function OwnerProfilePage() {
               </div>
 
               <MapPicker
-                latitude={form.latitude}
-                longitude={form.longitude}
+                latitude={form.latitude ?? -6.2088}
+                longitude={form.longitude ?? 106.8456}
                 onLocationSelect={handleMapLocationSelect}
               />
             </div>

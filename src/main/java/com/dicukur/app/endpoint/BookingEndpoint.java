@@ -4,6 +4,7 @@ import com.dicukur.app.booking.dto.BookingRequest;
 import com.dicukur.app.booking.dto.BookingResponse;
 import com.dicukur.app.booking.service.BookingService;
 import com.vaadin.hilla.BrowserCallable;
+import com.vaadin.hilla.exception.EndpointException;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 
@@ -20,18 +21,42 @@ public class BookingEndpoint {
     }
 
     public BookingResponse create(@Valid BookingRequest request) {
-        return bookingService.create(request);
+        try {
+            return bookingService.create(request);
+        } catch (EndpointException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new EndpointException(e.getMessage() != null ? e.getMessage() : "Gagal membuat booking");
+        }
     }
 
     public List<BookingResponse> getMyBookings() {
-        return bookingService.getMyBookings();
+        try {
+            return bookingService.getMyBookings();
+        } catch (EndpointException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new EndpointException(e.getMessage() != null ? e.getMessage() : "Gagal mengambil daftar booking");
+        }
     }
 
     public BookingResponse getBookingById(Long id) {
-        return bookingService.getBookingById(id);
+        try {
+            return bookingService.getBookingById(id);
+        } catch (EndpointException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new EndpointException(e.getMessage() != null ? e.getMessage() : "Gagal mengambil detail booking");
+        }
     }
 
     public void cancel(Long id, String reason) {
-        bookingService.cancel(id, reason);
+        try {
+            bookingService.cancel(id, reason);
+        } catch (EndpointException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new EndpointException(e.getMessage() != null ? e.getMessage() : "Gagal membatalkan booking");
+        }
     }
 }
