@@ -380,7 +380,7 @@ export default function MainLayout() {
               onClick={handleLogout}
             >
               <LogOut size={14} />
-              <span className="hidden sm:inline">Keluar</span>
+              <span className="hidden sm:inline">Keluarin</span>
             </button>
           </div>
         </header>
