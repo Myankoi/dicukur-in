@@ -16,6 +16,7 @@ import {
   Scissors,
 } from 'lucide-react';
 import { BarberEndpoint } from '../../generated/endpoints.js';
+import { LiveTrackingMap } from '../../components/LiveTrackingMap.js';
 
 interface BookingItem {
   id: number;
@@ -61,6 +62,7 @@ export default function BarberBookingsPage() {
   const [rejectReason, setRejectReason] = useState('');
   const [processing, setProcessing] = useState<number | null>(null);
   const [error, setError] = useState('');
+  const [barberCoords, setBarberCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   const fetchBookings = useCallback(async () => {
     try {
@@ -76,6 +78,33 @@ export default function BarberBookingsPage() {
   useEffect(() => {
     fetchBookings();
   }, [fetchBookings]);
+
+  // Live GPS tracking when barber status is 'on_the_way'
+  useEffect(() => {
+    const activeOtw = bookings.find((b) => b.status === 'on_the_way');
+    if (!activeOtw || !navigator.geolocation) return;
+
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setBarberCoords({ lat, lng });
+        void BarberEndpoint.updateLiveLocation(activeOtw.id, lat as any, lng as any);
+      },
+      (err) => {
+        console.warn('Lokasi GPS tidak dapat diakses:', err);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+    };
+  }, [bookings]);
 
   const handleAccept = async (id: number) => {
     setProcessing(id);
@@ -179,6 +208,21 @@ export default function BarberBookingsPage() {
         </div>
       )}
 
+      {bookings.some((b) => b.status === 'on_the_way') && (
+        <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-bold text-emerald-900 shadow-sm">
+          <span className="relative flex h-3 w-3 shrink-0">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-600"></span>
+          </span>
+          <div>
+            <p className="font-bold">GPS Live Location Aktif 🟢</p>
+            <p className="text-[11px] font-normal text-emerald-700 mt-0.5">
+              Posisi lokasi Anda sedang dibagikan secara realtime ke Customer yang menunggu kedatangan Anda.
+            </p>
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div className="space-y-3">
           {[...Array(3)].map((_, i) => (
@@ -252,6 +296,24 @@ export default function BarberBookingsPage() {
                       className="overflow-hidden"
                     >
                       <div className="border-t border-slate-100 px-5 py-4 space-y-4 bg-slate-50/50">
+                        {/* Live Tracking Map for Barber */}
+                        {(booking.status?.toLowerCase() === 'accepted' ||
+                          booking.status?.toLowerCase() === 'on_the_way' ||
+                          booking.status?.toLowerCase() === 'arrived' ||
+                          booking.status?.toLowerCase() === 'in_progress') && (
+                          <LiveTrackingMap
+                            customerLat={booking.customerLatitude || -6.200000}
+                            customerLng={booking.customerLongitude || 106.816666}
+                            customerAddress={booking.address}
+                            barberLat={barberCoords?.lat}
+                            barberLng={barberCoords?.lng}
+                            barberName="Posisi Anda (Barber)"
+                            barberPhone={booking.customerPhone}
+                            phoneLabel="Hubungi Customer"
+                            status={booking.status?.toLowerCase()}
+                          />
+                        )}
+
                         {/* Customer Info */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div className="flex items-start gap-3 p-3.5 rounded-xl bg-white border border-slate-200 shadow-sm">

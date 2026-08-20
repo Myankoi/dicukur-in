@@ -16,6 +16,8 @@ import type BookingResponse from '../../generated/com/dicukur/app/booking/dto/Bo
 import type PaymentResponse from '../../generated/com/dicukur/app/payment/dto/PaymentResponse.js';
 import type ReviewResponse from '../../generated/com/dicukur/app/review/dto/ReviewResponse.js';
 
+import { LiveTrackingMap } from '../../components/LiveTrackingMap.js';
+
 export default function CustomerBookingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -39,7 +41,6 @@ export default function CustomerBookingDetailPage() {
 
   const loadData = useCallback(async () => {
     if (!id) return;
-    setLoading(true);
     try {
       const bId = Number(id);
       const bData = await BookingEndpoint.getBookingById(bId);
@@ -62,7 +63,13 @@ export default function CustomerBookingDetailPage() {
 
   useEffect(() => {
     void loadData();
-  }, [loadData]);
+    const interval = setInterval(() => {
+      if (booking?.status === 'on_the_way' || booking?.status === 'accepted') {
+        void loadData();
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [loadData, booking?.status]);
 
   const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -173,6 +180,23 @@ export default function CustomerBookingDetailPage() {
       <div className="grid gap-6 md:grid-cols-3">
         {/* Left 2 Cols: Details */}
         <div className="md:col-span-2 space-y-6">
+          {/* Live Tracking Map Component */}
+          {(booking.status?.toLowerCase() === 'on_the_way' ||
+            booking.status?.toLowerCase() === 'arrived' ||
+            booking.status?.toLowerCase() === 'accepted') && (
+            <LiveTrackingMap
+              customerLat={booking.latitude || -6.200000}
+              customerLng={booking.longitude || 106.816666}
+              customerAddress={booking.address}
+              barberLat={booking.barberLatitude}
+              barberLng={booking.barberLongitude}
+              barberName={booking.barberName || 'Barber'}
+              barberPhone={booking.barberPhone}
+              phoneLabel="Hubungi Barber"
+              status={booking.status?.toLowerCase() || 'accepted'}
+            />
+          )}
+
           {/* Barber & Shop Info */}
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
             <h2 className="text-xs font-bold uppercase tracking-wider text-red-600">Penyedia Layanan</h2>

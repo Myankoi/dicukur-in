@@ -358,6 +358,19 @@ public class BarberService {
         );
     }
 
+    @Transactional
+    public BarberBookingResponse updateLiveLocation(Long bookingId, BigDecimal latitude, BigDecimal longitude) {
+        User barber = currentUserService.requireRole("Barber");
+        Booking booking = requireBarberBooking(barber.getId(), bookingId);
+
+        booking.setBarberLatitude(latitude);
+        booking.setBarberLongitude(longitude);
+        booking.setUpdatedAt(LocalDateTime.now());
+        Booking saved = bookingRepository.save(booking);
+
+        return toBarberBookingResponse(saved);
+    }
+
     private BarberBookingResponse toBarberBookingResponse(Booking booking) {
         return new BarberBookingResponse(
                 booking.getId(),
@@ -370,6 +383,8 @@ public class BarberService {
                 booking.getAddressSnapshot(),
                 booking.getCustomerLatitude(),
                 booking.getCustomerLongitude(),
+                booking.getBarberLatitude(),
+                booking.getBarberLongitude(),
                 booking.getDistanceKm(),
                 booking.getTotalPrice(),
                 booking.getStatus(),

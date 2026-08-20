@@ -13,6 +13,8 @@ public record BarberBookingResponse(
         String address,
         BigDecimal customerLatitude,
         BigDecimal customerLongitude,
+        BigDecimal barberLatitude,
+        BigDecimal barberLongitude,
         BigDecimal distanceKm,
         BigDecimal totalPrice,
         String status,

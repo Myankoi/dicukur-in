@@ -370,6 +370,9 @@ public class BookingService {
                 booking.getAddressSnapshot(),
                 booking.getCustomerLatitude(),
                 booking.getCustomerLongitude(),
+                booking.getBarberLatitude(),
+                booking.getBarberLongitude(),
+                booking.getBarber().getPhone(),
                 booking.getDistanceKm(), booking.getServiceSubtotal(),
                 booking.getTravelFee(), booking.getTotalPrice(), booking.getStatus(), booking.getPaymentStatus()
         );

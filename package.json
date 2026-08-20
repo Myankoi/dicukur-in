@@ -10,6 +10,7 @@
     "@fontsource-variable/manrope": "^5.3.0",
     "@polymer/polymer": "3.5.2",
     "@tailwindcss/vite": "^4.3.3",
+    "@types/leaflet": "^1.9.22",
     "@vaadin/bundles": "24.7.6",
     "@vaadin/common-frontend": "0.0.19",
     "@vaadin/hilla-file-router": "24.7.4",
@@ -29,6 +30,7 @@
     "@vaadin/vaadin-usage-statistics": "2.1.3",
     "construct-style-sheets-polyfill": "3.1.0",
     "date-fns": "2.29.3",
+    "leaflet": "^1.9.4",
     "lit": "3.3.0",
     "lucide-react": "^1.27.0",
     "motion": "^12.43.0",
@@ -128,7 +130,7 @@
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "a772376ec64dbdfe50659a0f2e132f02e1730bb0ae910d29f623bfc7e62c2f58"
+    "hash": "4dfb6236083e83e9ad755960264e40bd6233fb0dddd348df25a4833a9a20a757"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -160,6 +162,8 @@
     "motion": "$motion",
     "tailwindcss": "$tailwindcss",
     "@fontsource-variable/cormorant-garamond": "$@fontsource-variable/cormorant-garamond",
-    "@fontsource-variable/manrope": "$@fontsource-variable/manrope"
+    "@fontsource-variable/manrope": "$@fontsource-variable/manrope",
+    "@types/leaflet": "$@types/leaflet",
+    "leaflet": "$leaflet"
   }
 }

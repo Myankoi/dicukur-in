@@ -196,206 +196,206 @@ export default function MainLayout() {
   return (
     <>
       <div className="flex h-dvh overflow-hidden bg-slate-50 text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900">
-      <AnimatePresence>
-        {sidebarOpen && (
-          <motion.button
-            type="button"
-            aria-label="Tutup navigasi"
-            className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm lg:hidden"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSidebarOpen(false)}
-          />
-        )}
-      </AnimatePresence>
+        <AnimatePresence>
+          {sidebarOpen && (
+            <motion.button
+              type="button"
+              aria-label="Tutup navigasi"
+              className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm lg:hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSidebarOpen(false)}
+            />
+          )}
+        </AnimatePresence>
 
-      {/* Sidebar Navigation */}
-      <aside
-        className={[
-          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-200 bg-white transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 shadow-sm',
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full',
-        ].join(' ')}
-      >
-        {/* Brand Header */}
-        <div className="flex h-16 items-center justify-between border-b border-slate-200 px-5">
-          <BrandMark />
-          <button
-            type="button"
-            aria-label="Tutup menu"
-            className="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        {/* Navigation Items */}
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-          <p className="px-3 pb-2 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-            Menu Utama
-          </p>
-          {items.map((item) => {
-            const Icon = item.icon;
-
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                end={item.path.split('/').length === 2}
-                className={({ isActive }) => [
-                  'group relative flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-all duration-150',
-                  isActive
-                    ? 'bg-blue-50 text-blue-700 font-semibold border-l-4 border-blue-600 shadow-xs'
-                    : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900',
-                ].join(' ')}
-                onClick={() => setSidebarOpen(false)}
-              >
-                {({ isActive }) => (
-                  <>
-                    <Icon size={17} className={isActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'} />
-                    <span>{item.label}</span>
-                  </>
-                )}
-              </NavLink>
-            );
-          })}
-        </nav>
-
-        {/* User Info Footer */}
-        <div className="border-t border-slate-200 bg-slate-50/70 px-4 py-3.5">
-          <div className="flex items-center gap-3">
-            <div className="grid size-9 shrink-0 place-items-center rounded-lg border border-blue-200 bg-blue-50 text-xs font-bold text-blue-600 uppercase">
-              {user?.name?.[0] || 'U'}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-bold text-slate-800">{user?.name || 'Pengguna'}</p>
-              <p className="truncate text-[11px] text-slate-500">{user?.email || 'user@dicukur.in'}</p>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main Content Container */}
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-slate-50">
-        {/* Top Navbar */}
-        <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 shadow-xs sm:px-6">
-          <div className="flex items-center gap-3">
+        {/* Sidebar Navigation */}
+        <aside
+          className={[
+            'fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-200 bg-white transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 shadow-sm',
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+          ].join(' ')}
+        >
+          {/* Brand Header */}
+          <div className="flex h-16 items-center justify-between border-b border-slate-200 px-5">
+            <BrandMark />
             <button
               type="button"
-              aria-label="Buka menu"
-              className="grid size-9 place-items-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 lg:hidden"
-              onClick={() => setSidebarOpen(true)}
+              aria-label="Tutup menu"
+              className="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 lg:hidden"
+              onClick={() => setSidebarOpen(false)}
             >
-              <Menu size={18} />
+              <X size={18} />
             </button>
-
-            {/* Role Badge Indicator in Navbar */}
-            <div className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold ${currentRoleConfig.badgeBg} ${currentRoleConfig.badgeText} ${currentRoleConfig.badgeBorder}`}>
-              <RoleIcon size={14} />
-              <span className="tracking-wide text-[11px]">{currentRoleConfig.label}</span>
-            </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Notification Dropdown */}
-            <div className="relative" ref={notifRef}>
+          {/* Navigation Items */}
+          <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+            <p className="px-3 pb-2 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+              Menu Utama
+            </p>
+            {items.map((item) => {
+              const Icon = item.icon;
+
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  end={item.path.split('/').length === 2}
+                  className={({ isActive }) => [
+                    'group relative flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-all duration-150',
+                    isActive
+                      ? 'bg-blue-50 text-blue-700 font-semibold border-l-4 border-blue-600 shadow-xs'
+                      : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900',
+                  ].join(' ')}
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  {({ isActive }) => (
+                    <>
+                      <Icon size={17} className={isActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'} />
+                      <span>{item.label}</span>
+                    </>
+                  )}
+                </NavLink>
+              );
+            })}
+          </nav>
+
+          {/* User Info Footer */}
+          <div className="border-t border-slate-200 bg-slate-50/70 px-4 py-3.5">
+            <div className="flex items-center gap-3">
+              <div className="grid size-9 shrink-0 place-items-center rounded-lg border border-blue-200 bg-blue-50 text-xs font-bold text-blue-600 uppercase">
+                {user?.name?.[0] || 'U'}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-bold text-slate-800">{user?.name || 'Pengguna'}</p>
+                <p className="truncate text-[11px] text-slate-500">{user?.email || 'user@dicukur.in'}</p>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main Content Container */}
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-slate-50">
+          {/* Top Navbar */}
+          <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 shadow-xs sm:px-6">
+            <div className="flex items-center gap-3">
               <button
                 type="button"
-                aria-label="Notifikasi"
-                className="relative grid size-9 place-items-center rounded-lg border border-slate-200 bg-slate-50 text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-100"
-                onClick={() => setNotifOpen(!notifOpen)}
+                aria-label="Buka menu"
+                className="grid size-9 place-items-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 lg:hidden"
+                onClick={() => setSidebarOpen(true)}
               >
-                <Bell size={18} />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 grid size-4 place-items-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-sm animate-pulse">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                )}
+                <Menu size={18} />
               </button>
 
-              <AnimatePresence>
-                {notifOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-2 w-80 sm:w-96 rounded-xl border border-slate-200 bg-white shadow-xl z-50 overflow-hidden"
-                  >
-                    <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 bg-slate-50">
-                      <div className="flex items-center gap-2">
-                        <Bell size={15} className="text-blue-600" />
-                        <span className="text-xs font-bold text-slate-800">Notifikasi System</span>
-                        {unreadCount > 0 && (
-                          <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700">
-                            {unreadCount} baru
-                          </span>
-                        )}
-                      </div>
-                      {unreadCount > 0 && (
-                        <button
-                          type="button"
-                          className="flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-800 transition-colors"
-                          onClick={handleMarkAllAsRead}
-                        >
-                          <CheckCheck size={13} />
-                          Tandai Semua
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
-                      {notifications.length === 0 ? (
-                        <div className="p-8 text-center text-xs text-slate-400">Tidak ada notifikasi baru</div>
-                      ) : (
-                        notifications.map((n) => (
-                          <button
-                            key={n.id}
-                            type="button"
-                            className={`w-full p-3.5 text-left transition-colors hover:bg-slate-50 ${!n.isRead ? 'bg-blue-50/50 border-l-2 border-blue-600' : ''
-                              }`}
-                            onClick={() => void handleMarkAsRead(n.id)}
-                          >
-                            <div className="flex items-start justify-between gap-2">
-                              <p className={`text-xs font-semibold ${!n.isRead ? 'text-blue-700' : 'text-slate-700'}`}>
-                                {n.title}
-                              </p>
-                              <span className="text-[10px] text-slate-400 shrink-0">{n.createdAt}</span>
-                            </div>
-                            <p className="text-[11px] text-slate-500 mt-1 line-clamp-2">{n.message}</p>
-                          </button>
-                        ))
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {/* Role Badge Indicator in Navbar */}
+              <div className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold ${currentRoleConfig.badgeBg} ${currentRoleConfig.badgeText} ${currentRoleConfig.badgeBorder}`}>
+                <RoleIcon size={14} />
+                <span className="tracking-wide text-[11px]">{currentRoleConfig.label}</span>
+              </div>
             </div>
 
-            {/* Logout Button */}
-            <button
-              type="button"
-              className="inline-flex h-9 items-center gap-2 rounded-lg border border-red-200 bg-red-50/50 px-3.5 text-xs font-semibold text-red-600 transition-all hover:bg-red-100 hover:text-red-700"
-              onClick={handleLogout}
-            >
-              <LogOut size={14} />
-              <span className="hidden sm:inline">Keluar</span>
-            </button>
-          </div>
-        </header>
+            <div className="flex items-center gap-3">
+              {/* Notification Dropdown */}
+              <div className="relative" ref={notifRef}>
+                <button
+                  type="button"
+                  aria-label="Notifikasi"
+                  className="relative grid size-9 place-items-center rounded-lg border border-slate-200 bg-slate-50 text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-100"
+                  onClick={() => setNotifOpen(!notifOpen)}
+                >
+                  <Bell size={18} />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 grid size-4 place-items-center rounded-full bg-red-600 text-[10px] font-bold text-white shadow-sm animate-pulse">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
 
-        {/* Page Content */}
-        <motion.main
-          key={location.pathname}
-          className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50"
-          initial={{ opacity: 0, y: 4 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.15, ease: 'easeOut' }}
-        >
-          <Outlet />
-        </motion.main>
-      </div>
+                <AnimatePresence>
+                  {notifOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 mt-2 w-80 sm:w-96 rounded-xl border border-slate-200 bg-white shadow-xl z-50 overflow-hidden"
+                    >
+                      <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 bg-slate-50">
+                        <div className="flex items-center gap-2">
+                          <Bell size={15} className="text-blue-600" />
+                          <span className="text-xs font-bold text-slate-800">Notifikasi System</span>
+                          {unreadCount > 0 && (
+                            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700">
+                              {unreadCount} baru
+                            </span>
+                          )}
+                        </div>
+                        {unreadCount > 0 && (
+                          <button
+                            type="button"
+                            className="flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-800 transition-colors"
+                            onClick={handleMarkAllAsRead}
+                          >
+                            <CheckCheck size={13} />
+                            Tandai Semua
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
+                        {notifications.length === 0 ? (
+                          <div className="p-8 text-center text-xs text-slate-400">Tidak ada notifikasi baru</div>
+                        ) : (
+                          notifications.map((n) => (
+                            <button
+                              key={n.id}
+                              type="button"
+                              className={`w-full p-3.5 text-left transition-colors hover:bg-slate-50 ${!n.isRead ? 'bg-blue-50/50 border-l-2 border-blue-600' : ''
+                                }`}
+                              onClick={() => void handleMarkAsRead(n.id)}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <p className={`text-xs font-semibold ${!n.isRead ? 'text-blue-700' : 'text-slate-700'}`}>
+                                  {n.title}
+                                </p>
+                                <span className="text-[10px] text-slate-400 shrink-0">{n.createdAt}</span>
+                              </div>
+                              <p className="text-[11px] text-slate-500 mt-1 line-clamp-2">{n.message}</p>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Logout Button */}
+              <button
+                type="button"
+                className="inline-flex h-9 items-center gap-2 rounded-lg border border-red-200 bg-red-50/50 px-3.5 text-xs font-semibold text-red-600 transition-all hover:bg-red-100 hover:text-red-700"
+                onClick={handleLogout}
+              >
+                <LogOut size={14} />
+                <span className="hidden sm:inline">Keluar</span>
+              </button>
+            </div>
+          </header>
+
+          {/* Page Content */}
+          <motion.main
+            key={location.pathname}
+            className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-slate-50"
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+          >
+            <Outlet />
+          </motion.main>
+        </div>
       </div>
       <ToastContainer />
     </>

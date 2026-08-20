@@ -64,6 +64,10 @@ public class BarberEndpoint {
         return barberService.updateBookingStatus(bookingId, newStatus);
     }
 
+    public BarberBookingResponse updateLiveLocation(Long bookingId, java.math.BigDecimal latitude, java.math.BigDecimal longitude) {
+        return barberService.updateLiveLocation(bookingId, latitude, longitude);
+    }
+
     // Dashboard
     public BarberDashboardResponse getDashboardSummary() {
         return barberService.getDashboardSummary();

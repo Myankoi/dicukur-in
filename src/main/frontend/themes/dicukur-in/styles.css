@@ -1,9 +1,11 @@
-@layer theme, base, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css" layer(utilities) important;
 @import "@fontsource-variable/manrope";
 @import "@fontsource-variable/cormorant-garamond";
+@import "leaflet/dist/leaflet.css";
+
+@layer theme, base, components, utilities;
 
 @source "../../**/*.{html,ts,tsx}";
 
@@ -66,4 +68,12 @@
 ::selection {
   color: #ffffff;
   background: var(--color-barber-blue);
+}
+
+.leaflet-div-icon,
+.leaflet-marker-icon.custom-customer-pin,
+.leaflet-marker-icon.custom-barber-pin {
+  overflow: visible !important;
+  background: transparent !important;
+  border: none !important;
 }
