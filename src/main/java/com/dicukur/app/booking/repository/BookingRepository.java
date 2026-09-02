@@ -34,6 +34,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     long countByBarbershop_IdAndStatus(Long barbershopId, String status);
 
+    List<Booking> findByBarbershop_IdOrderByStartDatetimeDesc(Long barbershopId);
+
     // Barber-specific queries
     List<Booking> findByBarber_IdAndStatusInOrderByStartDatetimeAsc(Long barberId, Collection<String> statuses);
 
@@ -48,4 +50,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @Query("select coalesce(sum(b.totalPrice), 0) from Booking b where b.barber.id = :barberId and b.status = :status")
     BigDecimal sumTotalPriceByBarber_IdAndStatus(@Param("barberId") Long barberId, @Param("status") String status);
+
+    @Query("select coalesce(sum(b.totalPrice), 0) from Booking b where b.barbershop.id = :barbershopId and b.status = :status")
+    BigDecimal sumTotalPriceByBarbershop_IdAndStatus(@Param("barbershopId") Long barbershopId, @Param("status") String status);
 }

@@ -12,6 +12,8 @@ public record BarbershopDetailResponse(
         String city,
         String province,
         String phone,
+        String businessEmail,
+        String businessLicenseNumber,
         double latitude,
         double longitude,
         BigDecimal serviceRadiusKm,

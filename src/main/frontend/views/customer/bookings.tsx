@@ -13,7 +13,7 @@ import {
   Clock,
   CreditCard,
 } from 'lucide-react';
-import { BookingEndpoint, PaymentEndpoint } from '../../generated/endpoints.js';
+import { BookingEndpoint } from '../../generated/endpoints.js';
 import { Button } from '../../components/ui/Button.js';
 import type BookingResponse from '../../generated/com/dicukur/app/booking/dto/BookingResponse.js';
 
@@ -67,28 +67,21 @@ export default function CustomerBookingsPage() {
     }
   };
 
-  const handlePay = async (id?: number) => {
+  const handlePay = (id?: number) => {
     if (!id) return;
-    setActionLoadingId(id);
-    try {
-      await PaymentEndpoint.submitPayment({ bookingId: id, paymentMethod: 'qris' });
-      await loadBookings();
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Gagal memproses pembayaran');
-    } finally {
-      setActionLoadingId(undefined);
-    }
+    navigate(`/customer/bookings/${id}`);
   };
 
   const canCancel = (status?: string) => {
-    const s = status?.toUpperCase();
+    const s = status?.toUpperCase() ?? '';
     return s === 'PENDING' || s === 'ACCEPTED';
   };
 
   const canPay = (status?: string, paymentStatus?: string) => {
-    const s = status?.toUpperCase();
+    const s = status?.toUpperCase() ?? '';
     const p = paymentStatus?.toLowerCase();
-    return (s === 'COMPLETED' || s === 'IN_PROGRESS' || s === 'ACCEPTED') && p !== 'paid';
+    return ['PENDING', 'ACCEPTED', 'ON_THE_WAY', 'ARRIVED', 'IN_PROGRESS', 'COMPLETED'].includes(s)
+      && p !== 'paid' && p !== 'waiting_verification';
   };
 
   const getStatusBadge = (status?: string) => {
@@ -277,12 +270,12 @@ export default function CustomerBookingsPage() {
                   {canPay(booking.status, booking.paymentStatus) && (
                     <Button
                       size="sm"
-                      onClick={() => void handlePay(booking.id)}
+                      onClick={() => handlePay(booking.id)}
                       disabled={actionLoadingId === booking.id}
                       className="bg-red-600 hover:bg-red-700 text-white font-bold text-xs"
                     >
                       <CreditCard size={14} className="mr-1.5" />
-                      {actionLoadingId === booking.id ? 'Memproses...' : 'Bayar Sekarang'}
+                      {booking.paymentStatus?.toLowerCase() === 'failed' ? 'Bayar Ulang' : 'Bayar Sekarang'}
                     </Button>
                   )}
                 </div>

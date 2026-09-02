@@ -23,6 +23,7 @@ import OwnerBookingsPage from './views/owner/bookings.js';
 import OwnerReportsPage from './views/owner/reports.js';
 import CustomerDashboard from './views/customer/index.js';
 import CustomerAddressesPage from './views/customer/addresses.js';
+import CustomerProfilePage from './views/customer/profile.js';
 import NewBookingPage from './views/customer/bookings-new.js';
 import CustomerBookingsPage from './views/customer/bookings.js';
 import CustomerBookingDetailPage from './views/customer/booking-detail.js';
@@ -57,6 +58,7 @@ export const routes: RouteObject[] = [
       { path: '/owner/reports', element: <OwnerReportsPage /> },
       { path: '/customer', element: <CustomerDashboard /> },
       { path: '/customer/addresses', element: <CustomerAddressesPage /> },
+      { path: '/customer/profile', element: <CustomerProfilePage /> },
       { path: '/customer/bookings/new', element: <NewBookingPage /> },
       { path: '/customer/bookings', element: <CustomerBookingsPage /> },
       { path: '/customer/bookings/:id', element: <CustomerBookingDetailPage /> },

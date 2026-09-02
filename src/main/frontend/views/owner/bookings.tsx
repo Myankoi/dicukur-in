@@ -12,12 +12,13 @@ import {
   XCircle,
   AlertCircle,
   ChevronRight,
+  RefreshCw,
 } from 'lucide-react';
-import { BookingEndpoint } from '../../generated/endpoints.js';
-import type BookingResponse from '../../generated/com/dicukur/app/booking/dto/BookingResponse.js';
+import { OwnerEndpoint } from '../../generated/endpoints.js';
+import type AdminBookingResponse from '../../generated/com/dicukur/app/admin/dto/AdminBookingResponse.js';
 
 export default function OwnerBookingsPage() {
-  const [bookings, setBookings] = useState<BookingResponse[]>([]);
+  const [bookings, setBookings] = useState<AdminBookingResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -27,9 +28,8 @@ export default function OwnerBookingsPage() {
     setLoading(true);
     setError(null);
     try {
-      // Untuk MVP, menggunakan endpoint getMyBookings / booking barbershop
-      const data = await BookingEndpoint.getMyBookings();
-      setBookings((data || []).filter((b): b is BookingResponse => b !== undefined));
+      const data = await OwnerEndpoint.getMyBookings();
+      setBookings((data || []).filter((b): b is AdminBookingResponse => b !== undefined));
     } catch (err: any) {
       setError(err?.message || 'Gagal memuat daftar pemesanan barbershop.');
     } finally {
@@ -39,11 +39,19 @@ export default function OwnerBookingsPage() {
 
   useEffect(() => {
     fetchBookings();
+    const interval = window.setInterval(() => void fetchBookings(), 10000);
+    return () => window.clearInterval(interval);
   }, []);
+
+  const statusLabel = (status?: string) => ({
+    pending: 'Menunggu', accepted: 'Diterima', on_the_way: 'Dalam Perjalanan', arrived: 'Tiba',
+    in_progress: 'Berlangsung', completed: 'Selesai', rejected: 'Ditolak',
+  }[status?.toLowerCase() ?? ''] ?? status ?? '-');
 
   const filteredBookings = bookings.filter((b) => {
     const matchesSearch =
       (b.bookingCode || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (b.customerName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (b.barbershopName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (b.barberName || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'ALL' || (b.status || '').toLowerCase() === statusFilter.toLowerCase();
@@ -68,6 +76,7 @@ export default function OwnerBookingsPage() {
             Pantau seluruh jadwal & alur status booking pelanggan di toko Anda.
           </p>
         </div>
+        <button type="button" onClick={() => void fetchBookings()} disabled={loading} className="inline-flex h-10 items-center justify-center gap-2 self-start rounded-xl border border-slate-300 bg-white px-3 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50 sm:self-auto"><RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Segarkan</button>
       </div>
 
       {/* Filter & Search Bar */}
@@ -123,12 +132,12 @@ export default function OwnerBookingsPage() {
                 <div className="flex items-center gap-2">
                   <span className="font-mono text-xs font-bold text-red-600">#{b.bookingCode}</span>
                   <span className="rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-700">
-                    {b.status}
+                    {statusLabel(b.status)}
                   </span>
                 </div>
                 <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
                   <User size={15} className="text-slate-500" />
-                  Pelanggan
+                  {b.customerName || 'Pelanggan'}
                   <span className="text-xs font-normal text-slate-500">• Barber: {b.barberName || '-'}</span>
                 </h3>
                 <p className="text-xs text-slate-600 flex items-center gap-2">
@@ -145,6 +154,9 @@ export default function OwnerBookingsPage() {
                   <span className="block text-[10px] text-slate-500 uppercase tracking-wider font-bold">Total Biaya</span>
                   <span className="font-display font-bold text-sm text-emerald-600">
                     {formatCurrency(b.totalPrice)}
+                  </span>
+                  <span className={`mt-1 block text-[10px] font-bold uppercase ${b.paymentStatus === 'paid' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                    Pembayaran: {b.paymentStatus === 'paid' ? 'Lunas' : 'Belum Lunas'}
                   </span>
                 </div>
               </div>

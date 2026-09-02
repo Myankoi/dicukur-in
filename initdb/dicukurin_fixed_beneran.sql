@@ -63,9 +63,9 @@ CREATE TABLE `roles` (
 
 INSERT INTO `roles` (`id`, `name`) VALUES
 (1, 'Admin'),
-(2, 'Barber'),
-(3, 'Customer'),
-(4, 'Owner');
+(2, 'Owner'),
+(3, 'Barber'),
+(4, 'Customer');
 
 -- =========================================================
 -- 2. USERS
@@ -996,7 +996,77 @@ CREATE TABLE `notifications` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =========================================================
--- 22. VIEWS LAPORAN SEDERHANA
+-- 22. DATA OPERASIONAL SIAP PAKAI
+-- Password akun demo owner/barber/customer: password
+-- Customer demo sudah memiliki alamat default dan dapat langsung membuat booking.
+-- =========================================================
+
+INSERT INTO `users` (`id`, `role_id`, `name`, `email`, `phone`, `password`, `status`) VALUES
+(1, 1, 'Admin Dicukur', 'admin@dicukur.com', '081111111111', '$2a$10$akWPrdljucBjodtE0mzBNOFMvURDlx08bT4S4EyRtlPyWVKpfvJqm', 'active'),
+(2, 2, 'Budi Santoso', 'budi@dicukur.com', '081222222222', '$2a$10$hYPV8WDFINOZGomgttmcA.RKchhvTxiTuIPQVI50HXxP7bh0qSeRe', 'active'),
+(3, 2, 'Siti Rahayu', 'siti@dicukur.com', '081333333333', '$2a$10$hYPV8WDFINOZGomgttmcA.RKchhvTxiTuIPQVI50HXxP7bh0qSeRe', 'active'),
+(4, 3, 'Andi Prasetyo', 'andi@dicukur.com', '081444444444', '$2a$10$hYPV8WDFINOZGomgttmcA.RKchhvTxiTuIPQVI50HXxP7bh0qSeRe', 'active'),
+(5, 3, 'Rudi Hermawan', 'rudi@dicukur.com', '081555555555', '$2a$10$hYPV8WDFINOZGomgttmcA.RKchhvTxiTuIPQVI50HXxP7bh0qSeRe', 'active'),
+(6, 3, 'Dika Firmansyah', 'dika@dicukur.com', '081666666666', '$2a$10$hYPV8WDFINOZGomgttmcA.RKchhvTxiTuIPQVI50HXxP7bh0qSeRe', 'active'),
+(7, 3, 'Fajar Nugroho', 'fajar@dicukur.com', '081777777777', '$2a$10$hYPV8WDFINOZGomgttmcA.RKchhvTxiTuIPQVI50HXxP7bh0qSeRe', 'active'),
+(8, 4, 'Ahmad Rizki', 'ahmad@gmail.com', '081888888888', '$2a$10$hYPV8WDFINOZGomgttmcA.RKchhvTxiTuIPQVI50HXxP7bh0qSeRe', 'active'),
+(9, 4, 'Bayu Setiawan', 'bayu@gmail.com', '081999999999', '$2a$10$hYPV8WDFINOZGomgttmcA.RKchhvTxiTuIPQVI50HXxP7bh0qSeRe', 'active'),
+(10, 4, 'Cahya Dewi', 'cahya@gmail.com', '082000000000', '$2a$10$hYPV8WDFINOZGomgttmcA.RKchhvTxiTuIPQVI50HXxP7bh0qSeRe', 'active');
+
+INSERT INTO `barber_registrations`
+(`id`, `applicant_id`, `registration_type`, `business_name`, `description`, `address`, `district`, `city`, `province`, `postal_code`, `latitude`, `longitude`, `service_radius_km`, `status`, `submitted_at`, `reviewed_by`, `reviewed_at`, `admin_notes`)
+VALUES
+(1, 2, 'business', 'King Barbershop', 'Barbershop premium dengan pelayanan terbaik di Jakarta Selatan', 'Jl. Kemang Raya No. 15', 'Kemang', 'Jakarta Selatan', 'DKI Jakarta', '12730', -6.26150000, 106.81350000, 15.00, 'approved', '2026-01-15 10:00:00', 1, '2026-01-16 09:00:00', 'Dokumen lengkap dan valid'),
+(2, 3, 'business', 'Style Station', 'Studio cukur modern dengan konsep industrial', 'Jl. Sudirman No. 88', 'Setiabudi', 'Jakarta Selatan', 'DKI Jakarta', '12920', -6.22590000, 106.80310000, 12.00, 'approved', '2026-02-01 11:00:00', 1, '2026-02-02 10:00:00', 'Disetujui - lisensi lengkap');
+
+INSERT INTO `barbershops`
+(`id`, `owner_id`, `registration_id`, `name`, `description`, `business_phone`, `business_email`, `business_license_number`, `business_address`, `district`, `city`, `province`, `postal_code`, `latitude`, `longitude`, `service_radius_km`, `verification_status`, `status`, `approved_by`, `approved_at`, `rating_average`, `total_completed`)
+VALUES
+(1, 2, 1, 'King Barbershop', 'Barbershop premium di Kemang dengan pelayanan terbaik. Suasana nyaman dan barber berpengalaman.', '021-7654321', 'king@barbershop.com', 'SIUP-001-JKS', 'Jl. Kemang Raya No. 15, Kemang', 'Kemang', 'Jakarta Selatan', 'DKI Jakarta', '12730', -6.26150000, 106.81350000, 15.00, 'approved', 'active', 1, '2026-01-16 09:00:00', 4.60, 25),
+(2, 3, 2, 'Style Station', 'Studio cukur modern dengan konsep industrial. Spesialis fade cut dan modern hairstyle.', '021-1234567', 'style@station.com', 'SIUP-002-JKS', 'Jl. Sudirman No. 88, Setiabudi', 'Setiabudi', 'Jakarta Selatan', 'DKI Jakarta', '12920', -6.22590000, 106.80310000, 12.00, 'approved', 'active', 1, '2026-02-02 10:00:00', 4.80, 18);
+
+INSERT INTO `barber_profiles`
+(`id`, `user_id`, `barber_type`, `barbershop_id`, `registration_id`, `bio`, `experience_years`, `base_address`, `base_latitude`, `base_longitude`, `service_radius_km`, `verification_status`, `availability_status`, `approved_by`, `approved_at`, `rating_average`, `total_completed`)
+VALUES
+(1, 4, 'employee', 1, NULL, 'Spesialis fade cut dan pompadour.', 5, 'Jl. Kemang Raya No. 15, Kemang', -6.26150000, 106.81350000, 15.00, 'verified', 'available', 1, '2026-01-20 09:00:00', 4.70, 15),
+(2, 5, 'employee', 1, NULL, 'Ahli cukur jenggot dan klasik cut.', 3, 'Jl. Kemang Raya No. 15, Kemang', -6.26150000, 106.81350000, 15.00, 'verified', 'available', 1, '2026-01-20 09:00:00', 4.50, 10),
+(3, 6, 'employee', 2, NULL, 'Barber dengan keahlian modern hairstyle.', 2, 'Jl. Sudirman No. 88, Setiabudi', -6.22590000, 106.80310000, 12.00, 'verified', 'available', 1, '2026-02-05 09:00:00', 4.80, 8);
+
+INSERT INTO `barbershop_staff` (`id`, `barbershop_id`, `barber_id`, `added_by`, `position`, `employment_status`, `joined_at`) VALUES
+(1, 1, 4, 2, 'Senior Barber', 'active', '2026-01-20 09:00:00'),
+(2, 1, 5, 2, 'Barber', 'active', '2026-01-20 09:00:00'),
+(3, 2, 6, 3, 'Barber', 'active', '2026-02-05 09:00:00');
+
+INSERT INTO `barbershop_services` (`id`, `barbershop_id`, `service_id`, `business_price`, `business_duration`, `status`) VALUES
+(1, 1, 1, 60000.00, 45, 'active'),
+(2, 1, 2, 50000.00, 40, 'active'),
+(3, 1, 3, 35000.00, 25, 'active'),
+(4, 1, 4, 85000.00, 70, 'active'),
+(5, 2, 1, 70000.00, 50, 'active'),
+(6, 2, 3, 40000.00, 30, 'active'),
+(7, 2, 4, 100000.00, 75, 'active');
+
+INSERT INTO `barber_schedules` (`id`, `barber_id`, `day_of_week`, `start_time`, `end_time`, `status`) VALUES
+(1, 4, 1, '09:00:00', '18:00:00', 'active'), (2, 4, 2, '09:00:00', '18:00:00', 'active'),
+(3, 4, 3, '09:00:00', '18:00:00', 'active'), (4, 4, 4, '09:00:00', '18:00:00', 'active'),
+(5, 4, 5, '09:00:00', '18:00:00', 'active'), (6, 4, 6, '09:00:00', '15:00:00', 'active'),
+(7, 5, 1, '10:00:00', '19:00:00', 'active'), (8, 5, 2, '10:00:00', '19:00:00', 'active'),
+(9, 5, 3, '10:00:00', '19:00:00', 'active'), (10, 5, 4, '10:00:00', '19:00:00', 'active'),
+(11, 5, 5, '10:00:00', '19:00:00', 'active'), (12, 6, 1, '08:00:00', '17:00:00', 'active'),
+(13, 6, 2, '08:00:00', '17:00:00', 'active'), (14, 6, 3, '08:00:00', '17:00:00', 'active'),
+(15, 6, 4, '08:00:00', '17:00:00', 'active'), (16, 6, 5, '08:00:00', '17:00:00', 'active'),
+(17, 6, 6, '08:00:00', '17:00:00', 'active'), (18, 6, 7, '08:00:00', '14:00:00', 'active');
+
+INSERT INTO `customer_addresses`
+(`id`, `customer_id`, `label`, `recipient_name`, `phone`, `full_address`, `district`, `city`, `province`, `postal_code`, `latitude`, `longitude`, `notes`, `is_default`)
+VALUES
+(1, 8, 'Rumah', 'Ahmad Rizki', '081888888888', 'Jl. Pejaten Barat No. 22, RT 05/RW 03', 'Pasar Minggu', 'Jakarta Selatan', 'DKI Jakarta', '12510', -6.27550000, 106.83710000, 'Rumah pagar hijau, sebelah minimarket', TRUE),
+(2, 8, 'Kantor', 'Ahmad Rizki', '081888888888', 'Gedung Wisma GKBI Lt. 12, Jl. Sudirman', 'Tanah Abang', 'Jakarta Pusat', 'DKI Jakarta', '10220', -6.19560000, 106.82150000, 'Lobby lantai dasar', FALSE),
+(3, 9, 'Rumah', 'Bayu Setiawan', '081999999999', 'Apartemen Taman Rasuna Tower 9 Unit 12A', 'Setiabudi', 'Jakarta Selatan', 'DKI Jakarta', '12960', -6.23160000, 106.83630000, 'Tower 9, Unit 12A', TRUE),
+(4, 10, 'Rumah', 'Cahya Dewi', '082000000000', 'Jl. Panglima Polim V No. 10', 'Kebayoran Baru', 'Jakarta Selatan', 'DKI Jakarta', '12160', -6.24370000, 106.79810000, 'Rumah cat putih', TRUE);
+
+-- =========================================================
+-- 23. VIEWS LAPORAN SEDERHANA
 -- =========================================================
 
 CREATE OR REPLACE VIEW `vw_pending_verifications` AS

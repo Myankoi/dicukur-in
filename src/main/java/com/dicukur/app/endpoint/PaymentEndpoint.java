@@ -22,6 +22,7 @@ public class PaymentEndpoint {
         return paymentService.submitPayment(request);
     }
 
+    @RolesAllowed({"ADMIN", "Admin", "ROLE_ADMIN"})
     public PaymentResponse verifyPayment(Long paymentId, String action, String notes) {
         return paymentService.verifyPayment(paymentId, action, notes);
     }

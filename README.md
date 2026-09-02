@@ -23,8 +23,15 @@ Open `http://localhost:8080/`. MariaDB uses port `3307`, while Adminer is availa
 `http://localhost:8081/` with server `mariadb`, user `root`, password `rootpassword`, and database
 `barber_booking`.
 
-For Midtrans Sandbox, set `MIDTRANS_SERVER_KEY` before starting the app. Keep it out of source control.
-Without that variable, booking creation still works but the payment action returns a gateway-not-configured message.
+Demo customer untuk langsung mencoba alur pemesanan:
+
+- Email: `ahmad@gmail.com`
+- Password: `password`
+
+Akun tersebut sudah memiliki alamat default, barbershop aktif, barber terverifikasi, layanan, dan jadwal.
+
+For Midtrans Sandbox, set `MIDTRANS_SERVER_KEY` before starting the app and `VITE_MIDTRANS_CLIENT_KEY` in the frontend environment. Keep both out of source control.
+Without those variables, booking creation still works and customer can use Transfer Manual, while the Online/QRIS option displays a clear configuration message.
 
 The customer booking flow requires an approved active barbershop, an active staff record, a verified employee profile,
 active shop services, and barber schedules. Owner/Admin onboarding data must exist before a shop appears in discovery.

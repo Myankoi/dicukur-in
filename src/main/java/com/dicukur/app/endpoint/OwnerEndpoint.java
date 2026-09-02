@@ -2,6 +2,7 @@ package com.dicukur.app.endpoint;
 
 import com.dicukur.app.barbershop.dto.*;
 import com.dicukur.app.barbershop.service.OwnerService;
+import com.dicukur.app.admin.dto.AdminBookingResponse;
 import com.vaadin.hilla.BrowserCallable;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
@@ -20,6 +21,10 @@ public class OwnerEndpoint {
 
     public OwnerDashboardSummaryResponse getDashboardSummary() {
         return ownerService.getDashboardSummary();
+    }
+
+    public List<AdminBookingResponse> getMyBookings() {
+        return ownerService.getMyBookings();
     }
 
     public BarbershopDetailResponse getMyBarbershop() {

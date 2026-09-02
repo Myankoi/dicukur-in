@@ -5,6 +5,9 @@ import com.dicukur.app.registration.entity.BarberRegistration;
 import com.dicukur.app.registration.repository.BarberRegistrationRepository;
 import com.dicukur.app.user.entity.Role;
 import com.dicukur.app.user.entity.User;
+import com.dicukur.app.security.CurrentUserService;
+import com.dicukur.app.user.dto.ProfileResponse;
+import com.dicukur.app.user.dto.ProfileUpdateRequest;
 import com.dicukur.app.user.repository.RoleRepository;
 import com.dicukur.app.user.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,15 +25,18 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final BarberRegistrationRepository registrationRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CurrentUserService currentUserService;
 
     public UserService(UserRepository userRepository,
                        RoleRepository roleRepository,
                        BarberRegistrationRepository registrationRepository,
-                       PasswordEncoder passwordEncoder) {
+                       PasswordEncoder passwordEncoder,
+                       CurrentUserService currentUserService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.registrationRepository = registrationRepository;
         this.passwordEncoder = passwordEncoder;
+        this.currentUserService = currentUserService;
     }
 
     @Transactional
@@ -61,6 +67,48 @@ public class UserService {
         registration.setPostalCode(blankToNull(request.postalCode()));
         registrationRepository.save(registration);
         return user;
+    }
+
+    @Transactional(readOnly = true)
+    public ProfileResponse getMyProfile() {
+        return toProfileResponse(currentUserService.requireUser());
+    }
+
+    @Transactional
+    public ProfileResponse updateMyProfile(ProfileUpdateRequest request) {
+        User user = currentUserService.requireUser();
+        String email = requireText(request.email(), "Email wajib diisi").toLowerCase(Locale.ROOT);
+        String phone = blankToNull(request.phone());
+
+        userRepository.findByEmailAndIdNot(email, user.getId()).ifPresent(existing -> {
+            throw new IllegalArgumentException("Email sudah digunakan akun lain");
+        });
+        if (phone != null) {
+            userRepository.findByPhoneAndIdNot(phone, user.getId()).ifPresent(existing -> {
+                throw new IllegalArgumentException("Nomor telepon sudah digunakan akun lain");
+            });
+        }
+        if (request.password() != null && !request.password().isBlank()) {
+            if (request.password().length() < 8) {
+                throw new IllegalArgumentException("Password baru minimal 8 karakter");
+            }
+            user.setPassword(passwordEncoder.encode(request.password()));
+        }
+
+        user.setName(requireText(request.name(), "Nama wajib diisi"));
+        user.setEmail(email);
+        user.setPhone(phone);
+        user.setPhoto(blankToNull(request.photo()));
+        user.setNotes(blankToNull(request.notes()));
+        user.setUpdatedAt(LocalDateTime.now());
+        return toProfileResponse(userRepository.save(user));
+    }
+
+    private ProfileResponse toProfileResponse(User user) {
+        return new ProfileResponse(
+                user.getId(), user.getName(), user.getEmail(), user.getPhone(), user.getPhoto(),
+                user.getRole() != null ? user.getRole().getName() : null, user.getStatus(), user.getNotes()
+        );
     }
 
     private User registerUser(String name, String email, String phone,

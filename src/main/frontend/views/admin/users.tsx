@@ -22,7 +22,7 @@ import type UserResponse from '../../generated/com/dicukur/app/user/dto/UserResp
 import type AdminCreateUserRequest from '../../generated/com/dicukur/app/user/dto/AdminCreateUserRequest.js';
 
 export default function AdminUsersPage() {
-  const [activeRoleTab, setActiveRoleTab] = useState<'Customer' | 'Owner'>('Customer');
+  const [activeRoleTab, setActiveRoleTab] = useState<'Customer' | 'Owner' | 'Barber'>('Customer');
   const [users, setUsers] = useState<UserResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -233,7 +233,7 @@ export default function AdminUsersPage() {
         </button>
       </div>
 
-      {/* Role Selection Tabs (Customer vs Owner) */}
+      {/* Role Selection Tabs */}
       <div className="flex gap-2 border-b border-slate-200 pb-3">
         <button
           type="button"
@@ -258,6 +258,15 @@ export default function AdminUsersPage() {
         >
           <Building2 size={18} />
           Owner (Pemilik Barbershop)
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveRoleTab('Barber')}
+          className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all ${
+            activeRoleTab === 'Barber' ? 'bg-red-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+          }`}
+        >
+          <User size={18} /> Barber
         </button>
       </div>
 

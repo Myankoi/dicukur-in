@@ -91,13 +91,19 @@ export function LiveTrackingMap({
       customerMarkerRef.current.setLatLng([cLat, cLng]);
     }
 
+    const barberMarkerLabel = status === 'on_the_way'
+      ? `${barberName} (Sedang OTW)`
+      : status === 'arrived'
+        ? `${barberName} (Sudah Tiba)`
+        : `${barberName} (Titik Awal Barber)`;
+
     // Barber Pin Icon: 240px width, 75px height -> iconAnchor: [120, 75] places bottom needle tip exactly on lat/lng at ALL zoom levels
     const barberIcon = L.divIcon({
       className: 'custom-barber-pin',
       html: `<div style="width: 240px; height: 75px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; pointer-events: auto;">
               <div style="background-color: #dc2626; color: #ffffff; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 9999px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5); border: 1px solid #f87171; white-space: nowrap; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
                 <span>💈</span>
-                <span>${barberName} (Barber OTW)</span>
+                <span>${barberMarkerLabel}</span>
               </div>
               <div style="position: relative; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                 <div style="width: 42px; height: 42px; background: linear-gradient(135deg, #dc2626, #e11d48); color: white; border-radius: 9999px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px -5px rgba(220,38,38,0.6); border: 3px solid #ffffff; font-size: 22px;">
@@ -113,7 +119,7 @@ export function LiveTrackingMap({
     if (!barberMarkerRef.current) {
       barberMarkerRef.current = L.marker([brbLat, brbLng], { icon: barberIcon })
         .addTo(map)
-        .bindPopup(`<b>${barberName}</b><br/>Barber Sedang OTW`);
+        .bindPopup(`<b>${barberName}</b><br/>${status === 'on_the_way' ? 'Barber sedang dalam perjalanan' : 'Titik awal/base barber'}`);
     } else {
       barberMarkerRef.current.setIcon(barberIcon);
       barberMarkerRef.current.setLatLng([brbLat, brbLng]);
@@ -275,7 +281,7 @@ export function LiveTrackingMap({
                     ? 'Barber Sedang OTW Menuju Lokasi'
                     : status === 'arrived'
                       ? 'Barber Telah Tiba di Lokasi'
-                      : 'Live Location Barber'}
+                      : 'Titik Awal Barber'}
                 </p>
               </div>
               <p className="text-xs text-blue-700 font-medium mt-0.5">

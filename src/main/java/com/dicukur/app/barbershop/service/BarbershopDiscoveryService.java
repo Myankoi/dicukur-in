@@ -117,6 +117,7 @@ public class BarbershopDiscoveryService {
         return new BarbershopDetailResponse(
                 shop.getId(), shop.getName(), shop.getDescription(), shop.getBusinessAddress(),
                 shop.getDistrict(), shop.getCity(), shop.getProvince(), shop.getBusinessPhone(),
+                shop.getBusinessEmail(), shop.getBusinessLicenseNumber(),
                 shop.getLatitude().doubleValue(), shop.getLongitude().doubleValue(), shop.getServiceRadiusKm(),
                 shop.getRatingAverage(), shop.getTotalCompleted(), staff, services, shop.getPhotoUrl(), photos
         );

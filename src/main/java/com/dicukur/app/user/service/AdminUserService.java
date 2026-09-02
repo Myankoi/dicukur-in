@@ -51,8 +51,8 @@ public class AdminUserService {
         String normalizedPhone = blankToNull(request.phone());
         String roleName = requireText(request.roleName(), "Role wajib ditentukan");
 
-        if (!("Customer".equalsIgnoreCase(roleName) || "Owner".equalsIgnoreCase(roleName))) {
-            throw new IllegalArgumentException("Role hanya boleh Customer atau Owner");
+        if (!("Customer".equalsIgnoreCase(roleName) || "Owner".equalsIgnoreCase(roleName) || "Barber".equalsIgnoreCase(roleName))) {
+            throw new IllegalArgumentException("Role hanya boleh Customer, Owner, atau Barber");
         }
 
         if (request.password() == null || request.password().length() < 6) {

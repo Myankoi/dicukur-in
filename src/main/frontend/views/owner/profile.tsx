@@ -280,7 +280,7 @@ export default function OwnerProfilePage() {
           name: data.name || '',
           description: data.description || '',
           businessPhone: data.phone || data.businessPhone || '',
-          businessEmail: data.email || data.businessEmail || '',
+          businessEmail: data.businessEmail || data.email || '',
           businessLicenseNumber: data.businessLicenseNumber || '',
           businessAddress: data.address || data.businessAddress || '',
           district: data.district || '',

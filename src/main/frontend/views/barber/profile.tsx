@@ -267,6 +267,7 @@ export default function BarberProfilePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
 
   // Form states
   const [name, setName] = useState('');
@@ -355,6 +356,22 @@ export default function BarberProfilePage() {
     }
   };
 
+  const toggleAvailability = async () => {
+    setAvailabilityLoading(true);
+    setError('');
+    try {
+      const updated = await BarberEndpoint.toggleAvailability();
+      if (updated) {
+        setProfile(updated as BarberProfile);
+        setSuccess(updated.availabilityStatus === 'available' ? 'Kamu sekarang aktif menerima booking.' : 'Kamu sedang tidak menerima booking baru.');
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Gagal mengubah status ketersediaan');
+    } finally {
+      setAvailabilityLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -433,6 +450,9 @@ export default function BarberProfilePage() {
                   {profile?.availabilityStatus}
                 </span>
               </div>
+              <button type="button" onClick={() => void toggleAvailability()} disabled={availabilityLoading} className="mt-2 inline-flex h-10 w-full items-center justify-center rounded-xl border border-blue-200 bg-blue-50 text-xs font-bold text-blue-700 hover:bg-blue-100 disabled:opacity-50">
+                {availabilityLoading ? 'Memperbarui...' : profile?.availabilityStatus === 'available' ? 'Set Tidak Tersedia' : 'Aktifkan Terima Booking'}
+              </button>
               <div className="flex justify-between text-slate-600 font-medium">
                 <span>Radius Layanan</span>
                 <span className="font-bold text-slate-900">

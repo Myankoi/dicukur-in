@@ -9,6 +9,8 @@ import {
   Sparkles,
   Star,
   Building2,
+  QrCode,
+  UploadCloud,
 } from 'lucide-react';
 import { BookingEndpoint, PaymentEndpoint, ReviewEndpoint } from '../../generated/endpoints.js';
 import { Button } from '../../components/ui/Button.js';
@@ -17,6 +19,7 @@ import type PaymentResponse from '../../generated/com/dicukur/app/payment/dto/Pa
 import type ReviewResponse from '../../generated/com/dicukur/app/review/dto/ReviewResponse.js';
 
 import { LiveTrackingMap } from '../../components/LiveTrackingMap.js';
+import { toast } from '../../components/ui/Toast.js';
 
 export default function CustomerBookingDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -29,10 +32,12 @@ export default function CustomerBookingDetailPage() {
   const [error, setError] = useState('');
 
   // Payment Form state
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'transfer'>('transfer');
+  const [paymentMethod, setPaymentMethod] = useState<'qris' | 'cash' | 'transfer'>('qris');
   const [proofBase64, setProofBase64] = useState<string>('');
   const [paymentNotes, setPaymentNotes] = useState<string>('');
   const [submittingPayment, setSubmittingPayment] = useState(false);
+  const [uploadingProof, setUploadingProof] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
 
   // Review Form state
   const [rating, setRating] = useState<number>(5);
@@ -71,9 +76,30 @@ export default function CustomerBookingDetailPage() {
     return () => clearInterval(interval);
   }, [loadData, booking?.status]);
 
+  useEffect(() => {
+    if (document.getElementById('midtrans-snap-script')) return;
+    const script = document.createElement('script');
+    script.id = 'midtrans-snap-script';
+    script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
+    const clientKey = (import.meta as any).env?.VITE_MIDTRANS_CLIENT_KEY;
+    if (clientKey) script.setAttribute('data-client-key', clientKey);
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
+
   const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setPaymentError('Bukti pembayaran harus berupa gambar.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setPaymentError('Ukuran bukti pembayaran maksimal 5 MB.');
+      return;
+    }
+    setUploadingProof(true);
+    setPaymentError('');
     const formData = new FormData();
     formData.append('file', file);
     formData.append('type', 'documents');
@@ -84,36 +110,58 @@ export default function CustomerBookingDetailPage() {
       });
       if (!res.ok) {
         const errJson = await res.json();
-        alert(errJson.error || 'Gagal mengunggah file');
+        setPaymentError(errJson.error || 'Gagal mengunggah file');
         return;
       }
       const data = await res.json();
       setProofBase64(data.path);
     } catch {
-      alert('Gagal mengunggah bukti transfer');
+      setPaymentError('Gagal mengunggah bukti transfer');
+    } finally {
+      setUploadingProof(false);
     }
   };
 
   const handlePaymentSubmit = async () => {
     if (!booking) return;
+    setPaymentError('');
     if (paymentMethod === 'transfer' && !proofBase64) {
-      alert('Silakan unggah foto bukti transfer pembayaran terlebih dahulu.');
+      setPaymentError('Unggah foto bukti transfer terlebih dahulu.');
       return;
     }
 
     setSubmittingPayment(true);
     try {
-      await PaymentEndpoint.submitPayment({
+      const result = await PaymentEndpoint.submitPayment({
         bookingId: booking.id!,
         paymentMethod: paymentMethod,
         amount: booking.totalPrice!,
         proof: proofBase64,
         notes: paymentNotes,
       });
-      alert('Pembayaran berhasil dikirim!');
-      await loadData();
+      if (paymentMethod === 'qris') {
+        const clientKey = (import.meta as any).env?.VITE_MIDTRANS_CLIENT_KEY;
+        if (!clientKey) {
+          throw new Error('Pembayaran online belum dikonfigurasi di aplikasi. Pilih Transfer Manual.');
+        }
+        const snap = (window as any).snap;
+        if (!result?.snapToken || !snap?.pay) {
+          throw new Error('Pembayaran online belum siap. Coba lagi atau pilih Transfer Manual.');
+        }
+        snap.pay(result.snapToken, {
+          onSuccess: () => { toast.success('Pembayaran berhasil', 'Status akan diperbarui otomatis setelah gateway mengonfirmasi.'); void loadData(); },
+          onPending: () => { toast.info('Pembayaran masih diproses', 'Selesaikan pembayaran di halaman Midtrans.'); void loadData(); },
+          onError: () => toast.error('Pembayaran gagal', 'Coba lagi atau gunakan metode transfer manual.'),
+          onClose: () => { void loadData(); },
+        });
+      } else {
+        toast.success(paymentMethod === 'cash' ? 'Pembayaran dicatat' : 'Bukti pembayaran terkirim', paymentMethod === 'cash' ? 'Pembayaran tunai akan diproses bersama barber.' : 'Admin akan memverifikasi bukti transfer kamu.');
+        setProofBase64('');
+        setPaymentNotes('');
+        await loadData();
+      }
     } catch (cause) {
-      alert(cause instanceof Error ? cause.message : 'Gagal memproses pembayaran');
+      setPaymentError(cause instanceof Error ? cause.message : 'Gagal memproses pembayaran');
     } finally {
       setSubmittingPayment(false);
     }
@@ -330,20 +378,27 @@ export default function CustomerBookingDetailPage() {
         {/* Right Col: Payment Action Card */}
         <div className="space-y-6">
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-red-600">Status Pembayaran</h2>
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-red-600">Status Pembayaran</h2>
+              <span className="text-xs font-bold text-slate-900">Rp {(booking.totalPrice ?? 0).toLocaleString('id-ID')}</span>
+            </div>
 
             <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 flex items-center gap-3">
               <CreditCard size={20} className="text-red-600 shrink-0" />
               <div>
                 <p className="text-xs font-bold text-slate-900 capitalize">
-                  {booking.paymentStatus === 'paid'
+                  {(payment?.status || booking.paymentStatus) === 'paid'
                     ? 'Lunas'
-                    : booking.paymentStatus === 'waiting_verification'
-                    ? 'Menunggu Verifikasi Admin'
-                    : 'Belum Dibayar'}
+                    : (payment?.status || booking.paymentStatus) === 'waiting_verification'
+                      ? 'Menunggu Verifikasi'
+                      : (payment?.status || booking.paymentStatus) === 'pending'
+                        ? 'Menunggu Pembayaran'
+                        : (payment?.status || booking.paymentStatus) === 'failed'
+                          ? 'Pembayaran Ditolak / Gagal'
+                          : 'Belum Dibayar'}
                 </p>
                 <p className="text-[10px] text-slate-500 mt-0.5">
-                  {payment ? `Metode: ${payment.paymentMethod?.toUpperCase()}` : 'Belum memilih metode'}
+                  {payment ? `Metode: ${payment.paymentMethod === 'qris' ? 'Midtrans / QRIS' : payment.paymentMethod === 'transfer' ? 'Transfer Manual' : 'Bayar di Lokasi'}` : 'Belum memilih metode'}
                 </p>
               </div>
             </div>
@@ -359,6 +414,13 @@ export default function CustomerBookingDetailPage() {
               </div>
             )}
 
+            {payment?.status === 'failed' && (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs text-red-800 space-y-1.5">
+                <p className="font-bold">Pembayaran belum disetujui</p>
+                <p className="text-[11px] text-red-700">{payment.notes || 'Silakan periksa kembali nominal dan unggah bukti yang lebih jelas.'}</p>
+              </div>
+            )}
+
             {/* If Payment is Paid */}
             {payment?.status === 'paid' && (
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-xs text-emerald-800 space-y-1">
@@ -369,12 +431,24 @@ export default function CustomerBookingDetailPage() {
               </div>
             )}
 
-            {/* If Unpaid: Payment Form */}
+            {/* Payment Form */}
             {(!payment || payment.status === 'pending' || payment.status === 'failed') && (
               <div className="space-y-4 border-t border-slate-100 pt-4">
-                <p className="text-xs font-bold text-slate-700">Pilih Metode Pembayaran:</p>
+                <div>
+                  <p className="text-xs font-bold text-slate-700">Pilih cara pembayaran</p>
+                  <p className="mt-1 text-[11px] text-slate-500">Selesaikan pembayaran sebelum barber datang agar pesanan berjalan lancar.</p>
+                </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid gap-2 sm:grid-cols-3">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('qris')}
+                    className={`rounded-xl border p-3 text-left transition-all ${paymentMethod === 'qris' ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
+                  >
+                    <QrCode size={18} className="mb-2" />
+                    <span className="block text-xs font-bold">Online / QRIS</span>
+                    <span className="mt-0.5 block text-[10px] font-medium text-slate-500">Bayar otomatis</span>
+                  </button>
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('transfer')}
@@ -384,7 +458,8 @@ export default function CustomerBookingDetailPage() {
                         : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
                     }`}
                   >
-                    Transfer Bank
+                    <span className="block text-xs font-bold">Transfer Manual</span>
+                    <span className="mt-0.5 block text-[10px] font-medium text-slate-500">Upload bukti transfer</span>
                   </button>
                   <button
                     type="button"
@@ -395,9 +470,16 @@ export default function CustomerBookingDetailPage() {
                         : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
                     }`}
                   >
-                    Tunai (Cash)
+                    <span className="block text-xs font-bold">Bayar di Lokasi</span>
+                    <span className="mt-0.5 block text-[10px] font-medium text-slate-500">Tunai ke barber</span>
                   </button>
                 </div>
+
+                {paymentMethod === 'qris' && (
+                  <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-xs text-blue-900">
+                    <div className="flex items-start gap-2"><QrCode size={18} className="mt-0.5 shrink-0 text-blue-600" /><div><p className="font-bold">Pembayaran aman melalui Midtrans</p><p className="mt-1 text-[11px] leading-relaxed text-blue-700">Kamu akan diarahkan ke halaman pembayaran untuk memilih QRIS, transfer bank, e-wallet, atau kartu.</p></div></div>
+                  </div>
+                )}
 
                 {paymentMethod === 'transfer' && (
                   <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3 text-xs">
@@ -413,12 +495,18 @@ export default function CustomerBookingDetailPage() {
 
                     <div className="space-y-2">
                       <label className="block text-[11px] font-bold text-slate-700">Unggah Bukti Transfer:</label>
-                      <input
+                      <label className="flex min-h-24 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white px-3 py-3 text-center hover:border-red-400 hover:bg-red-50/40">
+                        <UploadCloud size={20} className="text-red-600" />
+                        <span className="mt-1 text-[11px] font-bold text-slate-700">Pilih foto bukti transfer</span>
+                        <span className="text-[10px] text-slate-400">JPG/PNG, maksimal 5 MB</span>
+                        <input
                         type="file"
                         accept="image/*"
                         onChange={handleFileUpload}
-                        className="w-full text-xs text-slate-600 file:mr-3 file:rounded-xl file:border-0 file:bg-slate-200 file:px-3 file:py-1.5 file:text-xs file:font-bold file:text-slate-800 hover:file:bg-slate-300 cursor-pointer"
-                      />
+                        className="sr-only"
+                        />
+                      </label>
+                      {uploadingProof && <p className="text-[11px] font-semibold text-blue-600">Mengunggah bukti...</p>}
                       {proofBase64 && (
                         <img
                           src={proofBase64}
@@ -430,14 +518,16 @@ export default function CustomerBookingDetailPage() {
                   </div>
                 )}
 
+                {paymentError && <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-medium text-red-700">{paymentError}</p>}
+
                 <Button
                   variant="primary"
                   size="sm"
                   className="w-full bg-red-600 hover:bg-red-700 text-white font-bold"
                   onClick={() => void handlePaymentSubmit()}
-                  disabled={submittingPayment}
+                  disabled={submittingPayment || uploadingProof}
                 >
-                  {submittingPayment ? 'Memproses...' : 'Konfirmasi Pembayaran'}
+                  {submittingPayment ? 'Memproses...' : paymentMethod === 'qris' ? 'Lanjut ke Pembayaran' : paymentMethod === 'transfer' ? 'Kirim Bukti Pembayaran' : 'Konfirmasi Bayar di Lokasi'}
                 </Button>
               </div>
             )}

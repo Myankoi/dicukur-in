@@ -42,23 +42,25 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function loadStats() {
       try {
-        const [bookings, customers, owners, registrations] = await Promise.all([
+        const [bookings, customers, owners, barbers, registrations] = await Promise.all([
           AdminMonitoringEndpoint.getAllBookings().catch(() => []),
           AdminUserEndpoint.getUsersByRole('Customer').catch(() => []),
           AdminUserEndpoint.getUsersByRole('Owner').catch(() => []),
+          AdminUserEndpoint.getUsersByRole('Barber').catch(() => []),
           AdminRegistrationEndpoint.getAllRegistrations().catch(() => []),
         ]);
 
         const validBookings = Array.isArray(bookings) ? bookings.filter(Boolean) : [];
         const validCustomers = Array.isArray(customers) ? customers.filter(Boolean) : [];
         const validOwners = Array.isArray(owners) ? owners.filter(Boolean) : [];
+        const validBarbers = Array.isArray(barbers) ? barbers.filter(Boolean) : [];
         const validRegistrations = Array.isArray(registrations) ? registrations.filter(Boolean) : [];
 
         const totalB = validBookings.length;
-        const pendingB = validBookings.filter((b: any) => b?.status === 'PENDING').length;
-        const totalU = validCustomers.length + validOwners.length;
-        const pendingR = validRegistrations.filter((r: any) => r?.status === 'PENDING').length;
-        const approvedShops = validRegistrations.filter((r: any) => r?.status === 'APPROVED').length;
+        const pendingB = validBookings.filter((b: any) => String(b?.status ?? '').toLowerCase() === 'pending').length;
+        const totalU = validCustomers.length + validOwners.length + validBarbers.length;
+        const pendingR = validRegistrations.filter((r: any) => String(r?.status ?? '').toLowerCase() === 'submitted').length;
+        const approvedShops = validRegistrations.filter((r: any) => String(r?.status ?? '').toLowerCase() === 'approved').length;
 
         const revenue = validBookings
           .filter((b: any) => b?.paymentStatus === 'paid' || b?.paymentStatus === 'PAID')

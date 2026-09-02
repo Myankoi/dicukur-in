@@ -79,6 +79,7 @@ const navItems: Record<string, NavItem[]> = {
     { label: 'Pesan Barber', path: '/customer/bookings/new', icon: CalendarPlus },
     { label: 'Alamat Saya', path: '/customer/addresses', icon: MapPin },
     { label: 'Pesanan Saya', path: '/customer/bookings', icon: ClipboardList },
+    { label: 'Profil Saya', path: '/customer/profile', icon: UserRound },
   ],
 };
 

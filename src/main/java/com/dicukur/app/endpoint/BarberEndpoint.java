@@ -81,4 +81,8 @@ public class BarberEndpoint {
     public BarberProfileResponse updateMyProfile(BarberProfileUpdateRequest request) {
         return barberService.updateMyProfile(request);
     }
+
+    public BarberProfileResponse toggleAvailability() {
+        return barberService.toggleAvailability();
+    }
 }

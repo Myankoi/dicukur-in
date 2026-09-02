@@ -29,6 +29,8 @@ interface BookingItem {
   address: string;
   customerLatitude: number;
   customerLongitude: number;
+  barberLatitude: number;
+  barberLongitude: number;
   distanceKm: number;
   totalPrice: number;
   status: string;
@@ -305,8 +307,8 @@ export default function BarberBookingsPage() {
                             customerLat={booking.customerLatitude || -6.200000}
                             customerLng={booking.customerLongitude || 106.816666}
                             customerAddress={booking.address}
-                            barberLat={barberCoords?.lat}
-                            barberLng={barberCoords?.lng}
+                            barberLat={barberCoords?.lat ?? booking.barberLatitude}
+                            barberLng={barberCoords?.lng ?? booking.barberLongitude}
                             barberName="Posisi Anda (Barber)"
                             barberPhone={booking.customerPhone}
                             phoneLabel="Hubungi Customer"

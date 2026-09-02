@@ -25,4 +25,8 @@ public class AdminMonitoringEndpoint {
     public AdminReportResponse getReportSummary() {
         return adminMonitoringService.getReportSummary();
     }
+
+    public void cancelBooking(Long bookingId, String reason) {
+        adminMonitoringService.cancelBooking(bookingId, reason);
+    }
 }

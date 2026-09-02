@@ -284,8 +284,7 @@ public class BarberService {
     @Transactional(readOnly = true)
     public BarberProfileResponse getMyProfile() {
         User barber = currentUserService.requireRole("Barber");
-        BarberProfile profile = profileRepository.findByUser_Id(barber.getId())
-                .orElseThrow(() -> new IllegalStateException("Profil barber belum tersedia"));
+        BarberProfile profile = profileRepository.findByUser_Id(barber.getId()).orElse(null);
         return toProfileResponse(barber, profile);
     }
 
@@ -293,7 +292,7 @@ public class BarberService {
     public BarberProfileResponse updateMyProfile(BarberProfileUpdateRequest request) {
         User barber = currentUserService.requireRole("Barber");
         BarberProfile profile = profileRepository.findByUser_Id(barber.getId())
-                .orElseThrow(() -> new IllegalStateException("Profil barber belum tersedia"));
+                .orElseGet(() -> createDefaultProfile(barber));
 
         if (request.bio() != null) profile.setBio(request.bio().isBlank() ? null : request.bio().trim());
         if (request.experienceYears() != null) profile.setExperienceYears(request.experienceYears());
@@ -315,6 +314,16 @@ public class BarberService {
             barber.setUpdatedAt(LocalDateTime.now());
         }
 
+        return toProfileResponse(barber, profileRepository.save(profile));
+    }
+
+    @Transactional
+    public BarberProfileResponse toggleAvailability() {
+        User barber = currentUserService.requireRole("Barber");
+        BarberProfile profile = profileRepository.findByUser_Id(barber.getId())
+                .orElseGet(() -> createDefaultProfile(barber));
+        profile.setAvailabilityStatus("available".equalsIgnoreCase(profile.getAvailabilityStatus()) ? "unavailable" : "available");
+        profile.setUpdatedAt(LocalDateTime.now());
         return toProfileResponse(barber, profileRepository.save(profile));
     }
 
@@ -402,19 +411,35 @@ public class BarberService {
                 barber.getName(),
                 barber.getEmail(),
                 barber.getPhone(),
-                profile.getBio(),
-                profile.getExperienceYears(),
-                profile.getBaseAddress(),
-                profile.getBaseLatitude(),
-                profile.getBaseLongitude(),
-                profile.getServiceRadiusKm(),
-                profile.getVerificationStatus(),
-                profile.getAvailabilityStatus(),
-                profile.getRatingAverage(),
-                profile.getTotalCompleted(),
+                profile != null ? profile.getBio() : null,
+                profile != null && profile.getExperienceYears() != null ? profile.getExperienceYears() : 0,
+                profile != null ? profile.getBaseAddress() : null,
+                profile != null ? profile.getBaseLatitude() : BigDecimal.valueOf(-6.2088),
+                profile != null ? profile.getBaseLongitude() : BigDecimal.valueOf(106.8456),
+                profile != null && profile.getServiceRadiusKm() != null ? profile.getServiceRadiusKm() : BigDecimal.TEN,
+                profile != null && profile.getVerificationStatus() != null ? profile.getVerificationStatus() : "pending",
+                profile != null && profile.getAvailabilityStatus() != null ? profile.getAvailabilityStatus() : "available",
+                profile != null && profile.getRatingAverage() != null ? profile.getRatingAverage() : BigDecimal.ZERO,
+                profile != null && profile.getTotalCompleted() != null ? profile.getTotalCompleted() : 0,
                 barber.getPhoto(),
                 shop != null ? shop.getName() : "Mitra Barbershop Resmi",
                 shop != null ? shop.getBusinessAddress() : "Lokasi Operasional Mitra"
         );
+    }
+
+    private BarberProfile createDefaultProfile(User barber) {
+        BarberProfile profile = new BarberProfile();
+        profile.setUser(barber);
+        profile.setBarberType("employee");
+        profile.setBaseLatitude(BigDecimal.valueOf(-6.2088));
+        profile.setBaseLongitude(BigDecimal.valueOf(106.8456));
+        profile.setServiceRadiusKm(BigDecimal.TEN);
+        profile.setVerificationStatus("pending");
+        profile.setAvailabilityStatus("available");
+        profile.setRatingAverage(BigDecimal.ZERO);
+        profile.setTotalCompleted(0);
+        profile.setCreatedAt(LocalDateTime.now());
+        profile.setUpdatedAt(LocalDateTime.now());
+        return profile;
     }
 }

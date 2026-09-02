@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Filter, RefreshCw, Search } from 'lucide-react';
+import { AlertTriangle, Filter, RefreshCw, Search, XCircle } from 'lucide-react';
 import { AdminMonitoringEndpoint } from '../../generated/endpoints.js';
 import { Button } from '../../components/ui/Button.js';
 import type AdminBookingResponse from '../../generated/com/dicukur/app/admin/dto/AdminBookingResponse.js';
@@ -9,6 +9,8 @@ export default function AdminBookingsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [actionId, setActionId] = useState<number>();
+  const [error, setError] = useState('');
 
   const loadBookings = useCallback(async () => {
     setLoading(true);
@@ -25,6 +27,20 @@ export default function AdminBookingsPage() {
   useEffect(() => {
     void loadBookings();
   }, [loadBookings]);
+
+  const cancelBooking = async (booking: AdminBookingResponse) => {
+    if (!booking.id || !window.confirm(`Batalkan booking #${booking.bookingCode}?`)) return;
+    setActionId(booking.id);
+    setError('');
+    try {
+      await AdminMonitoringEndpoint.cancelBooking(booking.id, 'Dibatalkan oleh admin karena kendala operasional');
+      await loadBookings();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Booking gagal dibatalkan');
+    } finally {
+      setActionId(undefined);
+    }
+  };
 
   const filteredBookings = bookings.filter((b) => {
     const matchesSearch =
@@ -52,6 +68,8 @@ export default function AdminBookingsPage() {
           <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Segarkan
         </Button>
       </div>
+
+      {error && <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium text-red-700"><AlertTriangle size={16} />{error}</div>}
 
       {/* Filter Bar */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -121,12 +139,19 @@ export default function AdminBookingsPage() {
                 </div>
               </div>
 
-              <div className="mt-4 grid gap-4 sm:grid-cols-4 text-xs">
+                <div className="mt-4 grid gap-4 sm:grid-cols-4 text-xs">
                 <div>
                   <p className="text-[10px] uppercase font-bold text-slate-500">Customer</p>
                   <p className="font-bold text-slate-900 mt-0.5">{b.customerName}</p>
                   <p className="text-[11px] text-slate-500">{b.customerEmail}</p>
                 </div>
+                {!['COMPLETED', 'REJECTED', 'CANCELLED_BY_CUSTOMER', 'CANCELLED_BY_BARBER', 'CANCELLED_BY_ADMIN'].includes((b.status ?? '').toUpperCase()) && (
+                  <div className="mt-4 flex justify-end border-t border-slate-100 pt-3">
+                    <Button variant="ghost" size="sm" onClick={() => void cancelBooking(b)} disabled={actionId === b.id} className="text-red-600 hover:bg-red-50">
+                      <XCircle size={14} /> {actionId === b.id ? 'Membatalkan...' : 'Batalkan Booking'}
+                    </Button>
+                  </div>
+                )}
                 <div>
                   <p className="text-[10px] uppercase font-bold text-slate-500">Barber / Barbershop</p>
                   <p className="font-bold text-slate-900 mt-0.5">{b.barberName}</p>

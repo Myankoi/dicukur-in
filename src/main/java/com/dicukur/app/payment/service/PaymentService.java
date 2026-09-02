@@ -11,12 +11,19 @@ import com.dicukur.app.security.CurrentUserService;
 import com.dicukur.app.user.entity.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.Base64;
 
 @Service
 @Transactional
@@ -26,18 +33,30 @@ public class PaymentService {
     private final BookingRepository bookingRepository;
     private final CurrentUserService currentUserService;
     private final NotificationService notificationService;
+    private final ObjectMapper objectMapper;
+    private final String midtransServerKey;
+    private final boolean midtransProduction;
 
     public PaymentService(PaymentRepository paymentRepository,
                           BookingRepository bookingRepository,
                           CurrentUserService currentUserService,
-                          NotificationService notificationService) {
+                          NotificationService notificationService,
+                          ObjectMapper objectMapper,
+                          @Value("${midtrans.server-key:}") String midtransServerKey,
+                          @Value("${midtrans.production:false}") boolean midtransProduction) {
         this.paymentRepository = paymentRepository;
         this.bookingRepository = bookingRepository;
         this.currentUserService = currentUserService;
         this.notificationService = notificationService;
+        this.objectMapper = objectMapper;
+        this.midtransServerKey = midtransServerKey;
+        this.midtransProduction = midtransProduction;
     }
 
     public PaymentResponse submitPayment(PaymentRequest request) {
+        if (request == null || request.bookingId() == null) {
+            throw new IllegalArgumentException("Booking pembayaran wajib dipilih");
+        }
         User user = currentUserService.requireUser();
 
         Booking booking = bookingRepository.findById(request.bookingId())
@@ -47,16 +66,31 @@ public class PaymentService {
             throw new IllegalStateException("Anda tidak memiliki akses ke booking ini");
         }
 
+        String method = request.paymentMethod() == null ? "" : request.paymentMethod().trim().toLowerCase();
+        if (!List.of("cash", "transfer", "qris").contains(method)) {
+            throw new IllegalArgumentException("Metode pembayaran tidak didukung");
+        }
+
         Payment payment = paymentRepository.findByBooking_Id(booking.getId())
                 .orElseGet(Payment::new);
 
+        if ("qris".equals(method) && "pending".equalsIgnoreCase(payment.getStatus())
+                && payment.getSnapToken() != null && !payment.getSnapToken().isBlank()) {
+            return mapToResponse(payment);
+        }
+
         payment.setBooking(booking);
-        payment.setPaymentMethod(request.paymentMethod());
-        payment.setAmount(request.amount() != null ? request.amount() : booking.getTotalPrice());
+        payment.setPaymentMethod(method);
+        // Total selalu dihitung dari booking server-side, bukan dari payload client.
+        payment.setAmount(booking.getTotalPrice());
         payment.setProof(request.proof());
         payment.setNotes(request.notes());
 
-        if ("cash".equalsIgnoreCase(request.paymentMethod())) {
+        if ("qris".equals(method)) {
+            createMidtransTransaction(booking, payment, user);
+            payment.setStatus("pending");
+            booking.setPaymentStatus("unpaid");
+        } else if ("cash".equals(method)) {
             payment.setStatus("paid");
             payment.setPaidAt(LocalDateTime.now());
             payment.setVerifiedAt(LocalDateTime.now());
@@ -90,6 +124,47 @@ public class PaymentService {
         return mapToResponse(saved);
     }
 
+    private void createMidtransTransaction(Booking booking, Payment payment, User user) {
+        if (midtransServerKey == null || midtransServerKey.isBlank()) {
+            throw new IllegalStateException("Pembayaran online belum dikonfigurasi. Pilih Transfer Manual atau hubungi admin.");
+        }
+
+        Map<String, Object> customerDetails = new HashMap<>();
+        customerDetails.put("first_name", user.getName());
+        customerDetails.put("email", user.getEmail());
+        if (user.getPhone() != null) customerDetails.put("phone", user.getPhone());
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("transaction_details", Map.of(
+                "order_id", booking.getBookingCode(),
+                "gross_amount", booking.getTotalPrice().setScale(0, java.math.RoundingMode.HALF_UP).longValue()
+        ));
+        body.put("customer_details", customerDetails);
+
+        String endpoint = midtransProduction ? "https://app.midtrans.com" : "https://app.sandbox.midtrans.com";
+        String auth = Base64.getEncoder().encodeToString((midtransServerKey + ":").getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        try {
+            JsonNode response = RestClient.builder().baseUrl(endpoint).build()
+                    .post()
+                    .uri("/snap/v1/transactions")
+                    .header("Authorization", "Basic " + auth)
+                    .header("Content-Type", "application/json")
+                    .body(body)
+                    .retrieve()
+                    .body(JsonNode.class);
+            String token = response != null ? response.path("token").asText(null) : null;
+            if (token == null || token.isBlank()) {
+                throw new IllegalStateException("Gateway tidak mengembalikan token pembayaran");
+            }
+            payment.setSnapToken(token);
+        } catch (RestClientResponseException cause) {
+            throw new IllegalStateException("Gateway pembayaran menolak transaksi (" + cause.getStatusCode().value() + ")");
+        } catch (Exception cause) {
+            if (cause instanceof IllegalStateException state) throw state;
+            throw new IllegalStateException("Gateway pembayaran sedang tidak dapat dihubungi");
+        }
+    }
+
     public void processNotification(Map<String, String> payload) {
         String orderId = payload.get("order_id");
         String transactionStatus = payload.get("transaction_status");
@@ -102,6 +177,8 @@ public class PaymentService {
             payment.setGatewayTransactionId(payload.get("transaction_id"));
             payment.setPaymentMethod("midtrans");
             payment.setAmount(booking.getTotalPrice());
+            if (payment.getCreatedAt() == null) payment.setCreatedAt(LocalDateTime.now());
+            payment.setUpdatedAt(LocalDateTime.now());
 
             if ("settlement".equals(transactionStatus) || "capture".equals(transactionStatus)) {
                 payment.setStatus("paid");
@@ -124,6 +201,10 @@ public class PaymentService {
 
         Booking booking = payment.getBooking();
 
+        if (!"waiting_verification".equalsIgnoreCase(payment.getStatus())) {
+            throw new IllegalStateException("Pembayaran ini sudah diproses sebelumnya");
+        }
+
         if ("approve".equalsIgnoreCase(action)) {
             payment.setStatus("paid");
             payment.setVerifiedAt(LocalDateTime.now());
@@ -137,6 +218,9 @@ public class PaymentService {
                     booking.getId()
             );
         } else if ("reject".equalsIgnoreCase(action)) {
+            if (notes == null || notes.isBlank()) {
+                throw new IllegalArgumentException("Alasan penolakan wajib diisi");
+            }
             payment.setStatus("failed");
             payment.setNotes(notes);
             booking.setPaymentStatus("unpaid");
@@ -148,6 +232,8 @@ public class PaymentService {
                     "payment",
                     booking.getId()
             );
+        } else {
+            throw new IllegalArgumentException("Aksi verifikasi tidak valid");
         }
 
         payment.setUpdatedAt(LocalDateTime.now());
@@ -159,6 +245,13 @@ public class PaymentService {
 
     @Transactional(readOnly = true)
     public PaymentResponse getPaymentByBooking(Long bookingId) {
+        User user = currentUserService.requireUser();
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new IllegalArgumentException("Booking tidak ditemukan"));
+        boolean isAdmin = user.getRole() != null && "Admin".equalsIgnoreCase(user.getRole().getName());
+        if (!isAdmin && !booking.getCustomer().getId().equals(user.getId())) {
+            throw new IllegalStateException("Anda tidak memiliki akses ke pembayaran ini");
+        }
         return paymentRepository.findByBooking_Id(bookingId)
                 .map(this::mapToResponse)
                 .orElse(null);

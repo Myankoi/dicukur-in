@@ -1,5 +1,6 @@
 package com.dicukur.app.barbershop.service;
 
+import com.dicukur.app.admin.dto.AdminBookingResponse;
 import com.dicukur.app.barbershop.dto.*;
 import com.dicukur.app.barbershop.entity.BarberProfile;
 import com.dicukur.app.barbershop.entity.Barbershop;
@@ -88,9 +89,21 @@ public class OwnerService {
                 totalBookings,
                 completedBookings,
                 activeStaff,
-                BigDecimal.valueOf(completedBookings * 50000L),
+                bookingRepository.sumTotalPriceByBarbershop_IdAndStatus(shop.getId(), "completed"),
                 shop.getRatingAverage() != null ? shop.getRatingAverage() : BigDecimal.ZERO
         );
+    }
+
+    @Transactional(readOnly = true)
+    public List<AdminBookingResponse> getMyBookings() {
+        User owner = currentUserService.requireRole("Owner");
+        Barbershop shop = barbershopRepository.findByOwner_Id(owner.getId()).orElse(null);
+        if (shop == null) return List.of();
+
+        return bookingRepository.findByBarbershop_IdOrderByStartDatetimeDesc(shop.getId())
+                .stream()
+                .map(this::toBookingResponse)
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -355,6 +368,8 @@ public class OwnerService {
                 shop.getCity(),
                 shop.getProvince(),
                 shop.getBusinessPhone(),
+                shop.getBusinessEmail(),
+                shop.getBusinessLicenseNumber(),
                 shop.getLatitude() != null ? shop.getLatitude().doubleValue() : -6.2088,
                 shop.getLongitude() != null ? shop.getLongitude().doubleValue() : 106.8456,
                 shop.getServiceRadiusKm(),
@@ -383,6 +398,22 @@ public class OwnerService {
                 profile != null ? profile.getTotalCompleted() : 0,
                 profile != null ? profile.getAvailabilityStatus() : "available",
                 b.getPhoto()
+        );
+    }
+
+    private AdminBookingResponse toBookingResponse(com.dicukur.app.booking.entity.Booking booking) {
+        java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
+        return new AdminBookingResponse(
+                booking.getId(), booking.getBookingCode(),
+                booking.getCustomer() != null ? booking.getCustomer().getName() : "-",
+                booking.getCustomer() != null ? booking.getCustomer().getEmail() : "-",
+                booking.getBarber() != null ? booking.getBarber().getName() : "-",
+                booking.getBarbershop() != null ? booking.getBarbershop().getName() : "-",
+                booking.getDetails() != null && !booking.getDetails().isEmpty() ? booking.getDetails().get(0).getServiceName() : "Layanan Grooming",
+                booking.getStartDatetime() != null ? booking.getStartDatetime().format(fmt) : null,
+                booking.getEndDatetime() != null ? booking.getEndDatetime().format(fmt) : null,
+                booking.getAddressSnapshot(), booking.getTotalPrice(), booking.getStatus(), booking.getPaymentStatus(),
+                booking.getCreatedAt() != null ? booking.getCreatedAt().format(fmt) : null
         );
     }
 
