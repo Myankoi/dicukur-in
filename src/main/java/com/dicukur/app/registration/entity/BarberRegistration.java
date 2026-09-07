@@ -1,6 +1,7 @@
 package com.dicukur.app.registration.entity;
 
 import com.dicukur.app.user.entity.User;
+import com.dicukur.app.barbershop.entity.Barbershop;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -29,6 +30,10 @@ public class BarberRegistration {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "applicant_id", nullable = false)
     private User applicant;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "barbershop_id")
+    private Barbershop targetBarbershop;
 
     @Column(name = "registration_type", nullable = false, length = 20)
     private String registrationType;

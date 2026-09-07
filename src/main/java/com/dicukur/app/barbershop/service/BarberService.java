@@ -13,6 +13,7 @@ import com.dicukur.app.barbershop.repository.BarbershopStaffRepository;
 import com.dicukur.app.booking.entity.Booking;
 import com.dicukur.app.booking.repository.BookingRepository;
 import com.dicukur.app.notification.service.NotificationService;
+import com.dicukur.app.payment.repository.PaymentRepository;
 import com.dicukur.app.security.CurrentUserService;
 import com.dicukur.app.user.entity.User;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,7 @@ public class BarberService {
     private final CurrentUserService currentUserService;
     private final NotificationService notificationService;
     private final BarbershopStaffRepository staffRepository;
+    private final PaymentRepository paymentRepository;
 
     public BarberService(BarberScheduleRepository scheduleRepository,
                          BarberTimeOffRepository timeOffRepository,
@@ -46,7 +48,8 @@ public class BarberService {
                          BookingRepository bookingRepository,
                          CurrentUserService currentUserService,
                          NotificationService notificationService,
-                         BarbershopStaffRepository staffRepository) {
+                         BarbershopStaffRepository staffRepository,
+                         PaymentRepository paymentRepository) {
         this.scheduleRepository = scheduleRepository;
         this.timeOffRepository = timeOffRepository;
         this.profileRepository = profileRepository;
@@ -54,6 +57,7 @@ public class BarberService {
         this.currentUserService = currentUserService;
         this.notificationService = notificationService;
         this.staffRepository = staffRepository;
+        this.paymentRepository = paymentRepository;
     }
 
     // ======================== SCHEDULE CRUD ========================
@@ -178,6 +182,7 @@ public class BarberService {
         }
 
         booking.setStatus("accepted");
+        booking.setPaymentDeadline(LocalDateTime.now().plusMinutes(30));
         booking.setUpdatedAt(LocalDateTime.now());
         Booking saved = bookingRepository.save(booking);
 
@@ -224,13 +229,63 @@ public class BarberService {
     }
 
     @Transactional
+    public BarberBookingResponse cancelBooking(Long bookingId, String reason) {
+        User barber = currentUserService.requireRole("Barber");
+        Booking booking = requireBarberBooking(barber.getId(), bookingId);
+        if (!Set.of("accepted", "on_the_way").contains(booking.getStatus())) {
+            throw new IllegalStateException("Booking hanya dapat dibatalkan sebelum barber tiba di lokasi");
+        }
+        booking.setStatus("cancelled_by_barber");
+        booking.setCancellationReason(reason == null || reason.isBlank()
+                ? "Dibatalkan oleh barber karena kendala operasional" : reason.trim());
+        if ("paid".equalsIgnoreCase(booking.getPaymentStatus())) {
+            booking.setPaymentStatus("refund_pending");
+            paymentRepository.findByBooking_Id(booking.getId()).ifPresent(payment -> {
+                payment.setStatus("refund_pending");
+                payment.setRefundReason(booking.getCancellationReason());
+                payment.setUpdatedAt(LocalDateTime.now());
+                paymentRepository.save(payment);
+            });
+        } else {
+            booking.setPaymentStatus("unpaid");
+            paymentRepository.findByBooking_Id(booking.getId()).ifPresent(payment -> {
+                payment.setStatus("cancelled");
+                payment.setUpdatedAt(LocalDateTime.now());
+                paymentRepository.save(payment);
+            });
+        }
+        booking.setUpdatedAt(LocalDateTime.now());
+        Booking saved = bookingRepository.save(booking);
+        notificationService.createNotification(booking.getCustomer().getId(), "Booking dibatalkan barber",
+                "Booking #" + booking.getBookingCode() + " dibatalkan oleh barber. "
+                        + ("refund_pending".equalsIgnoreCase(booking.getPaymentStatus())
+                        ? "Refund menunggu diproses admin." : ""),
+                "booking_cancelled", booking.getId());
+        return toBarberBookingResponse(saved);
+    }
+
+    @Transactional
     public BarberBookingResponse updateBookingStatus(Long bookingId, String newStatus) {
         User barber = currentUserService.requireRole("Barber");
         Booking booking = requireBarberBooking(barber.getId(), bookingId);
 
         validateStatusTransition(booking.getStatus(), newStatus);
 
+        if ("on_the_way".equals(newStatus)) {
+            throw new IllegalStateException("Gunakan tombol berangkat agar lokasi GPS tersimpan dan customer dapat melakukan tracking");
+        }
+
         booking.setStatus(newStatus);
+        if ("cancelled_by_barber".equalsIgnoreCase(newStatus)
+                && "paid".equalsIgnoreCase(booking.getPaymentStatus())) {
+            booking.setPaymentStatus("refund_pending");
+            paymentRepository.findByBooking_Id(booking.getId()).ifPresent(payment -> {
+                payment.setStatus("refund_pending");
+                payment.setRefundReason(booking.getCancellationReason());
+                payment.setUpdatedAt(LocalDateTime.now());
+                paymentRepository.save(payment);
+            });
+        }
         booking.setUpdatedAt(LocalDateTime.now());
         Booking saved = bookingRepository.save(booking);
 
@@ -250,6 +305,32 @@ public class BarberService {
                 booking.getId()
         );
 
+        return toBarberBookingResponse(saved);
+    }
+
+    @Transactional
+    public BarberBookingResponse startTrip(Long bookingId, BigDecimal latitude, BigDecimal longitude,
+                                           BigDecimal accuracy) {
+        User barber = currentUserService.requireRole("Barber");
+        Booking booking = requireBarberBooking(barber.getId(), bookingId);
+        if (!"accepted".equalsIgnoreCase(booking.getStatus())) {
+            throw new IllegalStateException("Booking belum siap untuk diberangkatkan");
+        }
+        if (!"paid".equalsIgnoreCase(booking.getPaymentStatus())) {
+            throw new IllegalStateException("Customer harus melunasi pembayaran sebelum barber berangkat");
+        }
+        validateCoordinates(latitude, longitude);
+        booking.setBarberLatitude(latitude);
+        booking.setBarberLongitude(longitude);
+        booking.setLocationAccuracy(accuracy);
+        booking.setLocationUpdatedAt(LocalDateTime.now());
+        booking.setStatus("on_the_way");
+        booking.setUpdatedAt(LocalDateTime.now());
+        Booking saved = bookingRepository.save(booking);
+        notificationService.createNotification(
+                booking.getCustomer().getId(), "Barber sedang berangkat 🚗",
+                "Barber " + barber.getName() + " sedang menuju lokasi booking #" + booking.getBookingCode() + ".",
+                "booking_status", booking.getId());
         return toBarberBookingResponse(saved);
     }
 
@@ -369,11 +450,22 @@ public class BarberService {
 
     @Transactional
     public BarberBookingResponse updateLiveLocation(Long bookingId, BigDecimal latitude, BigDecimal longitude) {
+        return updateLiveLocation(bookingId, latitude, longitude, null);
+    }
+
+    @Transactional
+    public BarberBookingResponse updateLiveLocation(Long bookingId, BigDecimal latitude, BigDecimal longitude,
+                                                    BigDecimal accuracy) {
         User barber = currentUserService.requireRole("Barber");
         Booking booking = requireBarberBooking(barber.getId(), bookingId);
-
+        if (!"on_the_way".equalsIgnoreCase(booking.getStatus())) {
+            throw new IllegalStateException("Lokasi live hanya dapat diperbarui saat barber dalam perjalanan");
+        }
+        validateCoordinates(latitude, longitude);
         booking.setBarberLatitude(latitude);
         booking.setBarberLongitude(longitude);
+        booking.setLocationAccuracy(accuracy);
+        booking.setLocationUpdatedAt(LocalDateTime.now());
         booking.setUpdatedAt(LocalDateTime.now());
         Booking saved = bookingRepository.save(booking);
 
@@ -399,8 +491,23 @@ public class BarberService {
                 booking.getStatus(),
                 booking.getPaymentStatus(),
                 booking.getNotes(),
-                booking.getCancellationReason()
+                booking.getCancellationReason(),
+                booking.getPaymentDeadline() != null ? booking.getPaymentDeadline().toString() : null,
+                booking.getLocationUpdatedAt() != null ? booking.getLocationUpdatedAt().toString() : null,
+                booking.getDetails().stream().map(d -> new com.dicukur.app.booking.dto.BookingDetailResponse(
+                        d.getId(), d.getParticipantName() == null ? "Peserta" : d.getParticipantName(),
+                        d.getSequenceNumber() == null ? 1 : d.getSequenceNumber(),
+                        d.getService() != null ? d.getService().getId() : null,
+                        d.getServiceName(), d.getPrice(), d.getDuration(), d.getSubtotal())).toList()
         );
+    }
+
+    private void validateCoordinates(BigDecimal latitude, BigDecimal longitude) {
+        if (latitude == null || longitude == null
+                || latitude.compareTo(BigDecimal.valueOf(-90)) < 0 || latitude.compareTo(BigDecimal.valueOf(90)) > 0
+                || longitude.compareTo(BigDecimal.valueOf(-180)) < 0 || longitude.compareTo(BigDecimal.valueOf(180)) > 0) {
+            throw new IllegalArgumentException("Koordinat GPS tidak valid");
+        }
     }
 
     private BarberProfileResponse toProfileResponse(User barber, BarberProfile profile) {

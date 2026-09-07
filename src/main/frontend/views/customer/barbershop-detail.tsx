@@ -19,6 +19,8 @@ import {
   ChevronLeft,
   ChevronRight,
   UserCheck,
+  Plus,
+  Trash2,
 } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { BarbershopEndpoint, BookingEndpoint, CustomerAddressEndpoint } from '../../generated/endpoints.js';
@@ -30,6 +32,7 @@ interface Staff { staffId: number; barberUserId: number; name: string; position?
 interface Service { id: number; name: string; description?: string; price: number; duration: number; }
 interface ShopPhoto { id: number; filePath: string; caption?: string; }
 interface Shop { id: number; name: string; description?: string; address: string; city?: string; province?: string; phone?: string; ratingAverage: number; totalCompleted: number; staff: Staff[]; services: Service[]; photoUrl?: string; photos?: ShopPhoto[]; }
+interface BookingParticipant { participantName: string; serviceId?: number; }
 
 const SAMPLE_GALLERY = [
   'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&auto=format&fit=crop&q=80',
@@ -67,7 +70,7 @@ export default function BarbershopDetailPage() {
   const [shop, setShop] = useState<Shop>();
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [barberId, setBarberId] = useState<number>();
-  const [serviceId, setServiceId] = useState<number>();
+  const [participants, setParticipants] = useState<BookingParticipant[]>([{ participantName: 'Saya' }]);
   const getTodayDateStr = () => new Date().toLocaleDateString('en-CA');
   const getFutureTimeStr = () => {
     const d = new Date();
@@ -100,14 +103,14 @@ export default function BarbershopDetailPage() {
         setShop(nextShop);
         setAddresses(nextAddresses);
         setBarberId(nextShop.staff[0]?.barberUserId ?? (nextShop.staff[0] as any)?.staffId);
-        setServiceId(nextShop.services[0]?.id);
+        setParticipants([{ participantName: 'Saya', serviceId: nextShop.services[0]?.id }]);
         setAddressId(nextAddresses.find((item) => item.isDefault)?.id ?? nextAddresses[0]?.id);
       })
       .catch((cause) => setError(cause instanceof Error ? cause.message : 'Detail barbershop gagal dimuat'))
       .finally(() => setLoading(false));
   }, [id]);
 
-  const selectedService = useMemo(() => shop?.services.find((item) => item.id === serviceId), [serviceId, shop]);
+  const selectedService = useMemo(() => shop?.services.find((item) => item.id === participants[0]?.serviceId), [participants, shop]);
   const selectedBarber = useMemo(() => shop?.staff.find((item) => item.barberUserId === barberId), [barberId, shop]);
   const minimumDate = new Date(Date.now() + 15 * 60 * 1000).toISOString().slice(0, 10);
 
@@ -139,17 +142,32 @@ export default function BarbershopDetailPage() {
     setCurrentSlide((prev) => (prev - 1 + galleryList.length) % galleryList.length);
   };
 
+  const updateParticipant = (index: number, changes: Partial<BookingParticipant>) => {
+    setParticipants((current) => current.map((participant, i) => i === index ? { ...participant, ...changes } : participant));
+  };
+
+  const addParticipant = () => {
+    if (!shop?.services[0] || participants.length >= 10) return;
+    setParticipants((current) => [...current, { participantName: `Peserta ${current.length + 1}`, serviceId: shop.services[0].id }]);
+  };
+
+  const removeParticipant = (index: number) => {
+    if (participants.length <= 1) return;
+    setParticipants((current) => current.filter((_, i) => i !== index));
+  };
+
   const createBooking = async (event: FormEvent) => {
     event.preventDefault();
-    if (!id || !barberId || !serviceId || !addressId || !date || !time) {
-      setError('Pilih alamat, karyawan, layanan, tanggal, dan jam booking');
+    if (!id || !barberId || !addressId || !date || !time || participants.some((item) => !item.participantName.trim() || !item.serviceId)) {
+      setError('Lengkapi nama peserta, layanan, alamat, tanggal, dan jam booking');
       return;
     }
     setSaving(true);
     setError('');
     try {
       const result = await BookingEndpoint.create({
-        barbershopId: Number(id), barberId, addressId, serviceId,
+        barbershopId: Number(id), barberId, addressId,
+        items: participants.map((item) => ({ participantName: item.participantName.trim(), serviceId: item.serviceId! })),
         startDatetime: `${date}T${time}`,
         notes,
       });
@@ -194,14 +212,14 @@ export default function BarbershopDetailPage() {
                     <button
                       type="button"
                       onClick={handlePrevSlide}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 grid size-9 place-items-center rounded-full bg-slate-900/70 text-white backdrop-blur-md opacity-0 group-hover:opacity-100 transition hover:bg-slate-900"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 grid size-11 place-items-center rounded-full bg-slate-900/70 text-white backdrop-blur-md opacity-100 md:opacity-0 md:group-hover:opacity-100 transition hover:bg-slate-900"
                     >
                       <ChevronLeft size={20} />
                     </button>
                     <button
                       type="button"
                       onClick={handleNextSlide}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 grid size-9 place-items-center rounded-full bg-slate-900/70 text-white backdrop-blur-md opacity-0 group-hover:opacity-100 transition hover:bg-slate-900"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 grid size-11 place-items-center rounded-full bg-slate-900/70 text-white backdrop-blur-md opacity-100 md:opacity-0 md:group-hover:opacity-100 transition hover:bg-slate-900"
                     >
                       <ChevronRight size={20} />
                     </button>
@@ -363,46 +381,40 @@ export default function BarbershopDetailPage() {
             )}
           </section>
 
-          {/* Section Services with DYNAMIC DISTINCT ICONS */}
+          {/* Section Services and participants */}
           <section className="space-y-4">
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-blue-600">Pilihan Layanan Cukur</p>
-              <h2 className="mt-1 font-display text-2xl font-bold text-slate-900">2. Pilih Kebutuhan Grooming</h2>
+              <h2 className="mt-1 font-display text-2xl font-bold text-slate-900">2. Siapa yang akan dicukur?</h2>
+              <p className="mt-1 text-xs text-slate-600">Tambahkan anak atau anggota keluarga lain dalam satu booking. Barber mengerjakannya berurutan.</p>
             </div>
 
-            <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-              {shop.services.map((service) => {
-                const isSelected = serviceId === service.id;
-                const iconInfo = getServiceIcon(service.name);
+            <div className="space-y-3">
+              {participants.map((participant, index) => {
+                const selected = shop.services.find((service) => service.id === participant.serviceId);
+                const iconInfo = getServiceIcon(selected?.name || 'cukur');
                 const IconComponent = iconInfo.icon;
-
                 return (
-                  <button
-                    key={service.id}
-                    type="button"
-                    onClick={() => setServiceId(service.id)}
-                    className={`flex w-full items-center justify-between gap-4 p-4 text-left transition-colors ${isSelected ? 'bg-blue-50/70 ring-1 ring-blue-200 inset-0' : 'hover:bg-slate-50'
-                      }`}
-                  >
-                    <div className="flex items-center gap-3.5">
-                      <span className={`grid size-11 shrink-0 place-items-center rounded-xl border ${isSelected ? 'border-blue-600 bg-blue-600 text-white shadow-sm' : `${iconInfo.border} ${iconInfo.bg} ${iconInfo.text}`}`}>
-                        <IconComponent size={20} />
-                      </span>
-                      <div>
-                        <span className={`block text-sm font-bold ${isSelected ? 'text-blue-600' : 'text-slate-900'}`}>
-                          {service.name}
-                        </span>
-                        <span className="mt-0.5 block text-xs text-slate-500">
-                          {service.description || 'Layanan grooming resmi'} · {service.duration} menit
-                        </span>
+                  <div key={`${index}-${participant.participantName}`} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <div className="flex items-start gap-3">
+                      <span className={`grid size-10 shrink-0 place-items-center rounded-xl border ${iconInfo.border} ${iconInfo.bg} ${iconInfo.text}`}><IconComponent size={18} /></span>
+                      <div className="min-w-0 flex-1 space-y-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs font-bold text-slate-900">Peserta {index + 1}</p>
+                          {participants.length > 1 && <button type="button" onClick={() => removeParticipant(index)} aria-label={`Hapus peserta ${index + 1}`} className="grid size-9 place-items-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600"><Trash2 size={15} /></button>}
+                        </div>
+                        <input value={participant.participantName} onChange={(event) => updateParticipant(index, { participantName: event.target.value })} placeholder="Nama, contoh: Budi / Anak saya" className="h-10 w-full rounded-xl border border-slate-300 px-3 text-xs text-slate-900 outline-none focus:border-blue-600" />
+                        <select value={participant.serviceId ?? ''} onChange={(event) => updateParticipant(index, { serviceId: Number(event.target.value) })} className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-900 outline-none focus:border-blue-600">
+                          <option value="">Pilih layanan</option>
+                          {shop.services.map((service) => <option key={service.id} value={service.id}>{service.name} · {service.duration} menit · Rp {service.price.toLocaleString('id-ID')}</option>)}
+                        </select>
                       </div>
                     </div>
-                    <span className="shrink-0 text-sm font-bold text-blue-600">
-                      Rp {service.price.toLocaleString('id-ID')}
-                    </span>
-                  </button>
+                    {selected && <p className="mt-3 border-t border-slate-100 pt-3 text-[11px] font-semibold text-slate-500">{selected.name} · {selected.duration} menit · Rp {selected.price.toLocaleString('id-ID')}</p>}
+                  </div>
                 );
               })}
+              <button type="button" onClick={addParticipant} disabled={participants.length >= 10} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-blue-300 bg-blue-50/50 px-4 py-3 text-xs font-bold text-blue-700 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50"><Plus size={16} /> Tambah orang ({participants.length}/10)</button>
             </div>
           </section>
         </div>
@@ -446,9 +458,9 @@ export default function BarbershopDetailPage() {
             <div className="flex items-center justify-between border-t border-slate-100 pt-4 text-xs">
               <span className="flex items-center gap-2 text-slate-600 font-medium">
                 <Clock3 size={14} className="text-blue-600" />
-                {selectedService.name} ({selectedService.duration}m)
+                {participants.length > 1 ? `${participants.length} peserta` : selectedService.name} · {participants.reduce((total, item) => total + (shop.services.find((service) => service.id === item.serviceId)?.duration ?? 0), 0)}m
               </span>
-              <span className="font-bold text-blue-600">Rp {selectedService.price.toLocaleString('id-ID')}+</span>
+              <span className="font-bold text-blue-600">Rp {participants.reduce((total, item) => total + (shop.services.find((service) => service.id === item.serviceId)?.price ?? 0), 0).toLocaleString('id-ID')}+</span>
             </div>
           )}
 
@@ -458,7 +470,7 @@ export default function BarbershopDetailPage() {
           </Button>
 
           <p className="text-center text-[10px] leading-relaxed text-slate-500">
-            Booking menunggu konfirmasi barber. Pembayaran via Midtrans / QRIS dapat dilanjutkan setelah booking tersimpan.
+            Booking menunggu konfirmasi barber. Setelah diterima, kamu punya 30 menit untuk menyelesaikan pembayaran sebelum barber berangkat.
           </p>
         </form>
       </div>

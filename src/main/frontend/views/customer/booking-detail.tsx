@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, ChangeEvent } from 'react';
+import { useEffect, useState, useCallback, ChangeEvent, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import {
   ArrowLeft,
@@ -18,7 +18,6 @@ import type BookingResponse from '../../generated/com/dicukur/app/booking/dto/Bo
 import type PaymentResponse from '../../generated/com/dicukur/app/payment/dto/PaymentResponse.js';
 import type ReviewResponse from '../../generated/com/dicukur/app/review/dto/ReviewResponse.js';
 
-import { LiveTrackingMap } from '../../components/LiveTrackingMap.js';
 import { toast } from '../../components/ui/Toast.js';
 
 export default function CustomerBookingDetailPage() {
@@ -32,7 +31,7 @@ export default function CustomerBookingDetailPage() {
   const [error, setError] = useState('');
 
   // Payment Form state
-  const [paymentMethod, setPaymentMethod] = useState<'qris' | 'cash' | 'transfer'>('qris');
+  const [paymentMethod, setPaymentMethod] = useState<'qris' | 'transfer'>('qris');
   const [proofBase64, setProofBase64] = useState<string>('');
   const [paymentNotes, setPaymentNotes] = useState<string>('');
   const [submittingPayment, setSubmittingPayment] = useState(false);
@@ -43,6 +42,7 @@ export default function CustomerBookingDetailPage() {
   const [rating, setRating] = useState<number>(5);
   const [reviewText, setReviewText] = useState<string>('');
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [now, setNow] = useState(Date.now());
 
   const loadData = useCallback(async () => {
     if (!id) return;
@@ -75,6 +75,17 @@ export default function CustomerBookingDetailPage() {
     }, 5000);
     return () => clearInterval(interval);
   }, [loadData, booking?.status]);
+
+  useEffect(() => {
+    if (!booking?.paymentDeadline) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [booking?.paymentDeadline]);
+
+  const paymentSecondsLeft = useMemo(() => {
+    if (!booking?.paymentDeadline) return null;
+    return Math.max(0, Math.floor((new Date(booking.paymentDeadline).getTime() - now) / 1000));
+  }, [booking?.paymentDeadline, now]);
 
   useEffect(() => {
     if (document.getElementById('midtrans-snap-script')) return;
@@ -155,7 +166,7 @@ export default function CustomerBookingDetailPage() {
           onClose: () => { void loadData(); },
         });
       } else {
-        toast.success(paymentMethod === 'cash' ? 'Pembayaran dicatat' : 'Bukti pembayaran terkirim', paymentMethod === 'cash' ? 'Pembayaran tunai akan diproses bersama barber.' : 'Admin akan memverifikasi bukti transfer kamu.');
+        toast.success('Bukti pembayaran terkirim', 'Admin akan memverifikasi bukti transfer kamu.');
         setProofBase64('');
         setPaymentNotes('');
         await loadData();
@@ -222,29 +233,15 @@ export default function CustomerBookingDetailPage() {
             <h1 className="font-display text-2xl font-bold text-slate-900 mt-1">Detail Janji Cukur</h1>
           </div>
         </div>
+        {(booking.status === 'accepted' || booking.status === 'on_the_way' || booking.status === 'arrived') && (
+          <button type="button" onClick={() => navigate(`/customer/bookings/${booking.id}/tracking`)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-blue-700"><Navigation size={15} /> Buka Tracking</button>
+        )}
       </div>
 
       {/* Grid Content */}
       <div className="grid gap-6 md:grid-cols-3">
         {/* Left 2 Cols: Details */}
         <div className="md:col-span-2 space-y-6">
-          {/* Live Tracking Map Component */}
-          {(booking.status?.toLowerCase() === 'on_the_way' ||
-            booking.status?.toLowerCase() === 'arrived' ||
-            booking.status?.toLowerCase() === 'accepted') && (
-            <LiveTrackingMap
-              customerLat={booking.latitude || -6.200000}
-              customerLng={booking.longitude || 106.816666}
-              customerAddress={booking.address}
-              barberLat={booking.barberLatitude}
-              barberLng={booking.barberLongitude}
-              barberName={booking.barberName || 'Barber'}
-              barberPhone={booking.barberPhone}
-              phoneLabel="Hubungi Barber"
-              status={booking.status?.toLowerCase() || 'accepted'}
-            />
-          )}
-
           {/* Barber & Shop Info */}
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
             <h2 className="text-xs font-bold uppercase tracking-wider text-red-600">Penyedia Layanan</h2>
@@ -262,6 +259,7 @@ export default function CustomerBookingDetailPage() {
               <div>
                 <p className="text-slate-500 font-medium">Layanan Grooming</p>
                 <p className="font-bold text-slate-900 mt-0.5">{booking.serviceName}</p>
+                {booking.details?.filter(Boolean).map((detail) => detail && <p key={detail.id} className="mt-1 text-[11px] font-medium text-slate-500">{detail.participantName} · {detail.serviceName}</p>)}
               </div>
               <div>
                 <p className="text-slate-500 font-medium">Jadwal Janji</p>
@@ -285,7 +283,7 @@ export default function CustomerBookingDetailPage() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-red-600 hover:text-red-700"
               >
-                <Navigation size={13} /> Bukad Peta Google Maps ({booking.distanceKm?.toFixed(1)} km)
+                <Navigation size={13} /> Buka Peta Google Maps ({booking.distanceKm?.toFixed(1)} km)
               </a>
             </div>
           </div>
@@ -294,7 +292,7 @@ export default function CustomerBookingDetailPage() {
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-3">
             <h2 className="text-xs font-bold uppercase tracking-wider text-red-600">Rincian Pembayaran</h2>
             <div className="flex justify-between text-xs text-slate-600 pt-2">
-              <span>Layanan {booking.serviceName}</span>
+              <span>Layanan ({booking.details?.length || 1} peserta)</span>
               <span className="font-semibold text-slate-900">Rp {(booking.serviceSubtotal ?? 0).toLocaleString('id-ID')}</span>
             </div>
             <div className="flex justify-between text-xs text-slate-600">
@@ -398,10 +396,13 @@ export default function CustomerBookingDetailPage() {
                           : 'Belum Dibayar'}
                 </p>
                 <p className="text-[10px] text-slate-500 mt-0.5">
-                  {payment ? `Metode: ${payment.paymentMethod === 'qris' ? 'Midtrans / QRIS' : payment.paymentMethod === 'transfer' ? 'Transfer Manual' : 'Bayar di Lokasi'}` : 'Belum memilih metode'}
+                  {payment ? `Metode: ${payment.paymentMethod === 'qris' ? 'Midtrans / QRIS' : 'Transfer Manual'}` : 'Belum memilih metode'}
                 </p>
               </div>
             </div>
+
+            {booking.status === 'pending' && <div className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-xs text-blue-800"><p className="font-bold">Menunggu barber menerima pesanan</p><p className="mt-1 text-[11px]">Pembayaran baru tersedia setelah barber mengonfirmasi booking.</p></div>}
+            {booking.status === 'accepted' && booking.paymentStatus !== 'paid' && paymentSecondsLeft !== null && <div className={`rounded-xl border p-3 text-xs ${paymentSecondsLeft < 300 ? 'border-red-200 bg-red-50 text-red-800' : 'border-amber-200 bg-amber-50 text-amber-800'}`}><p className="font-bold">Selesaikan pembayaran sebelum barber berangkat</p><p className="mt-1 text-[11px]">Waktu tersisa: {String(Math.floor(paymentSecondsLeft / 60)).padStart(2, '0')}:{String(paymentSecondsLeft % 60).padStart(2, '0')}</p></div>}
 
             {/* If Payment exists & waiting verification */}
             {payment?.status === 'waiting_verification' && (
@@ -432,14 +433,14 @@ export default function CustomerBookingDetailPage() {
             )}
 
             {/* Payment Form */}
-            {(!payment || payment.status === 'pending' || payment.status === 'failed') && (
+            {booking.status === 'accepted' && (!payment || payment.status === 'pending' || payment.status === 'failed') && paymentSecondsLeft !== 0 && (
               <div className="space-y-4 border-t border-slate-100 pt-4">
                 <div>
                   <p className="text-xs font-bold text-slate-700">Pilih cara pembayaran</p>
                   <p className="mt-1 text-[11px] text-slate-500">Selesaikan pembayaran sebelum barber datang agar pesanan berjalan lancar.</p>
                 </div>
 
-                <div className="grid gap-2 sm:grid-cols-3">
+                <div className="grid gap-2 sm:grid-cols-2">
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('qris')}
@@ -460,18 +461,6 @@ export default function CustomerBookingDetailPage() {
                   >
                     <span className="block text-xs font-bold">Transfer Manual</span>
                     <span className="mt-0.5 block text-[10px] font-medium text-slate-500">Upload bukti transfer</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('cash')}
-                    className={`rounded-xl border p-3 text-center text-xs font-bold transition-all ${
-                      paymentMethod === 'cash'
-                        ? 'border-red-600 bg-red-50 text-red-600 shadow-sm'
-                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                    }`}
-                  >
-                    <span className="block text-xs font-bold">Bayar di Lokasi</span>
-                    <span className="mt-0.5 block text-[10px] font-medium text-slate-500">Tunai ke barber</span>
                   </button>
                 </div>
 
@@ -527,7 +516,7 @@ export default function CustomerBookingDetailPage() {
                   onClick={() => void handlePaymentSubmit()}
                   disabled={submittingPayment || uploadingProof}
                 >
-                  {submittingPayment ? 'Memproses...' : paymentMethod === 'qris' ? 'Lanjut ke Pembayaran' : paymentMethod === 'transfer' ? 'Kirim Bukti Pembayaran' : 'Konfirmasi Bayar di Lokasi'}
+                  {submittingPayment ? 'Memproses...' : paymentMethod === 'qris' ? 'Lanjut ke Pembayaran' : 'Kirim Bukti Pembayaran'}
                 </Button>
               </div>
             )}

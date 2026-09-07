@@ -1,6 +1,8 @@
 package com.dicukur.app.barbershop.dto;
 
+import com.dicukur.app.booking.dto.BookingDetailResponse;
 import java.math.BigDecimal;
+import java.util.List;
 
 public record BarberBookingResponse(
         Long id,
@@ -20,6 +22,9 @@ public record BarberBookingResponse(
         String status,
         String paymentStatus,
         String notes,
-        String cancellationReason
+        String cancellationReason,
+        String paymentDeadline,
+        String locationUpdatedAt,
+        List<BookingDetailResponse> details
 ) {
 }

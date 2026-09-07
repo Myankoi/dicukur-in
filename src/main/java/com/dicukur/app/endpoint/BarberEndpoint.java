@@ -60,12 +60,26 @@ public class BarberEndpoint {
         return barberService.rejectBooking(bookingId, reason);
     }
 
+    public BarberBookingResponse cancelBooking(Long bookingId, String reason) {
+        return barberService.cancelBooking(bookingId, reason);
+    }
+
     public BarberBookingResponse updateBookingStatus(Long bookingId, String newStatus) {
         return barberService.updateBookingStatus(bookingId, newStatus);
     }
 
+    public BarberBookingResponse startTrip(Long bookingId, java.math.BigDecimal latitude,
+                                           java.math.BigDecimal longitude, java.math.BigDecimal accuracy) {
+        return barberService.startTrip(bookingId, latitude, longitude, accuracy);
+    }
+
     public BarberBookingResponse updateLiveLocation(Long bookingId, java.math.BigDecimal latitude, java.math.BigDecimal longitude) {
         return barberService.updateLiveLocation(bookingId, latitude, longitude);
+    }
+
+    public BarberBookingResponse updateLiveLocationWithAccuracy(Long bookingId, java.math.BigDecimal latitude,
+                                                                java.math.BigDecimal longitude, java.math.BigDecimal accuracy) {
+        return barberService.updateLiveLocation(bookingId, latitude, longitude, accuracy);
     }
 
     // Dashboard

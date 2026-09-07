@@ -12,6 +12,7 @@ interface LiveTrackingMapProps {
   barberPhone?: string;
   phoneLabel?: string;
   status: string;
+  fullPage?: boolean;
 }
 
 // Calculate Haversine distance in KM
@@ -39,6 +40,7 @@ export function LiveTrackingMap({
   barberPhone,
   phoneLabel,
   status,
+  fullPage = false,
 }: LiveTrackingMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -52,8 +54,9 @@ export function LiveTrackingMap({
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [roadInfo, setRoadInfo] = useState<{ distanceKm: number; durationMin: number } | null>(null);
 
-  const bLat = barberLat && barberLat !== 0 ? barberLat : customerLat - 0.012;
-  const bLng = barberLng && barberLng !== 0 ? barberLng : customerLng - 0.012;
+  const hasBarberPosition = Number.isFinite(barberLat) && Number.isFinite(barberLng) && barberLat !== 0 && barberLng !== 0;
+  const bLat = hasBarberPosition ? barberLat! : customerLat;
+  const bLng = hasBarberPosition ? barberLng! : customerLng;
 
   const fallbackDistance = getDistanceKm(bLat, bLng, customerLat, customerLng);
   const fallbackEta = Math.max(1, Math.round((fallbackDistance / 30) * 60));
@@ -116,6 +119,11 @@ export function LiveTrackingMap({
       iconAnchor: [120, 75],
     });
 
+    if (!hasBarberPosition) {
+      barberMarkerRef.current?.removeFrom(map);
+      barberMarkerRef.current = null;
+      return;
+    }
     if (!barberMarkerRef.current) {
       barberMarkerRef.current = L.marker([brbLat, brbLng], { icon: barberIcon })
         .addTo(map)
@@ -176,12 +184,18 @@ export function LiveTrackingMap({
     if (mapInstanceRef.current) {
       renderOrUpdateMarkers(mapInstanceRef.current);
     }
-  }, [customerLat, customerLng, customerAddress, bLat, bLng, barberName]);
+  }, [customerLat, customerLng, customerAddress, bLat, bLng, barberName, hasBarberPosition]);
 
   // 3. Fetch OSRM Driving Route & snap markers exactly to route start/end points
   useEffect(() => {
     let active = true;
     const fetchRoadRoute = async () => {
+      if (!hasBarberPosition) {
+        setRoadInfo(null);
+        if (polylineRef.current && mapInstanceRef.current) polylineRef.current.removeFrom(mapInstanceRef.current);
+        polylineRef.current = null;
+        return;
+      }
       try {
         const url = `https://router.project-osrm.org/route/v1/driving/${bLng},${bLat};${customerLng},${customerLat}?overview=full&geometries=geojson`;
         const res = await fetch(url);
@@ -219,7 +233,7 @@ export function LiveTrackingMap({
     return () => {
       active = false;
     };
-  }, [bLat, bLng, customerLat, customerLng]);
+  }, [bLat, bLng, customerLat, customerLng, hasBarberPosition]);
 
   const handleRecenter = () => {
     isUserMovedRef.current = false;
@@ -258,7 +272,7 @@ export function LiveTrackingMap({
       )}
 
       <div
-        className={`rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4 transition-all duration-300 ${
+        className={`${fullPage ? 'fixed inset-0 z-50 flex h-dvh flex-col rounded-none border-0 p-3 sm:p-5' : 'rounded-2xl border border-slate-200 p-5'} bg-white shadow-sm space-y-4 transition-all duration-300 ${
           isFullscreen
             ? 'fixed inset-4 sm:inset-10 z-50 flex flex-col justify-between shadow-2xl border-slate-300 bg-white'
             : 'w-full'
@@ -302,7 +316,7 @@ export function LiveTrackingMap({
                 <Phone size={14} /> {phoneLabel || 'Hubungi Barber'}
               </a>
             )}
-            <button
+            {!fullPage && <button
               type="button"
               onClick={toggleFullscreen}
               className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors shadow-sm"
@@ -310,14 +324,14 @@ export function LiveTrackingMap({
             >
               {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
               <span className="hidden sm:inline">{isFullscreen ? 'Kecilkan' : 'Full Screen'}</span>
-            </button>
+            </button>}
           </div>
         </div>
 
         {/* Interactive Map (Expanded Height: h-[440px] by default, flex-1 when fullscreen) */}
         <div
           className={`relative w-full overflow-hidden rounded-xl border border-slate-200 shadow-inner transition-all ${
-            isFullscreen ? 'flex-1 min-h-[350px]' : 'h-80 sm:h-[440px]'
+            fullPage || isFullscreen ? 'flex-1 min-h-0' : 'h-80 sm:h-[440px]'
           }`}
         >
           <div ref={mapRef} className="h-full w-full z-0" />
@@ -340,6 +354,7 @@ export function LiveTrackingMap({
             <ShieldCheck size={14} className="text-blue-600" />
             Dilindungi Sistem Live Geolocation dicukur.in
           </span>
+          {!hasBarberPosition && <span className="text-amber-700">Menunggu lokasi GPS barber</span>}
           <a
             href={`https://www.google.com/maps/dir/?api=1&origin=${bLat},${bLng}&destination=${customerLat},${customerLng}`}
             target="_blank"

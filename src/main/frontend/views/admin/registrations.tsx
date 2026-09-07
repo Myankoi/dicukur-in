@@ -27,7 +27,7 @@ export default function AdminRegistrationsPage() {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'submitted' | 'approved' | 'rejected'>('ALL');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'submitted' | 'under_review' | 'approved' | 'rejected'>('ALL');
 
   // Modal State for Details & Actions
   const [selectedReg, setSelectedReg] = useState<RegistrationResponse | null>(null);
@@ -36,6 +36,18 @@ export default function AdminRegistrationsPage() {
   const [approveModalOpen, setApproveModalOpen] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
   const [processing, setProcessing] = useState(false);
+
+  const handleVerifyDocument = async (documentId: number, action: 'approve' | 'reject') => {
+    const notes = action === 'reject' ? window.prompt('Alasan penolakan dokumen:') : '';
+    if (action === 'reject' && !notes?.trim()) return;
+    setProcessing(true); setError(null);
+    try {
+      const updated = await AdminRegistrationEndpoint.verifyDocument(documentId, action, notes || '');
+      if (selectedReg?.id === updated?.id) setSelectedReg(updated as RegistrationResponse);
+      await fetchRegistrations();
+    } catch (err: any) { setError(err?.message || 'Gagal memverifikasi dokumen.'); }
+    finally { setProcessing(false); }
+  };
 
   const fetchRegistrations = async () => {
     setLoading(true);
@@ -202,6 +214,7 @@ export default function AdminRegistrationsPage() {
               [
                 { id: 'ALL', label: 'Semua' },
                 { id: 'submitted', label: 'Perlu Review' },
+                { id: 'under_review', label: 'Review Dokumen' },
                 { id: 'approved', label: 'Disetujui' },
                 { id: 'rejected', label: 'Ditolak' },
               ] as const
@@ -464,14 +477,15 @@ export default function AdminRegistrationsPage() {
                             key={doc.id}
                             className="flex items-center justify-between p-2.5 rounded-lg border border-slate-200 bg-slate-50 text-xs"
                           >
-                            <div className="flex items-center gap-2">
+                            <div className="flex min-w-0 items-center gap-2">
                               <FileCheck size={16} className="text-emerald-600" />
-                              <div>
+                              <div className="min-w-0">
                                 <p className="font-bold text-slate-900">{doc.fileName}</p>
-                                <p className="text-[10px] text-slate-500 capitalize">{doc.documentType}</p>
+                                <p className={`text-[10px] capitalize ${doc.verificationStatus === 'valid' ? 'text-emerald-600' : doc.verificationStatus === 'invalid' ? 'text-red-600' : 'text-amber-600'}`}>{doc.documentType} · {doc.verificationStatus}</p>
                               </div>
                             </div>
-                            {doc.filePath && (
+                            <div className="flex shrink-0 items-center gap-2">
+                              {doc.filePath && (
                               <a
                                 href={doc.filePath}
                                 target="_blank"
@@ -480,7 +494,9 @@ export default function AdminRegistrationsPage() {
                               >
                                 Lihat File
                               </a>
-                            )}
+                              )}
+                              {doc.id && doc.verificationStatus === 'pending' && <><button type="button" disabled={processing} onClick={() => void handleVerifyDocument(doc.id!, 'approve')} className="min-h-9 rounded-lg bg-emerald-600 px-2.5 text-[10px] font-bold text-white">Valid</button><button type="button" disabled={processing} onClick={() => void handleVerifyDocument(doc.id!, 'reject')} className="min-h-9 rounded-lg border border-red-200 px-2.5 text-[10px] font-bold text-red-600">Tolak</button></>}
+                            </div>
                           </div>
                         ))}
                     </div>

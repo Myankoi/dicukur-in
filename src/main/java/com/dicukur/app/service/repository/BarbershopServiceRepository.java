@@ -9,6 +9,8 @@ import java.util.Optional;
 public interface BarbershopServiceRepository extends JpaRepository<BarbershopService, Long> {
     List<BarbershopService> findByBarbershop_IdAndStatus(Long barbershopId, String status);
 
+    Optional<BarbershopService> findByIdAndBarbershop_IdAndStatus(Long id, Long barbershopId, String status);
+
     Optional<BarbershopService> findByBarbershop_IdAndService_IdAndStatus(Long barbershopId,
                                                                             Long serviceId,
                                                                             String status);

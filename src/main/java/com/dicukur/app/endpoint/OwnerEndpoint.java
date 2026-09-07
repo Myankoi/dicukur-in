@@ -43,6 +43,14 @@ public class OwnerEndpoint {
         return ownerService.addStaff(request);
     }
 
+    public StaffInvitationResponse inviteStaff(@Valid StaffInvitationRequest request) {
+        return ownerService.inviteStaff(request);
+    }
+
+    public List<StaffInvitationResponse> getMyStaffInvitations() {
+        return ownerService.getMyStaffInvitations();
+    }
+
     public StaffResponse toggleStaffStatus(Long staffId) {
         return ownerService.toggleStaffStatus(staffId);
     }

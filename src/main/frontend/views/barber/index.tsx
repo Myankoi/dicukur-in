@@ -199,14 +199,14 @@ export default function BarberDashboard() {
           <button
             type="button"
             onClick={handlePrevSlide}
-            className="absolute left-2 top-1/2 -translate-y-1/2 grid size-7 place-items-center rounded-full bg-slate-900/70 text-white backdrop-blur-md opacity-0 group-hover:opacity-100 transition hover:bg-slate-900"
+            className="absolute left-2 top-1/2 -translate-y-1/2 grid size-11 place-items-center rounded-full bg-slate-900/70 text-white backdrop-blur-md opacity-100 md:size-9 md:opacity-0 md:group-hover:opacity-100 transition hover:bg-slate-900"
           >
             <ChevronLeft size={16} />
           </button>
           <button
             type="button"
             onClick={handleNextSlide}
-            className="absolute right-2 top-1/2 -translate-y-1/2 grid size-7 place-items-center rounded-full bg-slate-900/70 text-white backdrop-blur-md opacity-0 group-hover:opacity-100 transition hover:bg-slate-900"
+            className="absolute right-2 top-1/2 -translate-y-1/2 grid size-11 place-items-center rounded-full bg-slate-900/70 text-white backdrop-blur-md opacity-100 md:size-9 md:opacity-0 md:group-hover:opacity-100 transition hover:bg-slate-900"
           >
             <ChevronRight size={16} />
           </button>

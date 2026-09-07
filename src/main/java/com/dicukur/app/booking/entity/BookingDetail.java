@@ -21,6 +21,12 @@ public class BookingDetail {
     @JoinColumn(name = "booking_id", nullable = false)
     private Booking booking;
 
+    @Column(name = "participant_name", nullable = false, length = 100)
+    private String participantName;
+
+    @Column(name = "sequence_number", nullable = false)
+    private Integer sequenceNumber;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "service_id", nullable = false)
     private ServiceOffering service;

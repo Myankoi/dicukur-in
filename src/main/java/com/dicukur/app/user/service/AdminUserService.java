@@ -1,5 +1,6 @@
 package com.dicukur.app.user.service;
 
+import com.dicukur.app.admin.service.AdminAuditService;
 import com.dicukur.app.security.CurrentUserService;
 import com.dicukur.app.user.dto.AdminCreateUserRequest;
 import com.dicukur.app.user.dto.AdminUpdateUserRequest;
@@ -23,15 +24,18 @@ public class AdminUserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final CurrentUserService currentUserService;
+    private final AdminAuditService auditService;
 
     public AdminUserService(UserRepository userRepository,
                             RoleRepository roleRepository,
                             PasswordEncoder passwordEncoder,
-                            CurrentUserService currentUserService) {
+                            CurrentUserService currentUserService,
+                            AdminAuditService auditService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.currentUserService = currentUserService;
+        this.auditService = auditService;
     }
 
     @Transactional(readOnly = true)
@@ -82,7 +86,9 @@ public class AdminUserService {
         user.setCreatedAt(now);
         user.setUpdatedAt(now);
 
-        return toResponse(userRepository.save(user));
+        User saved = userRepository.save(user);
+        auditService.record("CREATE_USER", "USER", saved.getId(), saved.getRole().getName());
+        return toResponse(saved);
     }
 
     @Transactional
@@ -124,7 +130,9 @@ public class AdminUserService {
         user.setNotes(blankToNull(request.notes()));
         user.setUpdatedAt(LocalDateTime.now());
 
-        return toResponse(userRepository.save(user));
+        User saved = userRepository.save(user);
+        auditService.record("UPDATE_USER", "USER", saved.getId(), saved.getStatus());
+        return toResponse(saved);
     }
 
     @Transactional
@@ -141,6 +149,7 @@ public class AdminUserService {
         user.setStatus("suspended");
         user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
+        auditService.record("SUSPEND_USER", "USER", user.getId(), user.getName());
     }
 
     private UserResponse toResponse(User user) {

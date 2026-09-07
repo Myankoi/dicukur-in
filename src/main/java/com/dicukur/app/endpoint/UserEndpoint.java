@@ -14,7 +14,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.Optional;
 
 @BrowserCallable
-@AnonymousAllowed
 public class UserEndpoint {
 
     private final UserRepository userRepository;
@@ -25,6 +24,7 @@ public class UserEndpoint {
         this.userService = userService;
     }
 
+    @AnonymousAllowed
     public Optional<UserInfoRecord> getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {

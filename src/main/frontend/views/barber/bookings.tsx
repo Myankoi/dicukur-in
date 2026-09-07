@@ -16,7 +16,7 @@ import {
   Scissors,
 } from 'lucide-react';
 import { BarberEndpoint } from '../../generated/endpoints.js';
-import { LiveTrackingMap } from '../../components/LiveTrackingMap.js';
+import { useNavigate } from 'react-router';
 
 interface BookingItem {
   id: number;
@@ -37,6 +37,9 @@ interface BookingItem {
   paymentStatus: string;
   notes: string | null;
   cancellationReason: string | null;
+  paymentDeadline?: string;
+  locationUpdatedAt?: string;
+  details?: Array<{ id?: number; participantName?: string; serviceName?: string; duration?: number; subtotal?: number }>;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -57,6 +60,7 @@ const NEXT_STATUS: Record<string, { label: string; value: string }> = {
 };
 
 export default function BarberBookingsPage() {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState<BookingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<number | null>(null);
@@ -91,7 +95,7 @@ export default function BarberBookingsPage() {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         setBarberCoords({ lat, lng });
-        void BarberEndpoint.updateLiveLocation(activeOtw.id, lat as any, lng as any);
+        void BarberEndpoint.updateLiveLocationWithAccuracy(activeOtw.id, lat as any, lng as any, pos.coords.accuracy as any);
       },
       (err) => {
         console.warn('Lokasi GPS tidak dapat diakses:', err);
@@ -141,10 +145,36 @@ export default function BarberBookingsPage() {
     setProcessing(id);
     setError('');
     try {
-      await BarberEndpoint.updateBookingStatus(id, newStatus);
+      if (newStatus === 'on_the_way') {
+        if (!navigator.geolocation) throw new Error('Browser tidak mendukung GPS.');
+        await new Promise<void>((resolve, reject) => navigator.geolocation.getCurrentPosition(
+          (position) => {
+            void BarberEndpoint.startTrip(id, position.coords.latitude as any, position.coords.longitude as any, position.coords.accuracy as any).then(() => resolve()).catch(reject);
+          },
+          () => reject(new Error('GPS wajib diizinkan agar barber dapat berangkat.')),
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        ));
+      } else {
+        await BarberEndpoint.updateBookingStatus(id, newStatus);
+      }
       await fetchBookings();
     } catch (e: any) {
       setError(e?.message || 'Gagal mengubah status');
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const handleCancelBooking = async (booking: BookingItem) => {
+    const reason = window.prompt('Alasan pembatalan booking:');
+    if (!reason?.trim() || !window.confirm('Batalkan booking ini? Jika sudah lunas, refund akan diproses admin.')) return;
+    setProcessing(booking.id);
+    setError('');
+    try {
+      await BarberEndpoint.cancelBooking(booking.id, reason.trim());
+      await fetchBookings();
+    } catch (cause: any) {
+      setError(cause?.message || 'Gagal membatalkan booking');
     } finally {
       setProcessing(null);
     }
@@ -298,24 +328,6 @@ export default function BarberBookingsPage() {
                       className="overflow-hidden"
                     >
                       <div className="border-t border-slate-100 px-5 py-4 space-y-4 bg-slate-50/50">
-                        {/* Live Tracking Map for Barber */}
-                        {(booking.status?.toLowerCase() === 'accepted' ||
-                          booking.status?.toLowerCase() === 'on_the_way' ||
-                          booking.status?.toLowerCase() === 'arrived' ||
-                          booking.status?.toLowerCase() === 'in_progress') && (
-                          <LiveTrackingMap
-                            customerLat={booking.customerLatitude || -6.200000}
-                            customerLng={booking.customerLongitude || 106.816666}
-                            customerAddress={booking.address}
-                            barberLat={barberCoords?.lat ?? booking.barberLatitude}
-                            barberLng={barberCoords?.lng ?? booking.barberLongitude}
-                            barberName="Posisi Anda (Barber)"
-                            barberPhone={booking.customerPhone}
-                            phoneLabel="Hubungi Customer"
-                            status={booking.status?.toLowerCase()}
-                          />
-                        )}
-
                         {/* Customer Info */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div className="flex items-start gap-3 p-3.5 rounded-xl bg-white border border-slate-200 shadow-sm">
@@ -324,7 +336,7 @@ export default function BarberBookingsPage() {
                               <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Alamat Tujuan</p>
                               <p className="text-xs font-bold text-slate-900">{booking.address}</p>
                               <p className="text-[11px] text-slate-500 mt-1">
-                                Koordinat: {Number(booking.customerLatitude).toFixed(6)}, {Number(booking.customerLongitude).toFixed(6)}
+                                Koordinat: {booking.customerLatitude != null ? Number(booking.customerLatitude).toFixed(6) : '-'}, {booking.customerLongitude != null ? Number(booking.customerLongitude).toFixed(6) : '-'}
                               </p>
                             </div>
                           </div>
@@ -341,7 +353,7 @@ export default function BarberBookingsPage() {
                                 <Navigation size={14} className="text-blue-600" />
                                 <span className="text-xs font-medium text-slate-600">Jarak</span>
                               </div>
-                              <span className="text-xs font-bold text-slate-900">{Number(booking.distanceKm).toFixed(1)} km</span>
+                              <span className="text-xs font-bold text-slate-900">{booking.distanceKm != null ? Number(booking.distanceKm).toFixed(1) : '-'} km</span>
                             </div>
                           </div>
                         </div>
@@ -369,6 +381,10 @@ export default function BarberBookingsPage() {
                           <Navigation size={16} />
                           Buka Navigasi di Google Maps
                         </a>
+
+                        {(booking.status === 'accepted' || booking.status === 'on_the_way' || booking.status === 'arrived') && <button type="button" onClick={() => navigate(`/barber/bookings/${booking.id}/tracking`)} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-xs font-bold text-blue-700 hover:bg-blue-100"><Navigation size={16} /> Buka Tracking Fullscreen</button>}
+
+                        {booking.details?.length ? <div className="rounded-xl border border-slate-200 bg-white p-3"><p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Urutan peserta</p>{booking.details.map((detail, index) => <p key={detail.id ?? index} className="mt-1 text-xs font-semibold text-slate-800">{index + 1}. {detail.participantName || 'Peserta'} · {detail.serviceName} {detail.duration ? `(${detail.duration} menit)` : ''}</p>)}</div> : null}
 
                         {/* Action Buttons */}
                         <div className="flex flex-wrap gap-2 pt-1">
@@ -398,12 +414,23 @@ export default function BarberBookingsPage() {
                           {next && (
                             <button
                               type="button"
-                              disabled={processing === booking.id}
-                              className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-red-700 disabled:opacity-50 shadow-sm"
+                              className={`inline-flex min-h-11 items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold text-white transition-colors disabled:opacity-50 shadow-sm ${next.value === 'on_the_way' && booking.paymentStatus !== 'paid' ? 'cursor-not-allowed bg-slate-400' : 'bg-red-600 hover:bg-red-700'}`}
                               onClick={() => handleUpdateStatus(booking.id, next.value)}
+                              title={next.value === 'on_the_way' && booking.paymentStatus !== 'paid' ? 'Customer harus melunasi pembayaran terlebih dahulu' : undefined}
+                              disabled={processing === booking.id || (next.value === 'on_the_way' && booking.paymentStatus !== 'paid')}
                             >
                               {processing === booking.id ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
                               {next.label}
+                            </button>
+                          )}
+                          {(booking.status === 'accepted' || booking.status === 'on_the_way') && (
+                            <button
+                              type="button"
+                              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-xs font-bold text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50"
+                              onClick={() => void handleCancelBooking(booking)}
+                              disabled={processing === booking.id}
+                            >
+                              <X size={16} /> Batalkan
                             </button>
                           )}
                         </div>

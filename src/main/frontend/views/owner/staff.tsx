@@ -15,8 +15,10 @@ import {
 } from 'lucide-react';
 import { OwnerEndpoint } from '../../generated/endpoints.js';
 import type StaffResponse from '../../generated/com/dicukur/app/barbershop/dto/StaffResponse.js';
-import type AddStaffRequest from '../../generated/com/dicukur/app/barbershop/dto/AddStaffRequest.js';
 import { toast } from '../../components/ui/Toast.js';
+
+interface InvitationForm { email: string; phone?: string; position?: string; }
+interface InvitationResult { invitePath?: string; inviteToken?: string; email?: string; }
 
 export default function OwnerStaffPage() {
   const [staffList, setStaffList] = useState<StaffResponse[]>([]);
@@ -25,13 +27,12 @@ export default function OwnerStaffPage() {
 
   // Modal State: Add Staff
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [form, setForm] = useState<AddStaffRequest>({
-    name: '',
+  const [form, setForm] = useState<InvitationForm>({
     email: '',
     phone: '',
-    password: '',
     position: 'Senior Barber',
   });
+  const [invitation, setInvitation] = useState<InvitationResult | null>(null);
   const [processing, setProcessing] = useState(false);
 
   const fetchStaff = async () => {
@@ -52,12 +53,11 @@ export default function OwnerStaffPage() {
 
   const handleOpenCreateModal = () => {
     setForm({
-      name: '',
       email: '',
       phone: '',
-      password: '',
       position: 'Senior Barber',
     });
+    setInvitation(null);
     setCreateModalOpen(true);
   };
 
@@ -65,9 +65,9 @@ export default function OwnerStaffPage() {
     e.preventDefault();
     setProcessing(true);
     try {
-      await OwnerEndpoint.addStaff(form);
-      toast.success(`Barber "${form.name}" berhasil didaftarkan`, 'Akun barber baru siap menerima booking.');
-      setCreateModalOpen(false);
+      const result = await OwnerEndpoint.inviteStaff(form);
+      setInvitation((result ?? {}) as InvitationResult);
+      toast.success('Undangan barber berhasil dibuat', 'Bagikan link ini agar barber melengkapi akun dan dokumennya.');
       await fetchStaff();
     } catch (err: any) {
       toast.error('Gagal mendaftarkan barber', err?.message || 'Periksa kembali data yang dimasukkan.');
@@ -108,7 +108,7 @@ export default function OwnerStaffPage() {
               Karyawan Barber
             </h1>
             <p className="text-xs text-slate-600 sm:text-sm">
-              Daftarkan akun barber karyawan baru untuk menerima pesanan booking atas nama toko Anda.
+              Undang barber ke toko Anda. Barber akan membuat akun sendiri dan mengirim KTP serta bukti kompetensi untuk diverifikasi admin.
             </p>
           </div>
 
@@ -118,7 +118,7 @@ export default function OwnerStaffPage() {
             onClick={handleOpenCreateModal}
           >
             <Plus size={16} />
-            Tambah Barber Baru
+            Undang Barber
           </button>
         </div>
       </div>
@@ -144,7 +144,7 @@ export default function OwnerStaffPage() {
         <div className="flex h-48 flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
           <Users size={32} className="text-slate-400 mb-2" />
           <p className="text-xs font-bold text-slate-800">Belum Ada Karyawan Barber</p>
-          <p className="text-[11px] text-slate-500 mt-1">Klik tombol 'Tambah Barber Baru' untuk mendaftarkan akun staf Anda.</p>
+          <p className="text-[11px] text-slate-500 mt-1">Klik “Undang Barber” untuk mengirim link onboarding ke calon staf.</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -235,7 +235,7 @@ export default function OwnerStaffPage() {
             >
               <div className="flex items-center justify-between border-b border-slate-200 pb-4">
                 <h3 className="font-display text-lg font-bold text-slate-900">
-                  Tambah Karyawan Barber Baru
+                  Undang Barber ke Toko
                 </h3>
                 <button
                   type="button"
@@ -248,19 +248,7 @@ export default function OwnerStaffPage() {
 
               <form onSubmit={handleAddStaffSubmit} className="mt-5 space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Nama staf barber"
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="w-full rounded-xl border border-slate-300 bg-white py-2 px-3 text-xs text-slate-900 focus:border-blue-600 focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Email (Untuk Login Barber) *</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Email Barber *</label>
                   <input
                     type="email"
                     required
@@ -278,19 +266,6 @@ export default function OwnerStaffPage() {
                     placeholder="08xxxxxxxxxx"
                     value={form.phone || ''}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                    className="w-full rounded-xl border border-slate-300 bg-white py-2 px-3 text-xs text-slate-900 focus:border-blue-600 focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Kata Sandi Awal *</label>
-                  <input
-                    type="password"
-                    required
-                    minLength={6}
-                    placeholder="Min. 6 karakter"
-                    value={form.password}
-                    onChange={(e) => setForm({ ...form, password: e.target.value })}
                     className="w-full rounded-xl border border-slate-300 bg-white py-2 px-3 text-xs text-slate-900 focus:border-blue-600 focus:outline-none"
                   />
                 </div>
@@ -319,10 +294,18 @@ export default function OwnerStaffPage() {
                     disabled={processing}
                     className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-600/20 transition-all hover:bg-blue-700 disabled:opacity-50 border border-blue-600"
                   >
-                    {processing ? 'Mendaftarkan...' : 'Daftarkan Barber'}
+                    {processing ? 'Membuat undangan...' : 'Buat Link Undangan'}
                   </button>
                 </div>
               </form>
+
+              {invitation?.invitePath && (
+                <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800">
+                  <p className="font-bold">Link undangan siap dibagikan</p>
+                  <div className="mt-2 break-all rounded-lg border border-emerald-200 bg-white p-2 font-mono text-[11px]">{`${window.location.origin}${invitation.invitePath}`}</div>
+                  <button type="button" onClick={() => void navigator.clipboard?.writeText(`${window.location.origin}${invitation.invitePath}`)} className="mt-2 min-h-10 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white">Salin Link</button>
+                </div>
+              )}
             </motion.div>
           </div>
         )}

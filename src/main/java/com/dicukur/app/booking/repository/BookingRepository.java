@@ -30,6 +30,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     Optional<Booking> findByBookingCode(String bookingCode);
 
+    List<Booking> findByStatusAndPaymentStatusAndPaymentDeadlineBefore(String status, String paymentStatus,
+                                                                         LocalDateTime deadline);
+
     long countByBarbershop_Id(Long barbershopId);
 
     long countByBarbershop_IdAndStatus(Long barbershopId, String status);

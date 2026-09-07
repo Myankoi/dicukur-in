@@ -3,6 +3,7 @@ package com.dicukur.app.upload;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.dicukur.app.security.CurrentUserService;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -17,12 +19,26 @@ import java.util.UUID;
 public class UploadController {
 
     private static final String UPLOAD_DIR = "uploads";
+    private final CurrentUserService currentUserService;
+
+    public UploadController(CurrentUserService currentUserService) {
+        this.currentUserService = currentUserService;
+    }
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file,
                                          @RequestParam(value = "type", required = false) String type) {
+        currentUserService.requireUser();
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "File kosong"));
+        }
+
+        if (file.getSize() > 5 * 1024 * 1024) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Ukuran file maksimal 5 MB"));
+        }
+        String contentType = file.getContentType() == null ? "" : file.getContentType().toLowerCase();
+        if (!List.of("image/jpeg", "image/png", "application/pdf").contains(contentType)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Format file harus JPG, PNG, atau PDF"));
         }
 
         try {

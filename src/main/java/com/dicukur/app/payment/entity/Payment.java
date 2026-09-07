@@ -52,6 +52,18 @@ public class Payment {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
+    @Column(name = "refund_reason", columnDefinition = "TEXT")
+    private String refundReason;
+
+    @Column(name = "refund_reference", length = 120)
+    private String refundReference;
+
+    @Column(name = "refund_proof", length = 255)
+    private String refundProof;
+
+    @Column(name = "refunded_at")
+    private LocalDateTime refundedAt;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

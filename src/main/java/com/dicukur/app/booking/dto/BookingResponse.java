@@ -1,6 +1,7 @@
 package com.dicukur.app.booking.dto;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public record BookingResponse(
         Long id,
@@ -21,6 +22,9 @@ public record BookingResponse(
         BigDecimal travelFee,
         BigDecimal totalPrice,
         String status,
-        String paymentStatus
+        String paymentStatus,
+        String paymentDeadline,
+        String locationUpdatedAt,
+        List<BookingDetailResponse> details
 ) {
 }

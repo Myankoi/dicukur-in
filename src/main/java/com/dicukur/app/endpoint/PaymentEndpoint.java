@@ -27,6 +27,11 @@ public class PaymentEndpoint {
         return paymentService.verifyPayment(paymentId, action, notes);
     }
 
+    @RolesAllowed({"ADMIN", "Admin", "ROLE_ADMIN"})
+    public PaymentResponse processRefund(Long paymentId, String action, String notes, String reference, String proof) {
+        return paymentService.processRefund(paymentId, action, notes, reference, proof);
+    }
+
     public PaymentResponse getPaymentByBooking(Long bookingId) {
         return paymentService.getPaymentByBooking(bookingId);
     }

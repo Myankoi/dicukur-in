@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
-import { AlertTriangle, Filter, RefreshCw, Search, XCircle } from 'lucide-react';
-import { AdminMonitoringEndpoint } from '../../generated/endpoints.js';
+import { AlertTriangle, ArrowRightLeft, Filter, RefreshCw, Search, XCircle } from 'lucide-react';
+import { AdminMonitoringEndpoint, AdminOperationsEndpoint } from '../../generated/endpoints.js';
 import { Button } from '../../components/ui/Button.js';
 import type AdminBookingResponse from '../../generated/com/dicukur/app/admin/dto/AdminBookingResponse.js';
+import type UserResponse from '../../generated/com/dicukur/app/user/dto/UserResponse.js';
 
 export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState<AdminBookingResponse[]>([]);
@@ -11,6 +12,8 @@ export default function AdminBookingsPage() {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [actionId, setActionId] = useState<number>();
   const [error, setError] = useState('');
+  const [barbers, setBarbers] = useState<UserResponse[]>([]);
+  const [selectedBarbers, setSelectedBarbers] = useState<Record<number, string>>({});
 
   const loadBookings = useCallback(async () => {
     setLoading(true);
@@ -26,6 +29,9 @@ export default function AdminBookingsPage() {
 
   useEffect(() => {
     void loadBookings();
+    void AdminOperationsEndpoint.getAssignableBarbers()
+      .then((result) => setBarbers((result ?? []).filter((item): item is UserResponse => item !== undefined && item.status === 'active')))
+      .catch(() => setBarbers([]));
   }, [loadBookings]);
 
   const cancelBooking = async (booking: AdminBookingResponse) => {
@@ -37,6 +43,22 @@ export default function AdminBookingsPage() {
       await loadBookings();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Booking gagal dibatalkan');
+    } finally {
+      setActionId(undefined);
+    }
+  };
+
+  const reassignBooking = async (booking: AdminBookingResponse) => {
+    const barberId = Number(selectedBarbers[booking.id!]);
+    if (!booking.id || !barberId || !window.confirm('Alihkan booking #' + booking.bookingCode + ' ke barber yang dipilih?')) return;
+    setActionId(booking.id);
+    setError('');
+    try {
+      await AdminOperationsEndpoint.reassignBooking(booking.id, barberId);
+      setSelectedBarbers((current) => ({ ...current, [booking.id!]: '' }));
+      await loadBookings();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Booking gagal dialihkan');
     } finally {
       setActionId(undefined);
     }
@@ -86,7 +108,7 @@ export default function AdminBookingsPage() {
 
         <div className="flex items-center gap-2 overflow-x-auto">
           <Filter size={15} className="text-slate-400 shrink-0" />
-          {['ALL', 'PENDING', 'ACCEPTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED_BY_CUSTOMER'].map((status) => (
+          {['ALL', 'PENDING', 'ACCEPTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED_UNPAID', 'CANCELLED_BY_CUSTOMER'].map((status) => (
             <button
               key={status}
               type="button"
@@ -145,13 +167,6 @@ export default function AdminBookingsPage() {
                   <p className="font-bold text-slate-900 mt-0.5">{b.customerName}</p>
                   <p className="text-[11px] text-slate-500">{b.customerEmail}</p>
                 </div>
-                {!['COMPLETED', 'REJECTED', 'CANCELLED_BY_CUSTOMER', 'CANCELLED_BY_BARBER', 'CANCELLED_BY_ADMIN'].includes((b.status ?? '').toUpperCase()) && (
-                  <div className="mt-4 flex justify-end border-t border-slate-100 pt-3">
-                    <Button variant="ghost" size="sm" onClick={() => void cancelBooking(b)} disabled={actionId === b.id} className="text-red-600 hover:bg-red-50">
-                      <XCircle size={14} /> {actionId === b.id ? 'Membatalkan...' : 'Batalkan Booking'}
-                    </Button>
-                  </div>
-                )}
                 <div>
                   <p className="text-[10px] uppercase font-bold text-slate-500">Barber / Barbershop</p>
                   <p className="font-bold text-slate-900 mt-0.5">{b.barberName}</p>
@@ -165,6 +180,29 @@ export default function AdminBookingsPage() {
                   <p className="text-[10px] uppercase font-bold text-slate-500">Total Harga</p>
                   <p className="font-bold text-red-600 mt-0.5">Rp {(b.totalPrice ?? 0).toLocaleString('id-ID')}</p>
                 </div>
+                {!['COMPLETED', 'REJECTED', 'CANCELLED_UNPAID', 'CANCELLED_BY_CUSTOMER', 'CANCELLED_BY_BARBER', 'CANCELLED_BY_ADMIN'].includes((b.status ?? '').toUpperCase()) && (
+                  <div className="sm:col-span-4 flex flex-col gap-3 border-t border-slate-100 pt-3 sm:flex-row sm:items-center sm:justify-between">
+                    <Button variant="ghost" size="sm" onClick={() => void cancelBooking(b)} disabled={actionId === b.id} className="self-start text-red-600 hover:bg-red-50">
+                      <XCircle size={14} /> {actionId === b.id ? 'Memproses...' : 'Batalkan Booking'}
+                    </Button>
+                    {barbers.length > 0 && (
+                      <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                        <select
+                          aria-label="Pilih barber pengganti"
+                          value={selectedBarbers[b.id!] ?? ''}
+                          onChange={(event) => setSelectedBarbers((current) => ({ ...current, [b.id!]: event.target.value }))}
+                          className="min-h-11 rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 outline-none focus:border-blue-600"
+                        >
+                          <option value="">Pilih barber pengganti</option>
+                          {barbers.map((barber) => <option key={barber.id} value={barber.id}>{barber.name}</option>)}
+                        </select>
+                        <Button variant="secondary" size="sm" onClick={() => void reassignBooking(b)} disabled={actionId === b.id || !selectedBarbers[b.id!]} className="min-h-11 border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100">
+                          <ArrowRightLeft size={14} /> Alihkan
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ))}

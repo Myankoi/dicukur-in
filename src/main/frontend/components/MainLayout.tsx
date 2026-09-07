@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { AnimatePresence, motion } from 'motion/react';
 import { ToastContainer } from './ui/Toast.js';
 import {
+  Activity,
   Bell,
   CalendarDays,
   CalendarPlus,
@@ -23,6 +24,7 @@ import {
   CheckCheck,
   Shield,
   Briefcase,
+  Settings2,
   User,
   type LucideIcon,
 } from 'lucide-react';
@@ -54,6 +56,8 @@ const navItems: Record<string, NavItem[]> = {
   Admin: [
     { label: 'Dashboard', path: '/admin', icon: LayoutDashboard },
     { label: 'Pendaftaran', path: '/admin/registrations', icon: ClipboardList },
+    { label: 'Operasional', path: '/admin/operations', icon: Settings2 },
+    { label: 'Log Aktivitas', path: '/admin/audit', icon: Activity },
     { label: 'User', path: '/admin/users', icon: Users },
     { label: 'Layanan', path: '/admin/services', icon: Scissors },
     { label: 'Booking', path: '/admin/bookings', icon: CalendarDays },
@@ -147,7 +151,7 @@ export default function MainLayout() {
       }
       setUser(currentUser as UserInfo);
       void fetchNotifications();
-    });
+    }).catch(() => navigate('/login'));
 
     const interval = setInterval(() => {
       void fetchNotifications();
@@ -193,6 +197,12 @@ export default function MainLayout() {
   const currentRoleConfig = roleConfig[userRole] || roleConfig.Customer;
   const RoleIcon = currentRoleConfig.icon;
   const items = user ? (navItems[user.role] ?? navItems.Customer) : [];
+  // Nested routes such as /customer/bookings/new match both the booking list
+  // and the booking creation link in React Router. Keep only the most specific
+  // matching item active so the sidebar never highlights two entries at once.
+  const activeNavPath = items
+    .filter((item) => location.pathname === item.path || location.pathname.startsWith(`${item.path}/`))
+    .sort((a, b) => b.path.length - a.path.length)[0]?.path;
 
   return (
     <>
@@ -243,18 +253,18 @@ export default function MainLayout() {
                 <NavLink
                   key={item.path}
                   to={item.path}
-                  end={item.path.split('/').length === 2}
-                  className={({ isActive }) => [
+                  end
+                  className={() => [
                     'group relative flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-all duration-150',
-                    isActive
+                    activeNavPath === item.path
                       ? 'bg-blue-50 text-blue-700 font-semibold border-l-4 border-blue-600 shadow-xs'
                       : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900',
                   ].join(' ')}
                   onClick={() => setSidebarOpen(false)}
                 >
-                  {({ isActive }) => (
+                  {() => (
                     <>
-                      <Icon size={17} className={isActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'} />
+                      <Icon size={17} className={activeNavPath === item.path ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'} />
                       <span>{item.label}</span>
                     </>
                   )}

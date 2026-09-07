@@ -17,7 +17,6 @@ public class SecurityConfig extends VaadinWebSecurity {
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf
                 .ignoringRequestMatchers(
-                        new AntPathRequestMatcher("/api/upload"),
                         new AntPathRequestMatcher("/api/uploads/**"),
                         new AntPathRequestMatcher("/api/payments/midtrans/notification")
                 )

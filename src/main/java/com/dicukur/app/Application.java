@@ -2,12 +2,14 @@ package com.dicukur.app;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.server.PWA;
 import com.vaadin.flow.theme.Theme;
 
 @SpringBootApplication
+@EnableScheduling
 @PWA(name = "dicukur.in", shortName = "dicukur.in")
 @Theme("dicukur-in")
 public class Application implements AppShellConfigurator {

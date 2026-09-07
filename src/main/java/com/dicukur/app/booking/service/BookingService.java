@@ -11,12 +11,16 @@ import com.dicukur.app.barbershop.repository.BarberTimeOffRepository;
 import com.dicukur.app.barbershop.repository.BarbershopRepository;
 import com.dicukur.app.barbershop.repository.BarbershopStaffRepository;
 import com.dicukur.app.booking.dto.BookingRequest;
+import com.dicukur.app.booking.dto.BookingItemRequest;
+import com.dicukur.app.booking.dto.BookingDetailResponse;
 import com.dicukur.app.booking.dto.BookingResponse;
 import com.dicukur.app.booking.entity.Booking;
 import com.dicukur.app.booking.entity.BookingDetail;
 import com.dicukur.app.booking.repository.BookingRepository;
 import com.dicukur.app.common.location.GeoDistance;
 import com.dicukur.app.notification.service.NotificationService;
+import com.dicukur.app.payment.entity.Payment;
+import com.dicukur.app.payment.repository.PaymentRepository;
 import com.dicukur.app.security.CurrentUserService;
 import com.dicukur.app.service.entity.BarbershopService;
 import com.dicukur.app.service.entity.PricingRule;
@@ -34,6 +38,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
@@ -57,6 +62,7 @@ public class BookingService {
     private final UserRepository userRepository;
     private final CurrentUserService currentUserService;
     private final NotificationService notificationService;
+    private final PaymentRepository paymentRepository;
 
     public BookingService(BookingRepository bookingRepository,
                           CustomerAddressRepository addressRepository,
@@ -70,7 +76,8 @@ public class BookingService {
                           ServiceOfferingRepository serviceOfferingRepository,
                           UserRepository userRepository,
                           CurrentUserService currentUserService,
-                          NotificationService notificationService) {
+                          NotificationService notificationService,
+                          PaymentRepository paymentRepository) {
         this.bookingRepository = bookingRepository;
         this.addressRepository = addressRepository;
         this.barbershopRepository = barbershopRepository;
@@ -84,11 +91,19 @@ public class BookingService {
         this.userRepository = userRepository;
         this.currentUserService = currentUserService;
         this.notificationService = notificationService;
+        this.paymentRepository = paymentRepository;
     }
 
     @Transactional
     public BookingResponse create(BookingRequest request) {
         User customer = currentUserService.requireUser();
+
+        if (request == null || request.items() == null || request.items().isEmpty()) {
+            throw new IllegalArgumentException("Minimal satu peserta harus ditambahkan");
+        }
+        if (request.items().size() > 10) {
+            throw new IllegalArgumentException("Satu booking maksimal untuk 10 peserta");
+        }
 
         // 1. Resolve address and verify ownership
         CustomerAddress address = addressRepository.findById(request.addressId())
@@ -104,6 +119,14 @@ public class BookingService {
         if (barber == null) {
             throw new IllegalArgumentException("Barber tidak ditemukan");
         }
+        if (barber.getRole() == null || !"Barber".equalsIgnoreCase(barber.getRole().getName())
+                || !"active".equalsIgnoreCase(barber.getStatus())) {
+            throw new IllegalArgumentException("Barber belum aktif atau belum terverifikasi");
+        }
+        BarberProfile barberProfile = profileRepository.findByUser_Id(barber.getId()).orElse(null);
+        if (barberProfile == null || !"verified".equalsIgnoreCase(barberProfile.getVerificationStatus())) {
+            throw new IllegalArgumentException("Profil barber belum diverifikasi admin");
+        }
 
         // 3. Optional barbershop validation
         Barbershop barbershop = null;
@@ -115,48 +138,45 @@ public class BookingService {
                     .isPresent();
             boolean isOwner = barbershop.getOwner() != null && barbershop.getOwner().getId().equals(barber.getId());
             if (!isStaff && !isOwner) {
-                // If staff entry status isn't active, fallback to check if user has barber role
-                boolean isBarberRole = barber.getRole() != null && ("BARBER".equalsIgnoreCase(barber.getRole().getName()) || "OWNER".equalsIgnoreCase(barber.getRole().getName()));
-                if (!isBarberRole) {
-                    throw new IllegalArgumentException("Barber bukan karyawan aktif dari barbershop ini");
-                }
+                throw new IllegalArgumentException("Barber bukan karyawan aktif dari barbershop ini");
             }
         }
 
-        // 4. Resolve service (BarbershopService ID → barbershop+global ID → global ServiceOffering fallback)
-        BarbershopService service = shopServiceRepository.findById(request.serviceId())
-                .orElseGet(() -> {
-                    if (request.barbershopId() != null) {
-                        BarbershopService found = shopServiceRepository.findByBarbershop_IdAndService_IdAndStatus(
-                                request.barbershopId(), request.serviceId(), "active"
-                        ).orElse(null);
-                        if (found != null) return found;
-                    }
-                    // BUG 5 FIX: Fallback ke global ServiceOffering jika tidak ada di barbershop_services
-                    ServiceOffering offering = serviceOfferingRepository
-                            .findByIdAndStatus(request.serviceId(), "active").orElse(null);
-                    if (offering != null) {
-                        BarbershopService wrapper = new BarbershopService();
-                        wrapper.setService(offering);
-                        wrapper.setStatus("active");
-                        return wrapper;
-                    }
-                    return null;
-                });
-        if (service == null) {
-            throw new IllegalArgumentException("Layanan tidak ditemukan atau tidak aktif");
+        // 4. Resolve every service and calculate the complete appointment duration server-side.
+        List<ResolvedItem> resolvedItems = new ArrayList<>();
+        int duration = 0;
+        BigDecimal subtotal = BigDecimal.ZERO;
+        int sequence = 1;
+        for (BookingItemRequest item : request.items()) {
+            if (item == null || item.participantName() == null || item.participantName().isBlank()) {
+                throw new IllegalArgumentException("Nama setiap peserta wajib diisi");
+            }
+            String participantName = item.participantName().trim();
+            if (participantName.length() > 100) {
+                throw new IllegalArgumentException("Nama peserta maksimal 100 karakter");
+            }
+            BarbershopService service = resolveService(request.barbershopId(), item.serviceId());
+            if (service == null || service.getService() == null) {
+                throw new IllegalArgumentException("Layanan tidak ditemukan atau tidak aktif");
+            }
+            int itemDuration = service.getBusinessDuration() != null && service.getBusinessDuration() > 0
+                    ? service.getBusinessDuration() : 30;
+            BigDecimal itemPrice = service.getBusinessPrice() != null
+                    ? service.getBusinessPrice() : service.getService().getPrice();
+            if (itemPrice == null) itemPrice = BigDecimal.ZERO;
+            resolvedItems.add(new ResolvedItem(participantName, sequence++, service, itemPrice, itemDuration));
+            duration += itemDuration;
+            subtotal = subtotal.add(itemPrice);
         }
 
         // 5. Parse start time and compute duration
         LocalDateTime start = parseStart(request.startDatetime());
-        int duration = service.getBusinessDuration() != null && service.getBusinessDuration() > 0 ? service.getBusinessDuration() : 30;
         LocalDateTime end = start.plusMinutes(duration);
 
         // 6. Validate barber schedule
         validateBarberSchedule(barber.getId(), start, end);
 
         // 7. Compute distance using barber profile base location or barbershop location fallback
-        BarberProfile barberProfile = profileRepository.findByUser_Id(barber.getId()).orElse(null);
         BigDecimal baseLat = (barberProfile != null && barberProfile.getBaseLatitude() != null)
                 ? barberProfile.getBaseLatitude()
                 : (barbershop != null && barbershop.getLatitude() != null ? barbershop.getLatitude() : BigDecimal.valueOf(-6.2088));
@@ -184,11 +204,8 @@ public class BookingService {
                     return defaultRule;
                 });
 
-        // 9. Compute travel fee and totals
+        // 9. Compute travel fee and totals. Travel is charged once per booking.
         BigDecimal travelFee = calculateTravelFee(distance, pricingRule);
-        BigDecimal subtotal = service.getBusinessPrice() != null
-                ? service.getBusinessPrice()
-                : (service.getService() != null ? service.getService().getPrice() : BigDecimal.ZERO);
         BigDecimal total = subtotal.add(travelFee);
 
         // 10. Build booking entity
@@ -219,15 +236,17 @@ public class BookingService {
         booking.setCreatedAt(LocalDateTime.now());
         booking.setUpdatedAt(LocalDateTime.now());
 
-        // Booking detail linking to service offering
-        BookingDetail detail = new BookingDetail();
-        detail.setService(service.getService());
-        detail.setServiceName(service.getService() != null ? service.getService().getName() : "Layanan");
-        detail.setPrice(subtotal);
-        detail.setDuration(duration);
-        detail.setSubtotal(subtotal);
-
-        booking.addDetail(detail);
+        for (ResolvedItem item : resolvedItems) {
+            BookingDetail detail = new BookingDetail();
+            detail.setParticipantName(item.participantName());
+            detail.setSequenceNumber(item.sequence());
+            detail.setService(item.service().getService());
+            detail.setServiceName(item.service().getService().getName());
+            detail.setPrice(item.price());
+            detail.setDuration(item.duration());
+            detail.setSubtotal(item.price());
+            booking.addDetail(detail);
+        }
         Booking saved = bookingRepository.save(booking);
 
         // 11. Notify Barber of new booking request
@@ -246,6 +265,36 @@ public class BookingService {
         return toResponse(saved);
     }
 
+    private BarbershopService resolveService(Long barbershopId, Long serviceId) {
+        if (serviceId == null) return null;
+        if (barbershopId != null) {
+            List<BarbershopService> activeShopServices = shopServiceRepository
+                    .findByBarbershop_IdAndStatus(barbershopId, "active");
+            if (!activeShopServices.isEmpty()) {
+                // Detail page sends the barbershop_service id. Keep global service id as
+                // a backwards-compatible fallback, but never allow a service that the
+                // selected shop does not offer.
+                return activeShopServices.stream()
+                        .filter(item -> serviceId.equals(item.getId()))
+                        .findFirst()
+                        .or(() -> activeShopServices.stream()
+                                .filter(item -> item.getService() != null && serviceId.equals(item.getService().getId()))
+                                .findFirst())
+                        .orElse(null);
+            }
+        }
+        // Keep compatibility with old clients/data where serviceId was global.
+        ServiceOffering offering = serviceOfferingRepository.findByIdAndStatus(serviceId, "active").orElse(null);
+        if (offering == null) return null;
+        BarbershopService wrapper = new BarbershopService();
+        wrapper.setService(offering);
+        wrapper.setStatus("active");
+        return wrapper;
+    }
+
+    private record ResolvedItem(String participantName, int sequence, BarbershopService service,
+                                BigDecimal price, int duration) {}
+
     @Transactional(readOnly = true)
     public List<BookingResponse> getMyBookings() {
         User user = currentUserService.requireUser();
@@ -257,9 +306,14 @@ public class BookingService {
 
     @Transactional(readOnly = true)
     public BookingResponse getBookingById(Long id) {
-        return bookingRepository.findById(id)
-                .map(this::toResponse)
-                .orElse(null);
+        User user = currentUserService.requireUser();
+        Booking booking = bookingRepository.findById(id).orElse(null);
+        if (booking == null) return null;
+        boolean admin = user.getRole() != null && "Admin".equalsIgnoreCase(user.getRole().getName());
+        if (!admin && !booking.getCustomer().getId().equals(user.getId())) {
+            throw new IllegalStateException("Anda tidak memiliki akses ke booking ini");
+        }
+        return toResponse(booking);
     }
 
     @Transactional
@@ -273,14 +327,33 @@ public class BookingService {
             throw new IllegalArgumentException("Anda tidak memiliki akses untuk membatalkan booking ini");
         }
 
-        if ("completed".equalsIgnoreCase(booking.getStatus()) || booking.getStatus().startsWith("cancelled")) {
+        if ("completed".equalsIgnoreCase(booking.getStatus()) || booking.getStatus().startsWith("cancelled")
+                || "on_the_way".equalsIgnoreCase(booking.getStatus())
+                || "arrived".equalsIgnoreCase(booking.getStatus())
+                || "in_progress".equalsIgnoreCase(booking.getStatus())) {
             throw new IllegalStateException("Booking sudah selesai atau sudah dibatalkan");
         }
 
         booking.setStatus("cancelled_by_customer");
         booking.setCancellationReason(blankToNull(reason));
         booking.setUpdatedAt(LocalDateTime.now());
-        Booking saved = bookingRepository.save(booking);
+        if ("paid".equalsIgnoreCase(booking.getPaymentStatus())) {
+            booking.setPaymentStatus("refund_pending");
+            paymentRepository.findByBooking_Id(booking.getId()).ifPresent(payment -> {
+                payment.setStatus("refund_pending");
+                payment.setRefundReason(booking.getCancellationReason());
+                payment.setUpdatedAt(LocalDateTime.now());
+                paymentRepository.save(payment);
+            });
+        } else {
+            booking.setPaymentStatus("unpaid");
+            paymentRepository.findByBooking_Id(booking.getId()).ifPresent(payment -> {
+                payment.setStatus("cancelled");
+                payment.setUpdatedAt(LocalDateTime.now());
+                paymentRepository.save(payment);
+            });
+        }
+        bookingRepository.save(booking);
 
         try {
             notificationService.createNotification(
@@ -361,7 +434,17 @@ public class BookingService {
     }
 
     private BookingResponse toResponse(Booking booking) {
-        String serviceName = booking.getDetails().isEmpty() ? "Layanan" : booking.getDetails().get(0).getServiceName();
+        String serviceName = booking.getDetails().isEmpty() ? "Layanan"
+                : booking.getDetails().size() == 1 ? booking.getDetails().get(0).getServiceName()
+                : booking.getDetails().get(0).getServiceName() + " + " + (booking.getDetails().size() - 1) + " lainnya";
+        List<BookingDetailResponse> details = booking.getDetails().stream()
+                .map(d -> new BookingDetailResponse(
+                        d.getId(),
+                        d.getParticipantName() == null ? "Peserta" : d.getParticipantName(),
+                        d.getSequenceNumber() == null ? 1 : d.getSequenceNumber(),
+                        d.getService() != null ? d.getService().getId() : null,
+                        d.getServiceName(), d.getPrice(), d.getDuration(), d.getSubtotal()))
+                .toList();
         return new BookingResponse(
                 booking.getId(), booking.getBookingCode(),
                 booking.getBarbershop() == null ? "Barbershop" : booking.getBarbershop().getName(),
@@ -374,7 +457,10 @@ public class BookingService {
                 booking.getBarberLongitude(),
                 booking.getBarber().getPhone(),
                 booking.getDistanceKm(), booking.getServiceSubtotal(),
-                booking.getTravelFee(), booking.getTotalPrice(), booking.getStatus(), booking.getPaymentStatus()
+                booking.getTravelFee(), booking.getTotalPrice(), booking.getStatus(), booking.getPaymentStatus(),
+                booking.getPaymentDeadline() != null ? booking.getPaymentDeadline().toString() : null,
+                booking.getLocationUpdatedAt() != null ? booking.getLocationUpdatedAt().toString() : null,
+                details
         );
     }
 

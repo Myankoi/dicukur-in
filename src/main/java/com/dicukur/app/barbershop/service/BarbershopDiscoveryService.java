@@ -80,6 +80,7 @@ public class BarbershopDiscoveryService {
                         BigDecimal.valueOf(longitude - longitudeDelta),
                         BigDecimal.valueOf(longitude + longitudeDelta)
                 ).stream()
+                .filter(this::hasEligibleBarber)
                 .map(shop -> toNearby(shop, latitude, longitude, requestedRadius))
                 .filter(response -> response != null)
                 .sorted(Comparator.comparingDouble(NearbyBarbershopResponse::distanceKm))
@@ -152,6 +153,13 @@ public class BarbershopDiscoveryService {
                 barber.getId(), barber.getName(), staff.getPosition(), profile.getRatingAverage(),
                 profile.getTotalCompleted(), profile.getAvailabilityStatus(), barber.getPhoto()
         );
+    }
+
+    private boolean hasEligibleBarber(Barbershop shop) {
+        return staffRepository.findByBarbershop_IdAndEmploymentStatus(shop.getId(), ACTIVE)
+                .stream()
+                .map(this::toStaff)
+                .anyMatch(item -> item != null);
     }
 
     private ShopServiceResponse toService(BarbershopService shopService) {

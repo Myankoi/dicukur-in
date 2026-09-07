@@ -15,6 +15,7 @@ import {
   LocateFixed,
 } from 'lucide-react';
 import { BarberEndpoint } from '../../generated/endpoints.js';
+import { BarberRegistrationEndpoint } from '../../generated/endpoints.js';
 
 interface BarberProfile {
   name: string;
@@ -268,6 +269,8 @@ export default function BarberProfilePage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const [registration, setRegistration] = useState<any>(null);
+  const [documentUploading, setDocumentUploading] = useState(false);
 
   // Form states
   const [name, setName] = useState('');
@@ -279,8 +282,8 @@ export default function BarberProfilePage() {
   const [baseLongitude, setBaseLongitude] = useState(0);
 
   useEffect(() => {
-    BarberEndpoint.getMyProfile()
-      .then((res: any) => {
+    Promise.all([BarberEndpoint.getMyProfile(), BarberRegistrationEndpoint.getMyRegistration()])
+      .then(([res, registrationData]: any[]) => {
         if (res) {
           setProfile(res);
           setName(res.name || '');
@@ -291,6 +294,7 @@ export default function BarberProfilePage() {
           setBaseLatitude(res.baseLatitude || 0);
           setBaseLongitude(res.baseLongitude || 0);
         }
+        setRegistration(registrationData ?? null);
       })
       .catch((err: any) => {
         setError(err?.message || 'Gagal memuat profil');
@@ -372,6 +376,26 @@ export default function BarberProfilePage() {
     }
   };
 
+  const uploadRegistrationDocument = async (documentType: 'identity_card' | 'competency_certificate' | 'portfolio', file: File) => {
+    if (!registration?.id) return;
+    if (!['image/jpeg', 'image/png', 'application/pdf'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      setError('Dokumen harus JPG, PNG, atau PDF dan maksimal 5 MB.');
+      return;
+    }
+    setDocumentUploading(true); setError('');
+    try {
+      const formData = new FormData(); formData.append('file', file); formData.append('type', 'documents');
+      const uploaded = await fetch('/api/upload', { method: 'POST', body: formData });
+      const data = await uploaded.json();
+      if (!uploaded.ok) throw new Error(data.error || 'Upload dokumen gagal');
+      const next = await BarberRegistrationEndpoint.addDocument({ registrationId: registration.id, documentType, filePath: data.path, fileName: file.name, mimeType: file.type, fileSize: file.size });
+      setRegistration(next);
+      setSuccess('Dokumen berhasil dikirim untuk diverifikasi admin.');
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Upload dokumen gagal');
+    } finally { setDocumentUploading(false); }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -405,6 +429,23 @@ export default function BarberProfilePage() {
           <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
           {success}
         </div>
+      )}
+
+      {registration && registration.status !== 'approved' && (
+        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
+          <div className="flex items-start gap-3">
+            <ShieldCheck size={20} className="mt-0.5 shrink-0 text-amber-600" />
+            <div className="min-w-0 flex-1"><h2 className="text-sm font-bold text-amber-900">Lengkapi verifikasi barber</h2><p className="mt-1 text-xs leading-5 text-amber-800">Upload KTP dan minimal salah satu sertifikat kompetensi atau portofolio. Kamu belum bisa menerima booking sebelum dokumen disetujui admin.</p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                {([['identity_card','KTP'], ['competency_certificate','Sertifikat kompetensi'], ['portfolio','Portofolio']] as const).map(([type, label]) => {
+                  const doc = registration.documents?.find((item: any) => item.documentType === type);
+                  return <label key={type} className="flex min-h-24 cursor-pointer flex-col justify-between rounded-xl border border-amber-200 bg-white p-3 text-xs font-bold text-slate-800 hover:border-amber-400"><span>{label}</span><span className={`text-[10px] ${doc?.verificationStatus === 'valid' ? 'text-emerald-600' : doc?.verificationStatus === 'invalid' ? 'text-red-600' : 'text-amber-700'}`}>{doc ? doc.verificationStatus === 'valid' ? 'Disetujui' : doc.verificationStatus === 'invalid' ? 'Ditolak, upload ulang' : 'Menunggu review' : 'Pilih file'}</span><input type="file" accept="image/jpeg,image/png,application/pdf" className="sr-only" disabled={documentUploading} onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadRegistrationDocument(type, file); event.currentTarget.value = ''; }} /></label>;
+                })}
+              </div>
+              {documentUploading && <p className="mt-3 text-[11px] font-semibold text-amber-800">Mengunggah dokumen...</p>}
+            </div>
+          </div>
+        </section>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

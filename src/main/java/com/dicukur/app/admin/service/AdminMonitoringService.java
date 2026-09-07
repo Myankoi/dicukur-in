@@ -7,6 +7,7 @@ import com.dicukur.app.barbershop.repository.BarbershopRepository;
 import com.dicukur.app.booking.entity.Booking;
 import com.dicukur.app.booking.repository.BookingRepository;
 import com.dicukur.app.notification.service.NotificationService;
+import com.dicukur.app.payment.repository.PaymentRepository;
 import com.dicukur.app.review.repository.ReviewRepository;
 import com.dicukur.app.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -27,19 +28,25 @@ public class AdminMonitoringService {
     private final BarbershopRepository barbershopRepository;
     private final ReviewRepository reviewRepository;
     private final NotificationService notificationService;
+    private final PaymentRepository paymentRepository;
+    private final AdminAuditService auditService;
 
     public AdminMonitoringService(BookingRepository bookingRepository,
                                   UserRepository userRepository,
                                   BarberProfileRepository barberProfileRepository,
                                   BarbershopRepository barbershopRepository,
                                   ReviewRepository reviewRepository,
-                                  NotificationService notificationService) {
+                                  NotificationService notificationService,
+                                  PaymentRepository paymentRepository,
+                                  AdminAuditService auditService) {
         this.bookingRepository = bookingRepository;
         this.userRepository = userRepository;
         this.barberProfileRepository = barberProfileRepository;
         this.barbershopRepository = barbershopRepository;
         this.reviewRepository = reviewRepository;
         this.notificationService = notificationService;
+        this.paymentRepository = paymentRepository;
+        this.auditService = auditService;
     }
 
     public List<AdminBookingResponse> getAllBookings() {
@@ -79,7 +86,24 @@ public class AdminMonitoringService {
         booking.setStatus("cancelled_by_admin");
         booking.setCancellationReason(reason == null || reason.isBlank() ? "Dibatalkan oleh admin" : reason.trim());
         booking.setUpdatedAt(java.time.LocalDateTime.now());
+        if ("paid".equalsIgnoreCase(booking.getPaymentStatus())) {
+            booking.setPaymentStatus("refund_pending");
+            paymentRepository.findByBooking_Id(booking.getId()).ifPresent(payment -> {
+                payment.setStatus("refund_pending");
+                payment.setRefundReason(booking.getCancellationReason());
+                payment.setUpdatedAt(java.time.LocalDateTime.now());
+                paymentRepository.save(payment);
+            });
+        } else {
+            booking.setPaymentStatus("unpaid");
+            paymentRepository.findByBooking_Id(booking.getId()).ifPresent(payment -> {
+                payment.setStatus("cancelled");
+                payment.setUpdatedAt(java.time.LocalDateTime.now());
+                paymentRepository.save(payment);
+            });
+        }
         bookingRepository.save(booking);
+        auditService.record("CANCEL_BOOKING", "BOOKING", booking.getId(), booking.getCancellationReason());
 
         if (booking.getCustomer() != null) {
             notificationService.createNotification(booking.getCustomer().getId(), "Booking Dibatalkan Admin",

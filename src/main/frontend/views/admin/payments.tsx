@@ -24,6 +24,16 @@ export default function AdminPaymentsPage() {
     }
   }, []);
 
+  const handleRefund = async (paymentId: number, action: 'approve' | 'reject') => {
+    const notes = window.prompt(action === 'approve' ? 'Catatan refund (opsional):' : 'Alasan menolak refund:');
+    if (action === 'reject' && !notes?.trim()) return;
+    const reference = action === 'approve' ? window.prompt('Nomor referensi refund (wajib untuk transfer):') || '' : '';
+    setActionLoading(true);
+    try { await PaymentEndpoint.processRefund(paymentId, action, notes || '', reference, ''); await loadPayments(); }
+    catch (cause) { alert(cause instanceof Error ? cause.message : 'Gagal memproses refund'); }
+    finally { setActionLoading(false); }
+  };
+
   useEffect(() => {
     void loadPayments();
   }, [loadPayments]);
@@ -83,6 +93,8 @@ export default function AdminPaymentsPage() {
                           ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                           : p.status === 'waiting_verification'
                           ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                        : p.status === 'refund_pending'
+                          ? 'bg-purple-50 text-purple-700 border border-purple-200'
                           : 'bg-red-50 text-red-700 border border-red-200'
                       }`}
                     >
@@ -130,6 +142,12 @@ export default function AdminPaymentsPage() {
                       >
                         <X size={14} /> Tolak
                       </Button>
+                    </>
+                  )}
+                  {p.status === 'refund_pending' && (
+                    <>
+                      <Button variant="primary" size="sm" onClick={() => void handleRefund(p.id!, 'approve')} disabled={actionLoading} className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold">Proses Refund</Button>
+                      <Button variant="ghost" size="sm" onClick={() => void handleRefund(p.id!, 'reject')} disabled={actionLoading} className="text-red-600 hover:bg-red-50 text-xs font-bold">Tolak Refund</Button>
                     </>
                   )}
                 </div>

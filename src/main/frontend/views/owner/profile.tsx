@@ -655,7 +655,7 @@ export default function OwnerProfilePage() {
                     <button
                       type="button"
                       onClick={() => handleDeletePhoto(photo.id)}
-                      className="absolute top-1.5 right-1.5 grid size-6 place-items-center rounded-full bg-red-600 text-white opacity-0 group-hover:opacity-100 transition"
+                      className="absolute top-1.5 right-1.5 grid size-9 place-items-center rounded-full bg-red-600 text-white opacity-100 md:size-7 md:opacity-0 md:group-hover:opacity-100 transition"
                       title="Hapus foto"
                     >
                       <Trash2 size={13} />

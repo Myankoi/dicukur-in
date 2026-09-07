@@ -29,4 +29,8 @@ public class AdminRegistrationEndpoint {
     public RegistrationResponse rejectRegistration(Long registrationId, String rejectionReason) {
         return registrationService.rejectRegistration(registrationId, rejectionReason);
     }
+
+    public RegistrationResponse verifyDocument(Long documentId, String action, String notes) {
+        return registrationService.verifyDocument(documentId, action, notes);
+    }
 }

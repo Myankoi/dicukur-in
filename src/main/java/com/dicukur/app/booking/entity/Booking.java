@@ -94,6 +94,15 @@ public class Booking {
     @Column(name = "payment_status", nullable = false, length = 30)
     private String paymentStatus;
 
+    @Column(name = "payment_deadline")
+    private LocalDateTime paymentDeadline;
+
+    @Column(name = "location_accuracy", precision = 8, scale = 2)
+    private BigDecimal locationAccuracy;
+
+    @Column(name = "location_updated_at")
+    private LocalDateTime locationUpdatedAt;
+
     @Column(columnDefinition = "TEXT")
     private String notes;
 

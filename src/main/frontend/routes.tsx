@@ -11,6 +11,8 @@ import AdminServicesPage from './views/admin/services.js';
 import AdminBookingsPage from './views/admin/bookings.js';
 import AdminPaymentsPage from './views/admin/payments.js';
 import AdminReportsPage from './views/admin/reports.js';
+import AdminOperationsPage from './views/admin/operations.js';
+import AdminAuditPage from './views/admin/audit.js';
 import BarberDashboard from './views/barber/index.js';
 import BarberBookingsPage from './views/barber/bookings.js';
 import BarberSchedulePage from './views/barber/schedule.js';
@@ -28,6 +30,8 @@ import NewBookingPage from './views/customer/bookings-new.js';
 import CustomerBookingsPage from './views/customer/bookings.js';
 import CustomerBookingDetailPage from './views/customer/booking-detail.js';
 import BarbershopDetailPage from './views/customer/barbershop-detail.js';
+import JoinBarberPage from './views/register/join-barber.js';
+import TrackingPage from './views/tracking.js';
 
 export const routes: RouteObject[] = [
   { path: '/', element: <HomePage /> },
@@ -36,6 +40,7 @@ export const routes: RouteObject[] = [
   { path: '/register/customer', element: <Navigate to="/register?type=customer" replace /> },
   { path: '/register/barber', element: <Navigate to="/register?type=owner" replace /> },
   { path: '/register/owner', element: <Navigate to="/register?type=owner" replace /> },
+  { path: '/join/barber/:token', element: <JoinBarberPage /> },
   {
     element: <MainLayout />,
     children: [
@@ -46,6 +51,8 @@ export const routes: RouteObject[] = [
       { path: '/admin/bookings', element: <AdminBookingsPage /> },
       { path: '/admin/payments', element: <AdminPaymentsPage /> },
       { path: '/admin/reports', element: <AdminReportsPage /> },
+      { path: '/admin/operations', element: <AdminOperationsPage /> },
+      { path: '/admin/audit', element: <AdminAuditPage /> },
       { path: '/barber', element: <BarberDashboard /> },
       { path: '/barber/bookings', element: <BarberBookingsPage /> },
       { path: '/barber/schedule', element: <BarberSchedulePage /> },
@@ -62,6 +69,8 @@ export const routes: RouteObject[] = [
       { path: '/customer/bookings/new', element: <NewBookingPage /> },
       { path: '/customer/bookings', element: <CustomerBookingsPage /> },
       { path: '/customer/bookings/:id', element: <CustomerBookingDetailPage /> },
+      { path: '/customer/bookings/:id/tracking', element: <TrackingPage /> },
+      { path: '/barber/bookings/:id/tracking', element: <TrackingPage /> },
       { path: '/customer/barbershops/:id', element: <BarbershopDetailPage /> },
     ],
   },

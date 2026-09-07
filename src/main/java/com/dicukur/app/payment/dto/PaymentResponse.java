@@ -16,6 +16,10 @@ public record PaymentResponse(
         String paidAt,
         String verifiedAt,
         String notes,
-        String createdAt
+        String createdAt,
+        String refundReason,
+        String refundReference,
+        String refundProof,
+        String refundedAt
 ) {
 }

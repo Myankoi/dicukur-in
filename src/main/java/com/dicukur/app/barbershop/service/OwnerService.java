@@ -6,10 +6,12 @@ import com.dicukur.app.barbershop.entity.BarberProfile;
 import com.dicukur.app.barbershop.entity.Barbershop;
 import com.dicukur.app.barbershop.entity.BarbershopPhoto;
 import com.dicukur.app.barbershop.entity.BarbershopStaff;
+import com.dicukur.app.barbershop.entity.StaffInvitation;
 import com.dicukur.app.barbershop.repository.BarberProfileRepository;
 import com.dicukur.app.barbershop.repository.BarbershopPhotoRepository;
 import com.dicukur.app.barbershop.repository.BarbershopRepository;
 import com.dicukur.app.barbershop.repository.BarbershopStaffRepository;
+import com.dicukur.app.barbershop.repository.StaffInvitationRepository;
 import com.dicukur.app.booking.repository.BookingRepository;
 import com.dicukur.app.security.CurrentUserService;
 import com.dicukur.app.user.entity.Role;
@@ -24,6 +26,10 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 @Service
 public class OwnerService {
@@ -37,6 +43,7 @@ public class OwnerService {
     private final PasswordEncoder passwordEncoder;
     private final BarbershopPhotoRepository photoRepository;
     private final CurrentUserService currentUserService;
+    private final StaffInvitationRepository invitationRepository;
 
     public OwnerService(BarbershopRepository barbershopRepository,
                         BarbershopStaffRepository staffRepository,
@@ -46,7 +53,8 @@ public class OwnerService {
                         RoleRepository roleRepository,
                         PasswordEncoder passwordEncoder,
                         CurrentUserService currentUserService,
-                        BarbershopPhotoRepository photoRepository) {
+                        BarbershopPhotoRepository photoRepository,
+                        StaffInvitationRepository invitationRepository) {
         this.barbershopRepository = barbershopRepository;
         this.staffRepository = staffRepository;
         this.barberProfileRepository = barberProfileRepository;
@@ -56,6 +64,7 @@ public class OwnerService {
         this.passwordEncoder = passwordEncoder;
         this.currentUserService = currentUserService;
         this.photoRepository = photoRepository;
+        this.invitationRepository = invitationRepository;
     }
 
     @Transactional(readOnly = true)
@@ -189,68 +198,56 @@ public class OwnerService {
 
     @Transactional
     public StaffResponse addStaff(AddStaffRequest req) {
+        throw new IllegalStateException("Gunakan undangan barber agar akun dan dokumen dapat diverifikasi admin");
+    }
+
+    @Transactional
+    public StaffInvitationResponse inviteStaff(StaffInvitationRequest req) {
         User owner = currentUserService.requireRole("Owner");
         Barbershop shop = barbershopRepository.findByOwner_Id(owner.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Barbershop belum terdaftar. Lengkapi profil barbershop terlebih dahulu."));
 
         String email = req.email().trim().toLowerCase(Locale.ROOT);
         if (userRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("Email sudah terdaftar, gunakan email lain: " + email);
+            throw new IllegalArgumentException("Email sudah memiliki akun. Barber harus memakai email baru atau mengajukan melalui akun tersebut.");
         }
-
-        Role barberRole = roleRepository.findByName("Barber")
-                .orElseThrow(() -> new IllegalStateException("Konfigurasi sistem bermasalah: Role Barber tidak ditemukan"));
-
         LocalDateTime now = LocalDateTime.now();
+        String rawToken = UUID.randomUUID().toString() + UUID.randomUUID();
+        StaffInvitation invitation = new StaffInvitation();
+        invitation.setBarbershop(shop);
+        invitation.setInvitedBy(owner);
+        invitation.setEmail(email);
+        invitation.setPhone(blankToNull(req.phone()));
+        invitation.setPosition(req.position() != null && !req.position().isBlank() ? req.position().trim() : "Barber");
+        invitation.setTokenHash(hashToken(rawToken));
+        invitation.setStatus("pending");
+        invitation.setExpiresAt(now.plusDays(7));
+        invitation.setCreatedAt(now);
+        invitation.setUpdatedAt(now);
+        StaffInvitation saved = invitationRepository.save(invitation);
+        return new StaffInvitationResponse(saved.getId(), saved.getEmail(), saved.getPhone(), saved.getPosition(),
+                saved.getStatus(), saved.getExpiresAt().toString(), rawToken, "/join/barber/" + rawToken);
+    }
 
-        // Fallback lokasi aman jika barbershop belum set koordinat
-        BigDecimal lat = (shop.getLatitude() != null) ? shop.getLatitude() : new BigDecimal("-6.2088");
-        BigDecimal lng = (shop.getLongitude() != null) ? shop.getLongitude() : new BigDecimal("106.8456");
-        BigDecimal radius = (shop.getServiceRadiusKm() != null) ? shop.getServiceRadiusKm() : new BigDecimal("10.00");
-        String address = (shop.getBusinessAddress() != null) ? shop.getBusinessAddress() : "Alamat belum diisi";
+    @Transactional(readOnly = true)
+    public List<StaffInvitationResponse> getMyStaffInvitations() {
+        User owner = currentUserService.requireRole("Owner");
+        Barbershop shop = barbershopRepository.findByOwner_Id(owner.getId()).orElse(null);
+        if (shop == null) return List.of();
+        return invitationRepository.findByBarbershop_IdOrderByCreatedAtDesc(shop.getId()).stream()
+                .map(i -> new StaffInvitationResponse(i.getId(), i.getEmail(), i.getPhone(), i.getPosition(),
+                        i.getStatus(), i.getExpiresAt().toString(), null, null)).toList();
+    }
 
-        // 1. Buat User Barber baru
-        User barber = new User();
-        barber.setName(req.name().trim());
-        barber.setEmail(email);
-        barber.setPhone(blankToNull(req.phone()));
-        barber.setPassword(passwordEncoder.encode(req.password()));
-        barber.setRole(barberRole);
-        barber.setStatus("active");
-        barber.setCreatedAt(now);
-        barber.setUpdatedAt(now);
-        User savedBarber = userRepository.save(barber);
-
-        // 2. Buat Barber Profile (menggunakan fallback koordinat yang aman)
-        BarberProfile profile = new BarberProfile();
-        profile.setUser(savedBarber);
-        profile.setBarberType("employee");
-        profile.setBarbershop(shop);
-        profile.setBaseAddress(address);
-        profile.setBaseLatitude(lat);
-        profile.setBaseLongitude(lng);
-        profile.setServiceRadiusKm(radius);
-        profile.setVerificationStatus("verified");
-        profile.setAvailabilityStatus("available");
-        profile.setRatingAverage(BigDecimal.ZERO);
-        profile.setTotalCompleted(0);
-        profile.setCreatedAt(now);
-        profile.setUpdatedAt(now);
-        barberProfileRepository.save(profile);
-
-        // 3. Kaitkan ke Barbershop Staff
-        BarbershopStaff staff = new BarbershopStaff();
-        staff.setBarbershop(shop);
-        staff.setBarber(savedBarber);
-        staff.setAddedBy(owner);
-        staff.setPosition(req.position() != null && !req.position().isBlank() ? req.position().trim() : "Barber");
-        staff.setEmploymentStatus("active");
-        staff.setJoinedAt(now);
-        staff.setCreatedAt(now);
-        staff.setUpdatedAt(now);
-        BarbershopStaff savedStaff = staffRepository.save(staff);
-
-        return toStaffResponse(savedStaff);
+    private String hashToken(String token) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(token.getBytes(StandardCharsets.UTF_8));
+            StringBuilder result = new StringBuilder();
+            for (byte value : digest) result.append(String.format("%02x", value));
+            return result.toString();
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("Hash token tidak tersedia", exception);
+        }
     }
 
     @Transactional

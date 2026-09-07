@@ -80,7 +80,7 @@ export default function CustomerBookingsPage() {
   const canPay = (status?: string, paymentStatus?: string) => {
     const s = status?.toUpperCase() ?? '';
     const p = paymentStatus?.toLowerCase();
-    return ['PENDING', 'ACCEPTED', 'ON_THE_WAY', 'ARRIVED', 'IN_PROGRESS', 'COMPLETED'].includes(s)
+    return ['PENDING', 'ACCEPTED'].includes(s)
       && p !== 'paid' && p !== 'waiting_verification';
   };
 
@@ -137,6 +137,13 @@ export default function CustomerBookingsPage() {
           <span className="inline-flex items-center gap-1.5 rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-xs font-bold text-red-300">
             <ShieldAlert size={13} />
             Dibatalkan
+          </span>
+        );
+      case 'cancelled_unpaid':
+        return (
+          <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-500/30 bg-slate-500/10 px-2.5 py-1 text-xs font-bold text-slate-300">
+            <ShieldAlert size={13} />
+            Batal — Belum Dibayar
           </span>
         );
       case 'pending':
